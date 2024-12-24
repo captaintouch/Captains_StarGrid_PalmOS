@@ -1,4 +1,5 @@
 #include "colors.h"
+
 #include <PalmOS.h>
 
 IndexedColorType colors_reference[5];
