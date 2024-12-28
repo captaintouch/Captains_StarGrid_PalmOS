@@ -19,8 +19,9 @@ void game_setup() {
 
 static void game_drawSelectedTile() {
     Coordinate selectedTile = hexgrid_tileAtPixel(gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y);
-    drawhelper_applyForeColor(EMERALD);
-    hexgrid_drawTileAtPosition(selectedTile);
+    //drawhelper_applyForeColor(EMERALD);
+    //hexgrid_drawTileAtPosition(selectedTile);
+    hexgrid_fillTileAtPosition(selectedTile, EMERALD, backgroundBuffer);
     drawhelper_applyForeColor(ALIZARIN);
 }
 

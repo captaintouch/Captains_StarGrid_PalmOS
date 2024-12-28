@@ -1,28 +1,83 @@
 #include "hexgrid.h"
-
 #include "../constants.h"
 #include "colors.h"
 #include "drawhelper.h"
 #include "mathIsFun.h"
 #include "models.h"
+#include "../constants.h"
 
 #define HEXGRID_ROWS 15
 #define HEXGRID_COLS 15
+#define HEXTILE_POINTS 6
+
+static void hexgrid_tileCoords(int startX, int startY, Coordinate coordinates[]) {
+    coordinates[0] = (Coordinate){startX + HEXTILE_SIZE / 2, startY};
+    coordinates[1] = (Coordinate){startX, startY + HEXTILE_SEGMENT_SIZE};
+    coordinates[2] = (Coordinate){startX, startY + HEXTILE_SIZE - HEXTILE_SEGMENT_SIZE};
+    coordinates[3] = (Coordinate){coordinates[0].x, startY + HEXTILE_SIZE};
+    coordinates[4] = (Coordinate){startX + HEXTILE_SIZE, coordinates[2].y};
+    coordinates[5] = (Coordinate){startX + HEXTILE_SIZE, coordinates[1].y};
+}
 
 static void hexgrid_drawTile(int startX, int startY) {
-    Coordinate coordA = {startX + HEXTILE_SIZE / 2, startY};
-    Coordinate coordB = {startX, startY + HEXTILE_SEGMENT_SIZE};
-    Coordinate coordC = {startX, startY + HEXTILE_SIZE - HEXTILE_SEGMENT_SIZE};
-    Coordinate coordD = {coordA.x, startY + HEXTILE_SIZE};
-    Coordinate coordE = {startX + HEXTILE_SIZE, coordC.y};
-    Coordinate coordF = {startX + HEXTILE_SIZE, coordB.y};
+    int i;
+    Coordinate coordinates[HEXTILE_POINTS];
+    hexgrid_tileCoords(startX, startY, coordinates);
+    
+    for (i = 0; i < HEXTILE_POINTS; i++) {
+        int otherIndex = i == 0 ? HEXTILE_POINTS - 1 : i - 1;
+        drawhelper_drawLineBetweenCoordinates(coordinates[i], coordinates[otherIndex]);
+    }
+}
 
-    drawhelper_drawLineBetweenCoordinates(coordA, coordB);
-    drawhelper_drawLineBetweenCoordinates(coordB, coordC);
-    drawhelper_drawLineBetweenCoordinates(coordC, coordD);
-    drawhelper_drawLineBetweenCoordinates(coordD, coordE);
-    drawhelper_drawLineBetweenCoordinates(coordE, coordF);
-    drawhelper_drawLineBetweenCoordinates(coordF, coordA);
+static Boolean hexgrid_isInsideTile(Coordinate coordinates[], Coordinate p) {
+    int i, j;
+    int isInside = 0;
+
+    for (i = 0, j = HEXTILE_POINTS - 1; i < HEXTILE_POINTS; j = i++) {
+        if (((coordinates[i].y > p.y) != (coordinates[j].y > p.y)) &&
+            (p.x < (coordinates[j].x - coordinates[i].x) * (p.y - coordinates[i].y) / (coordinates[j].y - coordinates[i].y) + coordinates[i].x)) {
+            isInside = !isInside;
+        }
+    }
+
+    return isInside;
+}
+
+static void hexgrid_drawPixel4Bit(UInt8 *framebuffer, UInt16 screenWidth, int x, int y, UInt8 colorIndex) {
+    UInt16 rowBytes = (screenWidth + 1) / 2;
+    UInt32 offset = y * rowBytes + (x / 2);
+    UInt8 currentByte = framebuffer[offset];
+    if (x % 2 == 0) {
+        currentByte = (currentByte & 0x0F) | (colorIndex << 4);
+    } else {
+        currentByte = (currentByte & 0xF0) | (colorIndex & 0x0F);
+    }
+    framebuffer[offset] = currentByte;
+}
+
+static void hexgrid_fillTile(int startX, int startY, AppColor color, WinHandle buffer) {
+    UInt8 *framebuffer;
+    int x, y;
+    
+    Coordinate coordinates[HEXTILE_POINTS];
+    hexgrid_tileCoords(startX, startY, coordinates);
+
+    framebuffer = (void *)BmpGetBits(WinGetBitmap(buffer));
+
+    for (x = 0; x < HEXTILE_SIZE; x++) {
+        int actualX = x + startX;
+        for (y = 0; y < HEXTILE_SIZE; y++) {
+            int actualY = y + startY;
+            if (hexgrid_isInsideTile(coordinates, (Coordinate){actualX, actualY})) {
+                if (false) {
+                    hexgrid_drawPixel4Bit(framebuffer, HEXTILE_SIZE, actualX, actualY, colors_reference[color]);
+                } else {
+                    framebuffer[actualY * GAMEWINDOW_WIDTH + actualX] = colors_reference[color];
+                }
+            }
+        }
+    }
 }
 
 static Coordinate hexgrid_tileStartPosition(int column, int row) {
@@ -36,6 +91,11 @@ static Coordinate hexgrid_tileStartPosition(int column, int row) {
 void hexgrid_drawTileAtPosition(Coordinate hexPosition) {
     Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
     hexgrid_drawTile(startPosition.x, startPosition.y);
+}
+
+void hexgrid_fillTileAtPosition(Coordinate hexPosition, AppColor color, WinHandle buffer) {
+    Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
+    hexgrid_fillTile(startPosition.x, startPosition.y, color, buffer);
 }
 
 void hexgrid_drawEntireGrid() {
