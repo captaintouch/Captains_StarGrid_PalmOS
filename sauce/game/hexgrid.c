@@ -1,6 +1,5 @@
 #include "hexgrid.h"
 
-#include "../MathLib.h"
 #include "../constants.h"
 #include "colors.h"
 #include "drawhelper.h"
