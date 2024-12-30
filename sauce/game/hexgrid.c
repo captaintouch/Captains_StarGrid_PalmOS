@@ -146,3 +146,9 @@ Coordinate hexgrid_tileAtPixel(float x, float y) {
     }
     return closestCell;
 }
+
+void hexgrid_drawSpriteAtTile(ImageSprite *imageSprite, Coordinate hexPosition) {
+    Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
+    Coordinate centerPosition = (Coordinate){startPosition.x + HEXTILE_SIZE / 2, startPosition.y + HEXTILE_SIZE / 2};
+    drawhelper_drawSprite(imageSprite, centerPosition);
+}

@@ -10,4 +10,7 @@
 // Hexgrid setup
 #define HEXTILE_SIZE 20
 #define HEXTILE_SEGMENT_SIZE HEXTILE_SIZE / 4
+
+#define HEXTILE_PAWNSIZE 18
+
 #endif

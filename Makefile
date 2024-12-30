@@ -55,7 +55,7 @@ endif
 
 bin:
 	$(PILRC) $(PILRCFLAGS) resources/ui.rcp 
-#	$(PILRC) $(PILRCFLAGS) resources/graphicResources.rcp
+	$(PILRC) $(PILRCFLAGS) resources/graphicResources.rcp
 
 gen_grc: 
 	m68k-palmos-obj-res a.out
@@ -66,5 +66,4 @@ combine:
 cleanup:
 	rm *.grc *.out *.bin
 	rm -Rf resources/assets
-	rm -Rf resources/144
-#	rm resources/graphicResources.rcp
+	rm resources/graphicResources.rcp

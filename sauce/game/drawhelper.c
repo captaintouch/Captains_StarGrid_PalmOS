@@ -1,5 +1,6 @@
 #include "drawhelper.h"
 #include "models.h"
+#include "spriteLibrary.h"
 #include <PalmOS.h>
 
 void drawhelper_drawLine(Line *line) {
@@ -35,4 +36,15 @@ void drawhelper_drawTextWithValue(char *text, int value, Coordinate position) {
     StrIToA(valueText, value);
     StrCat(finalText, valueText);
     WinDrawChars(finalText, StrLen(finalText), position.x, position.y);
+}
+
+static void drawhelper_drawImage(ImageData *imageData, Coordinate coordinate) {
+    WinDrawBitmap(imageData->bitmapPtr, coordinate.x, coordinate.y);
+}
+
+void drawhelper_drawSprite(ImageSprite *imageSprite, Coordinate coordinate) {
+    Coordinate updatedPosition;
+    updatedPosition.x = coordinate.x - imageSprite->size.x / 2;
+    updatedPosition.y = coordinate.y - imageSprite->size.y / 2;
+    drawhelper_drawImage(imageSprite->imageData, updatedPosition);
 }

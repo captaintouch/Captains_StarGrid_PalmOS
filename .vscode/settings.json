@@ -12,7 +12,12 @@
         "game.h": "c",
         "palmos.h": "c",
         "constants.h": "c",
-        "mathlib.h": "c"
+        "mathlib.h": "c",
+        "graphicresources.h": "c",
+        "spritelibrary.h": "c",
+        "gamesession.h": "c",
+        "drawhelper.h": "c",
+        "hexgrid.h": "c"
     },
     "C_Cpp.default.includePath": [
         "/opt/palmdev/sdk-5r3/include"

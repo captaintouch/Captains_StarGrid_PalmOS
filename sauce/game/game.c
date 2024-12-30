@@ -7,6 +7,7 @@
 #include "drawhelper.h"
 #include "gamesession.h"
 #include "hexgrid.h"
+#include "spriteLibrary.h"
 
 WinHandle backgroundBuffer = NULL;
 
@@ -15,6 +16,7 @@ int game_eventDelayTime() {
 }
 
 void game_setup() {
+    spriteLibrary_initialize();
 }
 
 static void game_drawSelectedTile() {
@@ -23,6 +25,10 @@ static void game_drawSelectedTile() {
     //hexgrid_drawTileAtPosition(selectedTile);
     hexgrid_fillTileAtPosition(selectedTile, EMERALD, backgroundBuffer);
     drawhelper_applyForeColor(ALIZARIN);
+}
+
+static void game_drawPawns() {
+    hexgrid_drawSpriteAtTile(&spriteLibrary.shipSprite, (Coordinate){2, 2});
 }
 
 static WinHandle game_drawBackground() {
@@ -35,6 +41,7 @@ static WinHandle game_drawBackground() {
 
     hexgrid_drawEntireGrid();
     game_drawSelectedTile();
+    game_drawPawns();
     return backgroundBuffer;
 }
 
