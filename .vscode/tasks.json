@@ -15,11 +15,23 @@
             }
         },
         {
-            "label": "CP",
+            "label": "CP COLOR",
             "dependsOn": [
                 "Prc"
             ],
             "command": "cloudpilot-emu -l 6667 emu/m505.image -s emu/cloudpilotStartDebug.cp",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CP BW",
+            "dependsOn": [
+                "Prc"
+            ],
+            "command": "cloudpilot-emu -l 6667 emu/m100.image -s emu/cloudpilotStartDebug.cp",
             "type": "shell",
             "options": {
                 "cwd": "${workspaceFolder}"
