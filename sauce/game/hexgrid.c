@@ -100,6 +100,7 @@ void hexgrid_fillTileAtPosition(Coordinate hexPosition, AppColor color, WinHandl
 
 void hexgrid_drawEntireGrid() {
     int i, j;
+    drawhelper_applyForeColor(ASBESTOS);
     for (i = 0; i < HEXGRID_COLS; i++) {
         for (j = 0; j < HEXGRID_ROWS; j++) {
             hexgrid_drawTileAtPosition((Coordinate){i, j});

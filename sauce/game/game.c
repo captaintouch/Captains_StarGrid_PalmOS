@@ -31,6 +31,11 @@ static void game_drawPawns() {
     hexgrid_drawSpriteAtTile(&spriteLibrary.shipSprite, (Coordinate){2, 2});
 }
 
+static void game_drawBackdrop() {
+    drawhelper_applyForeColor(MIDNIGHTBLUE);
+    drawhelper_fillRectangle(&(RectangleType){0, 0, GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT});
+}
+
 static WinHandle game_drawBackground() {
     Err err = errNone;
     if (backgroundBuffer != NULL) {
@@ -39,6 +44,7 @@ static WinHandle game_drawBackground() {
     backgroundBuffer = WinCreateOffscreenWindow(GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT, screenFormat, &err);
     WinSetDrawWindow(backgroundBuffer);
 
+    game_drawBackdrop();
     hexgrid_drawEntireGrid();
     game_drawSelectedTile();
     game_drawPawns();

@@ -6,7 +6,7 @@
 typedef enum {
     ALIZARIN,
     BELIZEHOLE,
-    CARROT,
+    MIDNIGHTBLUE,
     EMERALD,
     CLOUDS,
     ASBESTOS,

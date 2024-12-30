@@ -5,6 +5,7 @@
 #include "colors.h"
 #include "spriteLibrary.h"
 
+void drawhelper_fillRectangle(RectangleType *rect);
 void drawhelper_drawLine(Line *line);
 void drawhelper_drawLineBetweenCoordinates(Coordinate startpoint, Coordinate endpoint);
 void drawhelper_applyForeColor(AppColor color);

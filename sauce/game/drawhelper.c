@@ -3,6 +3,10 @@
 #include "spriteLibrary.h"
 #include <PalmOS.h>
 
+void drawhelper_fillRectangle(RectangleType *rect) {
+    WinPaintRectangle(rect, 0);
+}
+
 void drawhelper_drawLine(Line *line) {
     WinDrawLine(line->startpoint.x,
                 line->startpoint.y,
