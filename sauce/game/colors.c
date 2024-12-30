@@ -28,8 +28,8 @@ static RGBColorType colors_clouds() {
     return colors_rgb(255, 255, 255);
 }
 
-static RGBColorType colors_midnightBlue() {
-    return colors_rgb(44, 62, 80);
+static RGBColorType colors_draculaOrchid() {
+    return colors_rgb(45, 52, 54);
 }
 
 static RGBColorType colors_asbestos() {
@@ -47,8 +47,8 @@ void colors_setupReferenceColors(Boolean colorSupport, UInt32 depth) {
         colors_reference[ALIZARIN] = WinRGBToIndex(&color);
         color = colors_belizeHole();
         colors_reference[BELIZEHOLE] = WinRGBToIndex(&color);
-        color = colors_midnightBlue();
-        colors_reference[MIDNIGHTBLUE] = WinRGBToIndex(&color);
+        color = colors_draculaOrchid();
+        colors_reference[DRACULAORCHID] = WinRGBToIndex(&color);
         color = colors_emerald();
         colors_reference[EMERALD] = WinRGBToIndex(&color);
         color = colors_clouds();
@@ -61,7 +61,7 @@ void colors_setupReferenceColors(Boolean colorSupport, UInt32 depth) {
         int i;
         colors_reference[ALIZARIN] = 15;
         colors_reference[BELIZEHOLE] = 6;
-        colors_reference[MIDNIGHTBLUE] = 12;
+        colors_reference[DRACULAORCHID] = 12;
         colors_reference[EMERALD] = 9;
         colors_reference[CLOUDS] = 0;
         colors_reference[ASBESTOS] = 13;

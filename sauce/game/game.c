@@ -32,8 +32,22 @@ static void game_drawPawns() {
 }
 
 static void game_drawBackdrop() {
-    drawhelper_applyForeColor(MIDNIGHTBLUE);
+    int i;
+    drawhelper_applyForeColor(DRACULAORCHID);
     drawhelper_fillRectangle(&(RectangleType){0, 0, GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT});
+    
+    // Draw stars at random locations
+    for (i = 0; i < BACKDROP_STARCOUNT; i++) {
+        if (i % 4 == 0) {
+            drawhelper_applyForeColor(ASBESTOS);
+        } else if (i % 6 == 0) {
+            drawhelper_applyForeColor(ALIZARIN);
+        } else {
+            drawhelper_applyForeColor(CLOUDS);
+        }
+
+        WinDrawPixel(SysRandom(0) % GAMEWINDOW_WIDTH, SysRandom(0) % GAMEWINDOW_HEIGHT);
+    }
 }
 
 static WinHandle game_drawBackground() {
