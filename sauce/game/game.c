@@ -2,7 +2,6 @@
 
 #include <PalmOS.h>
 
-#include "../MathLib.h"
 #include "../constants.h"
 #include "drawhelper.h"
 #include "gamesession.h"

@@ -1,6 +1,5 @@
 #include "appCoordinator.h"
 #include <PalmOS.h>
-#include "MathLib.h"
 #include "appCoordinator.h"
 #include "deviceinfo.h"
 #include "game/colors.h"
@@ -26,32 +25,13 @@ static void checkHiResSupport() {
     #endif
 }
 
-static void loadMathLib() {
-    Err error;
-    error = SysLibFind(MathLibName, &MathLibRef);
-    if (error)
-        error = SysLibLoad(LibType, MathLibCreator, &MathLibRef);
-    ErrFatalDisplayIf(error, "Can't find MathLib");
-    error = MathLibOpen(MathLibRef, MathLibVersion);
-    ErrFatalDisplayIf(error, "Can't open MathLib");
-}
-
-static void closeMathLib() {
-    UInt16 usecount;
-    MathLibClose(MathLibRef, &usecount);
-    if (usecount == 0)
-        SysLibRemove(MathLibRef);
-}
-
 static UInt32 startApplication() {
     checkHiResSupport();
-    loadMathLib();
     return applyScreenMode();
 }
 
 static void endApplication(UInt32 oldDepth) {
     appCoordinator_cleanup();
-    closeMathLib();
     WinScreenMode(winScreenModeSet, NULL, NULL, &oldDepth, NULL);
 }
 

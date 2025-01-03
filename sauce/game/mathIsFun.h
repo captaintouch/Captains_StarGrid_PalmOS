@@ -3,5 +3,6 @@
 
 float fmax(float a, float b);
 float fmin(float a, float b);
+double sqrt(double number);
 
 #endif
