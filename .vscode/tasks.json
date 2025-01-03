@@ -2,8 +2,8 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Prc",
-            "command": "make",
+            "label": "makeDebugBuild",
+            "command": "make debug",
             "type": "shell",
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -17,7 +17,7 @@
         {
             "label": "CP COLOR",
             "dependsOn": [
-                "Prc"
+                "makeDebugBuild"
             ],
             "command": "cloudpilot-emu -l 6667 emu/m505.image -s emu/cloudpilotStartDebug.cp",
             "type": "shell",
@@ -29,7 +29,7 @@
         {
             "label": "CP BW",
             "dependsOn": [
-                "Prc"
+                "makeDebugBuild"
             ],
             "command": "cloudpilot-emu -l 6667 emu/m100.image -s emu/cloudpilotStartDebug.cp",
             "type": "shell",
