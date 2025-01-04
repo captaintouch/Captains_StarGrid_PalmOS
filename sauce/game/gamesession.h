@@ -17,6 +17,7 @@ typedef struct GameSession {
 
     Coordinate *specialTiles; //Contains the tiles that should be colored to indicate where movement is possible
     int specialTileCount;
+    Boolean shouldRedrawOverlay;
 } GameSession;
 
 GameSession gameSession;

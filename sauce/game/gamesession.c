@@ -12,6 +12,7 @@ void gameSession_initialize() {
     gameSession.pawns[0] = (Pawn){(Coordinate){2, 3}};
     // gameSession.activePawn = &gameSession.pawns[0];
 
+    gameSession.shouldRedrawOverlay = false;
     gameSession.specialTiles = NULL;
     gameSession.specialTileCount = 0;
 }
@@ -47,6 +48,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
     MemPtrResize(positions, positionCount * sizeof(Coordinate));
     gameSession.specialTiles = positions;
     gameSession.specialTileCount = positionCount;
+    gameSession.shouldRedrawOverlay = true;
 }
 
 void gameSession_progressLogic() {
