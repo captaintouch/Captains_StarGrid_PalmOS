@@ -39,6 +39,9 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
     for (i = -GAMEMECHANICS_MAXTILEMOVES; i < GAMEMECHANICS_MAXTILEMOVES; i++) {
         for (j = -GAMEMECHANICS_MAXTILEMOVES; j < GAMEMECHANICS_MAXTILEMOVES; j++) {
             Coordinate newPosition = (Coordinate){currentPosition.x + i, currentPosition.y + j};
+            if (newPosition.x == currentPosition.x && newPosition.y == currentPosition.y) {
+                continue;
+            }
             if (newPosition.x >= 0 && newPosition.x < HEXGRID_COLS && newPosition.y >= 0 && newPosition.y < HEXGRID_ROWS) {
                 positions[positionCount] = newPosition;
                 positionCount++;
