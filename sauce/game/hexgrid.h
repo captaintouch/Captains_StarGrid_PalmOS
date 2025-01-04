@@ -5,6 +5,7 @@
 #include "colors.h"
 #include "spriteLibrary.h"
 
+void hexgrid_initialize();
 Coordinate hexgrid_tileAtPixel(float x, float y);
 void hexgrid_drawEntireGrid();
 void hexgrid_drawTileAtPosition(Coordinate hexPosition);

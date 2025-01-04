@@ -16,25 +16,33 @@ int game_eventDelayTime() {
 
 void game_setup() {
     spriteLibrary_initialize();
+    gameSession_initialize();
+    hexgrid_initialize();
 }
 
-static void game_drawSelectedTile() {
-    Coordinate selectedTile = hexgrid_tileAtPixel(gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y);
-    //drawhelper_applyForeColor(EMERALD);
-    //hexgrid_drawTileAtPosition(selectedTile);
-    hexgrid_fillTileAtPosition(selectedTile, EMERALD, backgroundBuffer);
+static void game_drawSpecialTiles() {  // Tiles that need to be highlighted (for example to indicate where a pawn can move)
+    int i;
+    for (i = 0; i < gameSession.specialTileCount; i++) {
+        hexgrid_fillTileAtPosition(gameSession.specialTiles[i], EMERALD, backgroundBuffer);
+    }
     drawhelper_applyForeColor(ALIZARIN);
 }
 
 static void game_drawPawns() {
-    hexgrid_drawSpriteAtTile(&spriteLibrary.shipSprite, (Coordinate){2, 2});
+    int i;
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        Pawn *pawn = &gameSession.pawns[i];
+        hexgrid_drawSpriteAtTile(&spriteLibrary.shipSprite, pawn->position);
+    }
+
+    hexgrid_drawSpriteAtTile(&spriteLibrary.shipSprite, (Coordinate){0, 0});
 }
 
 static void game_drawBackdrop() {
     int i;
     drawhelper_applyForeColor(DRACULAORCHID);
     drawhelper_fillRectangle(&(RectangleType){0, 0, GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT});
-    
+
     // Draw stars at random locations
     for (i = 0; i < BACKDROP_STARCOUNT; i++) {
         if (i % 4 == 0) {
@@ -59,7 +67,7 @@ static WinHandle game_drawBackground() {
 
     game_drawBackdrop();
     hexgrid_drawEntireGrid();
-    game_drawSelectedTile();
+    game_drawSpecialTiles();
     game_drawPawns();
     return backgroundBuffer;
 }

@@ -5,10 +5,9 @@
 #include "mathIsFun.h"
 #include "models.h"
 #include "../constants.h"
-
-#define HEXGRID_ROWS 15
-#define HEXGRID_COLS 15
 #define HEXTILE_POINTS 6
+
+int hexgrid_tilePattern[HEXTILE_SIZE];
 
 static void hexgrid_tileCoords(int startX, int startY, Coordinate coordinates[]) {
     coordinates[0] = (Coordinate){startX + HEXTILE_SIZE / 2, startY};
@@ -44,6 +43,22 @@ static Boolean hexgrid_isInsideTile(Coordinate coordinates[], Coordinate p) {
     return isInside;
 }
 
+void hexgrid_initialize() {
+    int y;
+    Coordinate coordinates[HEXTILE_POINTS];
+    hexgrid_tileCoords(0, 0, coordinates);
+    for (y = 0; y < HEXTILE_SIZE; y++) {
+        int x;
+        hexgrid_tilePattern[y] = -1;
+        for (x = 0; x < HEXTILE_SIZE; x++) {
+            if (hexgrid_isInsideTile(coordinates, (Coordinate){x, y})) {
+                hexgrid_tilePattern[y] = x;
+                break;
+            }
+        }
+    }
+}
+
 static void hexgrid_drawPixel4Bit(UInt8 *framebuffer, UInt16 screenWidth, int x, int y, UInt8 colorIndex) {
     UInt16 rowBytes = (screenWidth + 1) / 2;
     UInt32 offset = y * rowBytes + (x / 2);
@@ -65,17 +80,15 @@ static void hexgrid_fillTile(int startX, int startY, AppColor color, WinHandle b
 
     framebuffer = (void *)BmpGetBits(WinGetBitmap(buffer));
 
-    for (x = 0; x < HEXTILE_SIZE; x++) {
-        int actualX = x + startX;
-        for (y = 0; y < HEXTILE_SIZE; y++) {
-            int actualY = y + startY;
-            if (hexgrid_isInsideTile(coordinates, (Coordinate){actualX, actualY})) {
-                if (false) {
-                    hexgrid_drawPixel4Bit(framebuffer, HEXTILE_SIZE, actualX, actualY, colors_reference[color]);
-                } else {
-                    framebuffer[actualY * GAMEWINDOW_WIDTH + actualX] = colors_reference[color];
-                }
-            }
+    for (y = 0; y < HEXTILE_SIZE; y++) {
+        int actualY = y + startY;
+        int xOffset = hexgrid_tilePattern[y];
+        if (xOffset < 0) {
+            continue;
+        }
+        for (x = xOffset; x < HEXTILE_SIZE - xOffset; x++) {
+            int actualX = x + startX;
+            framebuffer[actualY * GAMEWINDOW_WIDTH + actualX] = colors_reference[color];
         }
     }
 }

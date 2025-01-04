@@ -12,7 +12,10 @@
 // Hexgrid setup
 #define HEXTILE_SIZE 20
 #define HEXTILE_SEGMENT_SIZE HEXTILE_SIZE / 4
-
+#define HEXGRID_ROWS 15
+#define HEXGRID_COLS 15
 #define HEXTILE_PAWNSIZE 18
+
+#define GAMEMECHANICS_MAXTILEMOVES 4
 
 #endif
