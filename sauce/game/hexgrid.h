@@ -9,6 +9,6 @@ void hexgrid_initialize();
 Coordinate hexgrid_tileAtPixel(float x, float y);
 void hexgrid_drawEntireGrid();
 void hexgrid_drawTileAtPosition(Coordinate hexPosition);
-void hexgrid_fillTileAtPosition(Coordinate hexPosition, AppColor color, WinHandle buffer);
+void hexgrid_fillTileAtPosition(Coordinate hexPosition);
 void hexgrid_drawSpriteAtTile(ImageSprite *imageSprite, Coordinate hexPosition);
 #endif

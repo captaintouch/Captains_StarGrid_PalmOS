@@ -22,10 +22,11 @@ void game_setup() {
     hexgrid_initialize();
 }
 
-static void game_drawSpecialTiles(WinHandle buffer) {  // Tiles that need to be highlighted (for example to indicate where a pawn can move)
+static void game_drawSpecialTiles() {  // Tiles that need to be highlighted (for example to indicate where a pawn can move)
     int i;
+    drawhelper_applyForeColor(EMERALD);
     for (i = 0; i < gameSession.specialTileCount; i++) {
-        hexgrid_fillTileAtPosition(gameSession.specialTiles[i], EMERALD, buffer);
+        hexgrid_fillTileAtPosition(gameSession.specialTiles[i]);
     }
     drawhelper_applyForeColor(CLOUDS);
     for (i = 0; i < gameSession.specialTileCount; i++) {

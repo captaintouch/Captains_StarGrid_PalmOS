@@ -4,13 +4,16 @@
 #include "hexgrid.h"
 
 void gameSession_initialize() {
+    gameSession.state = GAMESTATE_DEFAULT;
     gameSession.lastPenInput = (InputPen){0};
 
     gameSession.pawns = NULL;
+    gameSession.activePawn = NULL;
+
     gameSession.pawns = MemPtrNew(sizeof(Pawn) * 1);
     gameSession.pawnCount = 1;
     gameSession.pawns[0] = (Pawn){(Coordinate){2, 3}};
-    // gameSession.activePawn = &gameSession.pawns[0];
+    gameSession.activePawn = &gameSession.pawns[0];
 
     gameSession.shouldRedrawOverlay = false;
     gameSession.specialTiles = NULL;
@@ -36,8 +39,8 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
     int i, j;
     Coordinate *positions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * GAMEMECHANICS_MAXTILEMOVES * 2 * GAMEMECHANICS_MAXTILEMOVES * 2);
     int positionCount = 0;
-    for (i = -GAMEMECHANICS_MAXTILEMOVES; i < GAMEMECHANICS_MAXTILEMOVES; i++) {
-        for (j = -GAMEMECHANICS_MAXTILEMOVES; j < GAMEMECHANICS_MAXTILEMOVES; j++) {
+    for (i = -GAMEMECHANICS_MAXTILEMOVES + 1; i < GAMEMECHANICS_MAXTILEMOVES; i++) {
+        for (j = -GAMEMECHANICS_MAXTILEMOVES + 1; j < GAMEMECHANICS_MAXTILEMOVES; j++) {
             Coordinate newPosition = (Coordinate){currentPosition.x + i, currentPosition.y + j};
             if (newPosition.x == currentPosition.x && newPosition.y == currentPosition.y) {
                 continue;
@@ -54,19 +57,39 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
     gameSession.shouldRedrawOverlay = true;
 }
 
+static void gameSession_handleTileTap() {
+    Coordinate selectedTile = hexgrid_tileAtPixel(gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y);
+    Pawn *selectedPawn = gameSession_pawnAtTile(selectedTile);
+    if (selectedPawn != NULL) {
+        gameSession.state = GAMESTATE_SELECTMOVE;
+        gameSession.activePawn = selectedPawn;
+        gameSession_updateValidPawnPositionsForMovement(selectedPawn->position);
+    }
+}
+
+static void gameSession_handleMove() {
+    Coordinate selectedTile = hexgrid_tileAtPixel(gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y);
+    gameSession.activePawn->position = selectedTile;
+    MemPtrFree(gameSession.specialTiles);
+    gameSession.specialTiles = NULL;
+    gameSession.specialTileCount = 0;
+    gameSession.state = GAMESTATE_DEFAULT;
+    gameSession.shouldRedrawOverlay = true;
+}
+
 void gameSession_progressLogic() {
     if (gameSession.lastPenInput.wasUpdatedFlag) {
-        Coordinate selectedTile;
-        Pawn *selectedPawn;
-
         // Handle pen input
         gameSession.lastPenInput.wasUpdatedFlag = false;
 
-        // if the user selected a SHIP, show the possible moves
-        selectedTile = hexgrid_tileAtPixel(gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y);
-        selectedPawn = gameSession_pawnAtTile(selectedTile);
-        if (selectedPawn != NULL) {
-            gameSession_updateValidPawnPositionsForMovement(selectedPawn->position);
+        switch (gameSession.state) {
+            case GAMESTATE_DEFAULT:
+                gameSession_handleTileTap();
+                break;
+            case GAMESTATE_SELECTMOVE:
+                gameSession_handleMove();
+                break;
         }
+        // if the user selected a SHIP, show the possible moves
     }
 }

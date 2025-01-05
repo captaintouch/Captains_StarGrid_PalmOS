@@ -8,12 +8,18 @@ typedef struct Pawn {
     Coordinate position;
 } Pawn;
 
+typedef enum GameState {
+    GAMESTATE_SELECTMOVE,
+    GAMESTATE_DEFAULT
+} GameState;
+
 typedef struct GameSession {
+    GameState state;
     InputPen lastPenInput;
 
     Pawn *pawns;
     int pawnCount;
-    //Pawn *activePawn;
+    Pawn *activePawn;
 
     Coordinate *specialTiles; //Contains the tiles that should be colored to indicate where movement is possible
     int specialTileCount;

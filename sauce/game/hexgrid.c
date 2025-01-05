@@ -59,26 +59,11 @@ void hexgrid_initialize() {
     }
 }
 
-static void hexgrid_drawPixel4Bit(UInt8 *framebuffer, UInt16 screenWidth, int x, int y, UInt8 colorIndex) {
-    UInt16 rowBytes = (screenWidth + 1) / 2;
-    UInt32 offset = y * rowBytes + (x / 2);
-    UInt8 currentByte = framebuffer[offset];
-    if (x % 2 == 0) {
-        currentByte = (currentByte & 0x0F) | (colorIndex << 4);
-    } else {
-        currentByte = (currentByte & 0xF0) | (colorIndex & 0x0F);
-    }
-    framebuffer[offset] = currentByte;
-}
-
-static void hexgrid_fillTile(int startX, int startY, AppColor color, WinHandle buffer) {
-    UInt8 *framebuffer;
+static void hexgrid_fillTile(int startX, int startY) {
     int x, y;
     
     Coordinate coordinates[HEXTILE_POINTS];
     hexgrid_tileCoords(startX, startY, coordinates);
-
-    framebuffer = (void *)BmpGetBits(WinGetBitmap(buffer));
 
     for (y = 0; y < HEXTILE_SIZE; y++) {
         int actualY = y + startY;
@@ -86,10 +71,7 @@ static void hexgrid_fillTile(int startX, int startY, AppColor color, WinHandle b
         if (xOffset < 0) {
             continue;
         }
-        for (x = xOffset; x < HEXTILE_SIZE - xOffset; x++) {
-            int actualX = x + startX;
-            framebuffer[actualY * GAMEWINDOW_WIDTH + actualX] = colors_reference[color];
-        }
+        drawhelper_drawLineBetweenCoordinates((Coordinate){startX + xOffset, actualY}, (Coordinate){startX + HEXTILE_SIZE - xOffset, actualY});
     }
 }
 
@@ -106,9 +88,9 @@ void hexgrid_drawTileAtPosition(Coordinate hexPosition) {
     hexgrid_drawTile(startPosition.x, startPosition.y);
 }
 
-void hexgrid_fillTileAtPosition(Coordinate hexPosition, AppColor color, WinHandle buffer) {
+void hexgrid_fillTileAtPosition(Coordinate hexPosition) {
     Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
-    hexgrid_fillTile(startPosition.x, startPosition.y, color, buffer);
+    hexgrid_fillTile(startPosition.x, startPosition.y);
 }
 
 void hexgrid_drawEntireGrid() {
