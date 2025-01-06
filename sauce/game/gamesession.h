@@ -3,13 +3,20 @@
 #include <PalmOS.h>
 #include "inputPen.h"
 #include "models.h"
+#include "colors.h"
 
 typedef struct Pawn {
     Coordinate position;
 } Pawn;
 
+typedef enum TargetSelectionType {
+    TARGETSELECTIONTYPE_MOVE,
+    TARGETSELECTIONTYPE_PHASER,
+    TARGETSELECTIONTYPE_TORPEDO
+} TargetSelectionType;
+
 typedef enum GameState {
-    GAMESTATE_SELECTMOVE,
+    GAMESTATE_SELECTTARGET,
     GAMESTATE_DEFAULT
 } GameState;
 
@@ -24,6 +31,8 @@ typedef struct GameSession {
     Coordinate *specialTiles; //Contains the tiles that should be colored to indicate where movement is possible
     int specialTileCount;
     Boolean shouldRedrawOverlay;
+
+    TargetSelectionType targetSelectionType;
 } GameSession;
 
 GameSession gameSession;
@@ -31,5 +40,6 @@ GameSession gameSession;
 void gameSession_initialize();
 void gameSession_registerPenInput(EventPtr eventptr);
 void gameSession_progressLogic();
+AppColor gameSession_specialTilesColor();
 
 #endif

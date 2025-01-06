@@ -18,6 +18,8 @@ void gameSession_initialize() {
     gameSession.shouldRedrawOverlay = false;
     gameSession.specialTiles = NULL;
     gameSession.specialTileCount = 0;
+
+    gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
 }
 
 void gameSession_registerPenInput(EventPtr eventptr) {
@@ -35,12 +37,25 @@ static Pawn *gameSession_pawnAtTile(Coordinate tile) {
     return NULL;
 }
 
-static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPosition) {
+static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPosition, TargetSelectionType targetSelectionType) {
     int i, j;
-    Coordinate *positions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * GAMEMECHANICS_MAXTILEMOVES * 2 * GAMEMECHANICS_MAXTILEMOVES * 2);
+    Coordinate *positions;
     int positionCount = 0;
-    for (i = -GAMEMECHANICS_MAXTILEMOVES + 1; i < GAMEMECHANICS_MAXTILEMOVES; i++) {
-        for (j = -GAMEMECHANICS_MAXTILEMOVES + 1; j < GAMEMECHANICS_MAXTILEMOVES; j++) {
+    int maxTileRange = 0;
+    switch (targetSelectionType) {
+        case TARGETSELECTIONTYPE_MOVE:
+            maxTileRange = GAMEMECHANICS_MAXTILEMOVERANGE;
+            break;
+        case TARGETSELECTIONTYPE_PHASER:
+            maxTileRange = GAMEMECHANICS_MAXTILEPHASERRANGE;
+            break;
+        case TARGETSELECTIONTYPE_TORPEDO:
+            maxTileRange = GAMEMECHANICS_MAXTILETORPEDORANGE;
+            break;
+    }
+    positions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * maxTileRange * 2 * maxTileRange * 2);
+    for (i = -maxTileRange + 1; i < maxTileRange; i++) {
+        for (j = -maxTileRange + 1; j < maxTileRange; j++) {
             Coordinate newPosition = (Coordinate){currentPosition.x + i, currentPosition.y + j};
             if (newPosition.x == currentPosition.x && newPosition.y == currentPosition.y) {
                 continue;
@@ -61,9 +76,9 @@ static void gameSession_handleTileTap() {
     Coordinate selectedTile = hexgrid_tileAtPixel(gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y);
     Pawn *selectedPawn = gameSession_pawnAtTile(selectedTile);
     if (selectedPawn != NULL) {
-        gameSession.state = GAMESTATE_SELECTMOVE;
+        gameSession.state = GAMESTATE_SELECTTARGET;
         gameSession.activePawn = selectedPawn;
-        gameSession_updateValidPawnPositionsForMovement(selectedPawn->position);
+        gameSession_updateValidPawnPositionsForMovement(selectedPawn->position, gameSession.targetSelectionType);
     }
 }
 
@@ -77,7 +92,7 @@ static Boolean gameSession_specialTilesContains(Coordinate coordinate) {
     return false;
 }
 
-static void gameSession_handleMove() {
+static void gameSession_handleTargetSelection() {
     Coordinate selectedTile = hexgrid_tileAtPixel(gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y);
     if (!gameSession_specialTilesContains(selectedTile)) {
         return;
@@ -91,6 +106,16 @@ static void gameSession_handleMove() {
     gameSession.shouldRedrawOverlay = true;
 }
 
+AppColor gameSession_specialTilesColor() {
+    switch (gameSession.targetSelectionType) {
+        case TARGETSELECTIONTYPE_MOVE:
+            return EMERALD;
+        case TARGETSELECTIONTYPE_PHASER:
+        case TARGETSELECTIONTYPE_TORPEDO:
+            return ALIZARIN;
+    }
+}
+
 void gameSession_progressLogic() {
     if (gameSession.lastPenInput.wasUpdatedFlag) {
         // Handle pen input
@@ -100,8 +125,8 @@ void gameSession_progressLogic() {
             case GAMESTATE_DEFAULT:
                 gameSession_handleTileTap();
                 break;
-            case GAMESTATE_SELECTMOVE:
-                gameSession_handleMove();
+            case GAMESTATE_SELECTTARGET:
+                gameSession_handleTargetSelection();
                 break;
         }
         // if the user selected a SHIP, show the possible moves

@@ -24,7 +24,7 @@ void game_setup() {
 
 static void game_drawSpecialTiles() {  // Tiles that need to be highlighted (for example to indicate where a pawn can move)
     int i;
-    drawhelper_applyForeColor(EMERALD);
+    drawhelper_applyForeColor(gameSession_specialTilesColor());
     for (i = 0; i < gameSession.specialTileCount; i++) {
         hexgrid_fillTileAtPosition(gameSession.specialTiles[i]);
     }
