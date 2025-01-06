@@ -6,7 +6,7 @@
 #include "spriteLibrary.h"
 
 void hexgrid_initialize();
-Coordinate hexgrid_tileAtPixel(float x, float y);
+Coordinate hexgrid_tileAtPixel(int x, int y);
 void hexgrid_drawEntireGrid();
 void hexgrid_drawTileAtPosition(Coordinate hexPosition);
 void hexgrid_fillTileAtPosition(Coordinate hexPosition);

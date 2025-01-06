@@ -67,8 +67,22 @@ static void gameSession_handleTileTap() {
     }
 }
 
+static Boolean gameSession_specialTilesContains(Coordinate coordinate) {
+    int i;
+    for (i = 0; i < gameSession.specialTileCount; i++) {
+        if (gameSession.specialTiles[i].x == coordinate.x && gameSession.specialTiles[i].y == coordinate.y) {
+            return true;
+        }
+    }
+    return false;
+}
+
 static void gameSession_handleMove() {
     Coordinate selectedTile = hexgrid_tileAtPixel(gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y);
+    if (!gameSession_specialTilesContains(selectedTile)) {
+        return;
+    }
+    
     gameSession.activePawn->position = selectedTile;
     MemPtrFree(gameSession.specialTiles);
     gameSession.specialTiles = NULL;
