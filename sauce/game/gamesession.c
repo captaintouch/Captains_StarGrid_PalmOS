@@ -3,8 +3,11 @@
 #include "../constants.h"
 #include "hexgrid.h"
 #include "viewport.h"
+#include "../deviceinfo.h"
 
 void gameSession_initialize() {
+    gameSession.diaSupport = deviceinfo_diaSupported();
+
     gameSession.state = GAMESTATE_DEFAULT;
     gameSession.lastPenInput = (InputPen){0};
 

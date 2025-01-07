@@ -3,6 +3,7 @@
 #include <PalmOS.h>
 
 #include "../constants.h"
+#include "../deviceinfo.h"
 #include "drawhelper.h"
 #include "gamesession.h"
 #include "hexgrid.h"
@@ -12,6 +13,41 @@ WinHandle backgroundBuffer = NULL;
 WinHandle overlayBuffer = NULL;
 WinHandle screenBuffer = NULL;
 Boolean shouldRedrawBackground = true;
+Coordinate lastScreenSize;
+
+static void game_resetForm() {
+    FormType *frmP = FrmGetActiveForm();
+    Coordinate screenSize = deviceinfo_screenSize();
+    FormType *updatedForm = FrmNewForm(GAME_FORM, NULL, 0, 0, screenSize.x, screenSize.y, true, 0, 0, 0);
+    lastScreenSize = screenSize;
+    FrmSetActiveForm(updatedForm);
+    if (frmP != NULL) {
+        FrmDeleteForm(frmP);
+    }
+    if (gameSession.diaSupport) {
+        FrmSetDIAPolicyAttr(updatedForm, frmDIAPolicyCustom);
+        if (PINGetInputAreaState() != pinInputAreaClosed) {
+            PINSetInputAreaState(pinInputAreaClosed);
+        }
+        if (PINGetInputTriggerState() != pinInputTriggerDisabled) {
+            PINSetInputTriggerState(pinInputTriggerDisabled);
+        }
+        if (backgroundBuffer != NULL) {
+            WinDeleteWindow(backgroundBuffer, false);
+            backgroundBuffer = NULL;
+        }
+        if (overlayBuffer != NULL) {
+            WinDeleteWindow(overlayBuffer, false);
+            overlayBuffer = NULL;
+        }
+        if (screenBuffer != NULL) {
+            WinDeleteWindow(screenBuffer, false);
+            screenBuffer = NULL;
+        }
+        shouldRedrawBackground = true;
+        gameSession.shouldRedrawOverlay = true;
+    }
+}
 
 int game_eventDelayTime() {
     return 0;
@@ -21,6 +57,7 @@ void game_setup() {
     spriteLibrary_initialize();
     gameSession_initialize();
     hexgrid_initialize();
+    game_resetForm();
 }
 
 static void game_drawSpecialTiles() {  // Tiles that need to be highlighted (for example to indicate where a pawn can move)
@@ -97,30 +134,31 @@ static void game_drawOverlay() {  // ships, special tiles, etc.
     if (overlayBuffer == NULL) {
         overlayBuffer = WinCreateOffscreenWindow(gridSize.x, gridSize.y, screenFormat, &err);
     }
-    
+
     WinSetDrawWindow(overlayBuffer);
     RctSetRectangle(&lamerect, 0, 0, gridSize.x, gridSize.y);
     WinCopyRectangle(backgroundBuffer, overlayBuffer, &lamerect, 0, 0, winPaint);
-    
+
     game_drawSpecialTiles();
     game_drawPawns();
 }
 
 static void game_drawLayout() {
     RectangleType lamerect;
-    WinHandle mainWindow = WinGetDrawWindow();
+    WinHandle mainWindow = WinGetDisplayWindow();
     Err err = errNone;
+    Coordinate screenSize = deviceinfo_screenSize();
     if (screenBuffer == NULL) {
-        screenBuffer = WinCreateOffscreenWindow(GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT, screenFormat, &err);
+        screenBuffer = WinCreateOffscreenWindow(screenSize.x, screenSize.y, screenFormat, &err);
     }
     game_drawBackground();
     game_drawOverlay();
 
     WinSetDrawWindow(screenBuffer);
-    RctSetRectangle(&lamerect, gameSession.viewportOffset.x, gameSession.viewportOffset.y, GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT);
+    RctSetRectangle(&lamerect, gameSession.viewportOffset.x, gameSession.viewportOffset.y, screenSize.x, screenSize.y);
     WinCopyRectangle(overlayBuffer, screenBuffer, &lamerect, 0, 0, winPaint);
 
-    RctSetRectangle(&lamerect, 0, 0, GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT);
+    RctSetRectangle(&lamerect, 0, 0, screenSize.x, screenSize.y);
     WinCopyRectangle(screenBuffer, mainWindow, &lamerect, GAMEWINDOW_X,
                      GAMEWINDOW_Y,
                      winPaint);
@@ -128,9 +166,15 @@ static void game_drawLayout() {
 }
 
 Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu) {
+    Coordinate screenSize = deviceinfo_screenSize();
     gameSession_registerPenInput(eventptr);
+    if (eventptr->eType == winDisplayChangedEvent) {
+        game_resetForm();
+        return true;
+    }
     if (eventptr->eType != nilEvent)
         return false;
+
     game_drawLayout();
     gameSession_progressLogic();
     return true;

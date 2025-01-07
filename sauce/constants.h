@@ -4,10 +4,8 @@
 // Define size and origin for the playing field
 #define GAMEWINDOW_X 0
 #define GAMEWINDOW_Y 0
-#define GAMEWINDOW_HEIGHT 160
-#define GAMEWINDOW_WIDTH 160
 
-#define BACKDROP_STARCOUNT 50
+#define BACKDROP_STARCOUNT 100
 
 // Hexgrid setup
 #define HEXTILE_SIZE 20
@@ -19,5 +17,8 @@
 #define GAMEMECHANICS_MAXTILEMOVERANGE 3
 #define GAMEMECHANICS_MAXTILEPHASERRANGE 4
 #define GAMEMECHANICS_MAXTILETORPEDORANGE 8
+
+
+#define GAME_FORM 1000
 
 #endif

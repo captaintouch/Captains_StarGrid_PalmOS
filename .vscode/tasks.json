@@ -37,6 +37,18 @@
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": []
-        }
+        },
+        {
+            "label": "Install to Palm",
+            "dependsOn": [
+                "makeDebugBuild"
+            ],
+            "command": "pilot-xfer -pusb: -i artifacts/StarGrid_debug.prc",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
     ]
 }

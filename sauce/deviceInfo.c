@@ -24,3 +24,15 @@ Int32 deviceinfo_maxDepth() {
         return -1;
     }
 }
+
+Coordinate deviceinfo_screenSize() {
+    RectangleType screenBounds;
+    WinGetBounds(WinGetDisplayWindow(), &screenBounds);
+    return (Coordinate){screenBounds.extent.x, screenBounds.extent.y};
+}
+
+Boolean deviceinfo_diaSupported() {
+    UInt32 version;
+    Err err = FtrGet(pinCreator, pinFtrAPIVersion, &version);
+    return (!err && version);
+}

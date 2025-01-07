@@ -35,6 +35,8 @@ typedef struct GameSession {
     TargetSelectionType targetSelectionType;
 
     Coordinate viewportOffset; 
+
+    Boolean diaSupport; // Support for large screens that can hide the input area like the T3/T5 ...
 } GameSession;
 
 GameSession gameSession;
