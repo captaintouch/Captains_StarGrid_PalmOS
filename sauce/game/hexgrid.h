@@ -11,4 +11,5 @@ void hexgrid_drawEntireGrid();
 void hexgrid_drawTileAtPosition(Coordinate hexPosition);
 void hexgrid_fillTileAtPosition(Coordinate hexPosition);
 void hexgrid_drawSpriteAtTile(ImageSprite *imageSprite, Coordinate hexPosition);
+Coordinate hexgrid_size();
 #endif

@@ -134,6 +134,11 @@ Coordinate hexgrid_tileAtPixel(int x, int y) {
     return (Coordinate){-1, -1};
 }
 
+Coordinate hexgrid_size() {
+    // TODO: calculate exact size
+    return (Coordinate) {HEXTILE_SIZE * HEXGRID_COLS, HEXTILE_SIZE * HEXGRID_ROWS};
+}
+
 void hexgrid_drawSpriteAtTile(ImageSprite *imageSprite, Coordinate hexPosition) {
     Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
     Coordinate centerPosition = (Coordinate){startPosition.x + HEXTILE_SIZE / 2, startPosition.y + HEXTILE_SIZE / 2};

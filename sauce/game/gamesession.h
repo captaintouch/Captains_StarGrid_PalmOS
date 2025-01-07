@@ -33,6 +33,8 @@ typedef struct GameSession {
     Boolean shouldRedrawOverlay;
 
     TargetSelectionType targetSelectionType;
+
+    Coordinate viewportOffset; 
 } GameSession;
 
 GameSession gameSession;

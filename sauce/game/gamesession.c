@@ -2,6 +2,7 @@
 
 #include "../constants.h"
 #include "hexgrid.h"
+#include "viewport.h"
 
 void gameSession_initialize() {
     gameSession.state = GAMESTATE_DEFAULT;
@@ -20,11 +21,12 @@ void gameSession_initialize() {
     gameSession.specialTileCount = 0;
 
     gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
+
+    gameSession.viewportOffset = (Coordinate){0, 0};
 }
 
 void gameSession_registerPenInput(EventPtr eventptr) {
-    // Input we get is for the entire screen, we need to offset it so that it matches our playing field area
-    inputPen_updateEventDetails(&gameSession.lastPenInput, eventptr, -GAMEWINDOW_X, -GAMEWINDOW_Y);
+    inputPen_updateEventDetails(&gameSession.lastPenInput, eventptr);
 }
 
 static Pawn *gameSession_pawnAtTile(Coordinate tile) {
@@ -73,7 +75,8 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
 }
 
 static void gameSession_handleTileTap() {
-    Coordinate selectedTile = hexgrid_tileAtPixel(gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y);
+    Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
+    Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
     Pawn *selectedPawn = gameSession_pawnAtTile(selectedTile);
     if (selectedPawn != NULL) {
         gameSession.state = GAMESTATE_SELECTTARGET;
@@ -93,7 +96,8 @@ static Boolean gameSession_specialTilesContains(Coordinate coordinate) {
 }
 
 static void gameSession_handleTargetSelection() {
-    Coordinate selectedTile = hexgrid_tileAtPixel(gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y);
+    Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
+    Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
     if (!gameSession_specialTilesContains(selectedTile)) {
         return;
     }

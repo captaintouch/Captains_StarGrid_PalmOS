@@ -10,6 +10,7 @@
 
 WinHandle backgroundBuffer = NULL;
 WinHandle overlayBuffer = NULL;
+WinHandle screenBuffer = NULL;
 Boolean shouldRedrawBackground = true;
 
 int game_eventDelayTime() {
@@ -24,6 +25,9 @@ void game_setup() {
 
 static void game_drawSpecialTiles() {  // Tiles that need to be highlighted (for example to indicate where a pawn can move)
     int i;
+    if (gameSession.specialTiles == NULL || gameSession.specialTileCount == 0) {
+        return;
+    }
     drawhelper_applyForeColor(gameSession_specialTilesColor());
     for (i = 0; i < gameSession.specialTileCount; i++) {
         hexgrid_fillTileAtPosition(gameSession.specialTiles[i]);
@@ -32,7 +36,6 @@ static void game_drawSpecialTiles() {  // Tiles that need to be highlighted (for
     for (i = 0; i < gameSession.specialTileCount; i++) {
         hexgrid_drawTileAtPosition(gameSession.specialTiles[i]);
     }
-    drawhelper_applyForeColor(ALIZARIN);
 }
 
 static void game_drawPawns() {
@@ -41,14 +44,15 @@ static void game_drawPawns() {
         Pawn *pawn = &gameSession.pawns[i];
         hexgrid_drawSpriteAtTile(&spriteLibrary.shipSprite, pawn->position);
     }
-
-    hexgrid_drawSpriteAtTile(&spriteLibrary.shipSprite, (Coordinate){0, 0});
 }
 
 static void game_drawBackdrop() {
     int i;
+    Coordinate gridSize = hexgrid_size();
+    RectangleType rect;
+    RctSetRectangle(&rect, 0, 0, gridSize.x, gridSize.y);
     drawhelper_applyForeColor(DRACULAORCHID);
-    drawhelper_fillRectangle(&(RectangleType){0, 0, GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT});
+    drawhelper_fillRectangle(&rect);
 
     // Draw stars at random locations
     for (i = 0; i < BACKDROP_STARCOUNT; i++) {
@@ -60,57 +64,60 @@ static void game_drawBackdrop() {
             drawhelper_applyForeColor(CLOUDS);
         }
 
-        WinDrawPixel(SysRandom(0) % GAMEWINDOW_WIDTH, SysRandom(0) % GAMEWINDOW_HEIGHT);
+        WinDrawPixel(SysRandom(0) % gridSize.x, SysRandom(0) % gridSize.y);
     }
 }
 
-static WinHandle game_drawBackground() {
+static void game_drawBackground() {
     Err err = errNone;
+    Coordinate gridSize;
     if (!shouldRedrawBackground && backgroundBuffer != NULL) {
-        return backgroundBuffer;
+        return;
     }
     shouldRedrawBackground = false;
-    if (backgroundBuffer != NULL) {
-        WinDeleteWindow(backgroundBuffer, false);
+    gridSize = hexgrid_size();
+    if (backgroundBuffer == NULL) {
+        backgroundBuffer = WinCreateOffscreenWindow(gridSize.x, gridSize.y, screenFormat, &err);
     }
-    backgroundBuffer = WinCreateOffscreenWindow(GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT, screenFormat, &err);
-    WinSetDrawWindow(backgroundBuffer);
 
+    WinSetDrawWindow(backgroundBuffer);
     game_drawBackdrop();
     hexgrid_drawEntireGrid();
-    return backgroundBuffer;
 }
 
-static WinHandle game_drawOverlay() { // ships, special tiles, etc.
-RectangleType lamerect;
+static void game_drawOverlay() {  // ships, special tiles, etc.
+    RectangleType lamerect;
     Err err = errNone;
+    Coordinate gridSize;
     if (!gameSession.shouldRedrawOverlay && overlayBuffer != NULL) {
-        return overlayBuffer;
+        return;
     }
     gameSession.shouldRedrawOverlay = false;
-    if (overlayBuffer != NULL) {
-        WinDeleteWindow(overlayBuffer, false);
+    gridSize = hexgrid_size();
+    if (overlayBuffer == NULL) {
+        overlayBuffer = WinCreateOffscreenWindow(gridSize.x, gridSize.y, screenFormat, &err);
     }
-    overlayBuffer = WinCreateOffscreenWindow(GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT, screenFormat, &err);
+    
     WinSetDrawWindow(overlayBuffer);
-    RctSetRectangle(&lamerect, 0, 0, GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT);
+    RctSetRectangle(&lamerect, 0, 0, gridSize.x, gridSize.y);
     WinCopyRectangle(backgroundBuffer, overlayBuffer, &lamerect, 0, 0, winPaint);
-
-    game_drawSpecialTiles(overlayBuffer);
+    
+    game_drawSpecialTiles();
     game_drawPawns();
-    return overlayBuffer;
 }
 
 static void game_drawLayout() {
     RectangleType lamerect;
     WinHandle mainWindow = WinGetDrawWindow();
     Err err = errNone;
-    WinHandle screenBuffer = WinCreateOffscreenWindow(GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT, screenFormat, &err);
-    WinSetDrawWindow(screenBuffer);
+    if (screenBuffer == NULL) {
+        screenBuffer = WinCreateOffscreenWindow(GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT, screenFormat, &err);
+    }
     game_drawBackground();
-    
     game_drawOverlay();
-    RctSetRectangle(&lamerect, 0, 0, GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT);
+
+    WinSetDrawWindow(screenBuffer);
+    RctSetRectangle(&lamerect, gameSession.viewportOffset.x, gameSession.viewportOffset.y, GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT);
     WinCopyRectangle(overlayBuffer, screenBuffer, &lamerect, 0, 0, winPaint);
 
     RctSetRectangle(&lamerect, 0, 0, GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT);
@@ -118,7 +125,6 @@ static void game_drawLayout() {
                      GAMEWINDOW_Y,
                      winPaint);
     WinSetDrawWindow(mainWindow);
-    WinDeleteWindow(screenBuffer, false);
 }
 
 Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu) {

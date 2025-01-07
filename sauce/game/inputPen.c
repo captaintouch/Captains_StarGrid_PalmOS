@@ -2,13 +2,13 @@
 #include "inputPen.h"
 #include "models.h"
 
-void inputPen_updateEventDetails(InputPen *pen, EventPtr eventPtr, int xOffset, int yOffset) {
+void inputPen_updateEventDetails(InputPen *pen, EventPtr eventPtr) {
     if (eventPtr->eType != penDownEvent) {
         return;
     }
     if (eventPtr->eType == penDownEvent) {
-        pen->touchCoordinate.x = eventPtr->screenX + xOffset;
-        pen->touchCoordinate.y = eventPtr->screenY + yOffset;
+        pen->touchCoordinate.x = eventPtr->screenX;
+        pen->touchCoordinate.y = eventPtr->screenY;
     }
     
     pen->touching = eventPtr->penDown;

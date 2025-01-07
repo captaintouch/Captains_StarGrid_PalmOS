@@ -10,6 +10,6 @@ typedef struct InputPen {
     Boolean wasUpdatedFlag;
 } InputPen;
 
-void inputPen_updateEventDetails(InputPen *pen, EventPtr eventPtr, int xOffset, int yOffset);
+void inputPen_updateEventDetails(InputPen *pen, EventPtr eventPtr);
 
 #endif
