@@ -9,6 +9,7 @@
 #define phaserText "Phaser"
 #define torpedoText "Torpedo"
 #define cloakText "Cloak"
+#define decloakText "Decloak"
 #define cancelText "Cancel"
 
 void gameSession_initialize() {
@@ -85,7 +86,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
 
 static void gameSession_showPawnActions() {
     int i;
-    const char *buttonTexts[] = {cancelText, cloakText, torpedoText, phaserText, moveText};
+    const char *buttonTexts[] = {cancelText, gameSession.activePawn->cloaked ? decloakText : cloakText, torpedoText, phaserText, moveText};
     gameSession.displayButtonCount = 5;
     gameSession.displayButtons = (Button *)MemPtrNew(sizeof(Button) * 5);
 
@@ -153,22 +154,22 @@ static void gameSession_handlePawnActionButtonSelection() {
     }
 
     switch (selectedIndex) {
-        case 0:
+        case 0: // CANCEL
             gameSession.state = GAMESTATE_DEFAULT;
             break;
-        case 1:
+        case 1: // CLOAK-DECLOAK
             gameSession.state = GAMESTATE_DEFAULT;
-            gameSession.activePawn->cloaked = true;
+            gameSession.activePawn->cloaked = !gameSession.activePawn->cloaked;
             break;
-        case 2:
+        case 2: // TORPEDO
             gameSession.state = GAMESTATE_SELECTTARGET;
             gameSession.targetSelectionType = TARGETSELECTIONTYPE_TORPEDO;
             break;
-        case 3:
+        case 3: // PHASER
             gameSession.state = GAMESTATE_SELECTTARGET;
             gameSession.targetSelectionType = TARGETSELECTIONTYPE_PHASER;
             break;
-        case 4:
+        case 4: // MOVE
             gameSession.state = GAMESTATE_SELECTTARGET;
             gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
             break;
