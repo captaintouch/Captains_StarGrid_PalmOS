@@ -84,28 +84,17 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
 }
 
 static void gameSession_showPawnActions() {
+    int i;
+    const char *buttonTexts[] = {cancelText, cloakText, torpedoText, phaserText, moveText};
     gameSession.displayButtonCount = 5;
     gameSession.displayButtons = (Button *)MemPtrNew(sizeof(Button) * 5);
 
-    gameSession.displayButtons[4].text = (char *)MemPtrNew(StrLen(moveText) + 1);
-    StrCopy(gameSession.displayButtons[4].text, moveText);
-    gameSession.displayButtons[4].length = StrLen(moveText);
-
-    gameSession.displayButtons[3].text = (char *)MemPtrNew(StrLen(phaserText) + 1);
-    StrCopy(gameSession.displayButtons[3].text, phaserText);
-    gameSession.displayButtons[3].length = StrLen(phaserText);
-
-    gameSession.displayButtons[2].text = (char *)MemPtrNew(StrLen(torpedoText) + 1);
-    StrCopy(gameSession.displayButtons[2].text, torpedoText);
-    gameSession.displayButtons[2].length = StrLen(torpedoText);
-
-    gameSession.displayButtons[1].text = (char *)MemPtrNew(StrLen(cloakText) + 1);
-    StrCopy(gameSession.displayButtons[1].text, cloakText);
-    gameSession.displayButtons[1].length = StrLen(cloakText);
-
-    gameSession.displayButtons[0].text = (char *)MemPtrNew(StrLen(cancelText) + 1);
-    StrCopy(gameSession.displayButtons[0].text, cancelText);
-    gameSession.displayButtons[0].length = StrLen(cancelText);
+    
+    for (i = 0; i < gameSession.displayButtonCount; i++) {
+        gameSession.displayButtons[i].text = (char *)MemPtrNew(StrLen(buttonTexts[i]) + 1);
+        StrCopy(gameSession.displayButtons[i].text, buttonTexts[i]);
+        gameSession.displayButtons[i].length = StrLen(buttonTexts[i]);
+    }
 
     gameSession.shouldRedrawOverlay = true;
     gameSession.state = GAMESTATE_CHOOSEPAWNACTION;
