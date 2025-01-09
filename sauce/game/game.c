@@ -77,10 +77,22 @@ static void game_drawSpecialTiles() {  // Tiles that need to be highlighted (for
 
 static void game_drawPawns() {
     int i;
+    if (gameSession.activePawn != NULL && gameSession.specialTileCount == 0) {
+        drawhelper_applyForeColor(EMERALD);
+        hexgrid_drawTileAtPosition(gameSession.activePawn->position);
+    }
+
     for (i = 0; i < gameSession.pawnCount; i++) {
         Pawn *pawn = &gameSession.pawns[i];
         hexgrid_drawSpriteAtTile(&spriteLibrary.shipSprite, pawn->position);
     }
+}
+
+static void game_drawBottomMenu() {
+    if (gameSession.displayButtonCount <= 0) {
+        return;
+    }
+    bottomMenu_display(gameSession.displayButtons, gameSession.displayButtonCount);
 }
 
 static void game_drawBackdrop() {
@@ -141,6 +153,7 @@ static void game_drawOverlay() {  // ships, special tiles, etc.
 
     game_drawSpecialTiles();
     game_drawPawns();
+    game_drawBottomMenu();
 }
 
 static void game_drawLayout() {
@@ -166,7 +179,6 @@ static void game_drawLayout() {
 }
 
 Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu) {
-    Coordinate screenSize = deviceinfo_screenSize();
     gameSession_registerPenInput(eventptr);
     if (eventptr->eType == winDisplayChangedEvent) {
         game_resetForm();

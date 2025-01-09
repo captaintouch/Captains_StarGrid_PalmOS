@@ -15,3 +15,12 @@ float fmax(float a, float b) {
         return b;
     }
 }
+
+int ceil(float a) {
+    int intPart = (int)a;
+    if (a > intPart) {
+        return intPart + 1;
+    } else {
+        return intPart;
+    }
+}

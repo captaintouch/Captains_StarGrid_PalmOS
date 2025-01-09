@@ -4,9 +4,11 @@
 #include "inputPen.h"
 #include "models.h"
 #include "colors.h"
+#include "bottomMenu.h"
 
 typedef struct Pawn {
     Coordinate position;
+    Boolean cloaked;
 } Pawn;
 
 typedef enum TargetSelectionType {
@@ -17,7 +19,8 @@ typedef enum TargetSelectionType {
 
 typedef enum GameState {
     GAMESTATE_SELECTTARGET,
-    GAMESTATE_DEFAULT
+    GAMESTATE_DEFAULT,
+    GAMESTATE_CHOOSEPAWNACTION
 } GameState;
 
 typedef struct GameSession {
@@ -37,6 +40,9 @@ typedef struct GameSession {
     Coordinate viewportOffset; 
 
     Boolean diaSupport; // Support for large screens that can hide the input area like the T3/T5 ...
+
+    Button *displayButtons;
+    int displayButtonCount;
 } GameSession;
 
 GameSession gameSession;

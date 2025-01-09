@@ -1,9 +1,15 @@
 #include "gamesession.h"
 
 #include "../constants.h"
+#include "../deviceinfo.h"
 #include "hexgrid.h"
 #include "viewport.h"
-#include "../deviceinfo.h"
+
+#define moveText "Move"
+#define phaserText "Phaser"
+#define torpedoText "Torpedo"
+#define cloakText "Cloak"
+#define cancelText "Cancel"
 
 void gameSession_initialize() {
     gameSession.diaSupport = deviceinfo_diaSupported();
@@ -16,7 +22,7 @@ void gameSession_initialize() {
 
     gameSession.pawns = MemPtrNew(sizeof(Pawn) * 1);
     gameSession.pawnCount = 1;
-    gameSession.pawns[0] = (Pawn){(Coordinate){2, 3}};
+    gameSession.pawns[0] = (Pawn){(Coordinate){2, 3}, false};
     gameSession.activePawn = &gameSession.pawns[0];
 
     gameSession.shouldRedrawOverlay = false;
@@ -77,14 +83,41 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
     gameSession.shouldRedrawOverlay = true;
 }
 
+static void gameSession_showPawnActions() {
+    gameSession.displayButtonCount = 5;
+    gameSession.displayButtons = (Button *)MemPtrNew(sizeof(Button) * 5);
+
+    gameSession.displayButtons[4].text = (char *)MemPtrNew(StrLen(moveText) + 1);
+    StrCopy(gameSession.displayButtons[4].text, moveText);
+    gameSession.displayButtons[4].length = StrLen(moveText);
+
+    gameSession.displayButtons[3].text = (char *)MemPtrNew(StrLen(phaserText) + 1);
+    StrCopy(gameSession.displayButtons[3].text, phaserText);
+    gameSession.displayButtons[3].length = StrLen(phaserText);
+
+    gameSession.displayButtons[2].text = (char *)MemPtrNew(StrLen(torpedoText) + 1);
+    StrCopy(gameSession.displayButtons[2].text, torpedoText);
+    gameSession.displayButtons[2].length = StrLen(torpedoText);
+
+    gameSession.displayButtons[1].text = (char *)MemPtrNew(StrLen(cloakText) + 1);
+    StrCopy(gameSession.displayButtons[1].text, cloakText);
+    gameSession.displayButtons[1].length = StrLen(cloakText);
+
+    gameSession.displayButtons[0].text = (char *)MemPtrNew(StrLen(cancelText) + 1);
+    StrCopy(gameSession.displayButtons[0].text, cancelText);
+    gameSession.displayButtons[0].length = StrLen(cancelText);
+
+    gameSession.shouldRedrawOverlay = true;
+    gameSession.state = GAMESTATE_CHOOSEPAWNACTION;
+}
+
 static void gameSession_handleTileTap() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
     Pawn *selectedPawn = gameSession_pawnAtTile(selectedTile);
     if (selectedPawn != NULL) {
-        gameSession.state = GAMESTATE_SELECTTARGET;
         gameSession.activePawn = selectedPawn;
-        gameSession_updateValidPawnPositionsForMovement(selectedPawn->position, gameSession.targetSelectionType);
+        gameSession_showPawnActions();
     }
 }
 
@@ -104,12 +137,64 @@ static void gameSession_handleTargetSelection() {
     if (!gameSession_specialTilesContains(selectedTile)) {
         return;
     }
-    
-    gameSession.activePawn->position = selectedTile;
+
+    switch (gameSession.targetSelectionType) {
+        case TARGETSELECTIONTYPE_MOVE:
+            gameSession.activePawn->position = selectedTile;
+            break;
+        case TARGETSELECTIONTYPE_PHASER:
+            break;
+        case TARGETSELECTIONTYPE_TORPEDO:
+            break;
+    }
+
     MemPtrFree(gameSession.specialTiles);
     gameSession.specialTiles = NULL;
     gameSession.specialTileCount = 0;
     gameSession.state = GAMESTATE_DEFAULT;
+    gameSession.shouldRedrawOverlay = true;
+}
+
+static void gameSession_handlePawnActionButtonSelection() {
+    int i;
+    int selectedIndex = bottomMenu_selectedIndex(gameSession.lastPenInput.touchCoordinate);
+
+    if (selectedIndex >= gameSession.displayButtonCount) {
+        return;
+    }
+
+    switch (selectedIndex) {
+        case 0:
+            gameSession.state = GAMESTATE_DEFAULT;
+            break;
+        case 1:
+            gameSession.state = GAMESTATE_DEFAULT;
+            gameSession.activePawn->cloaked = true;
+            break;
+        case 2:
+            gameSession.state = GAMESTATE_SELECTTARGET;
+            gameSession.targetSelectionType = TARGETSELECTIONTYPE_TORPEDO;
+            break;
+        case 3:
+            gameSession.state = GAMESTATE_SELECTTARGET;
+            gameSession.targetSelectionType = TARGETSELECTIONTYPE_PHASER;
+            break;
+        case 4:
+            gameSession.state = GAMESTATE_SELECTTARGET;
+            gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
+            break;
+    }
+
+    for (i = 0; i < gameSession.displayButtonCount; i++) {
+        MemPtrFree(gameSession.displayButtons[i].text);
+    }
+    MemPtrFree(gameSession.displayButtons);
+    gameSession.displayButtons = NULL;
+    gameSession.displayButtonCount = 0;
+
+    if (gameSession.state == GAMESTATE_SELECTTARGET) {
+        gameSession_updateValidPawnPositionsForMovement(gameSession.activePawn->position, gameSession.targetSelectionType);
+    }
     gameSession.shouldRedrawOverlay = true;
 }
 
@@ -131,6 +216,9 @@ void gameSession_progressLogic() {
         switch (gameSession.state) {
             case GAMESTATE_DEFAULT:
                 gameSession_handleTileTap();
+                break;
+            case GAMESTATE_CHOOSEPAWNACTION:
+                gameSession_handlePawnActionButtonSelection();
                 break;
             case GAMESTATE_SELECTTARGET:
                 gameSession_handleTargetSelection();
