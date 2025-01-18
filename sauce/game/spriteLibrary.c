@@ -24,7 +24,7 @@ void spriteLibrary_initialize() {
     }
 
     spriteLibrary.shipSprite = (ImageSprite){
-        GFX_RES_SHIPA,
+        GFX_RES_SHIPA_0,
         (Coordinate){HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE},
     };
     spriteLibrary.shipSprite.imageData = drawhelper_loadImage(spriteLibrary.shipSprite.resourceId);

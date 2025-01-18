@@ -66,4 +66,5 @@ combine:
 cleanup:
 	rm *.grc *.out *.bin
 	rm -Rf resources/assets
+	rm -Rf resources/hiresTMP
 	rm resources/graphicResources.rcp
