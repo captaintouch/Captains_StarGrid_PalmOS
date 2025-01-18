@@ -6,6 +6,7 @@
 #include "hexgrid.h"
 #include "movement.h"
 #include "viewport.h"
+#include "mathIsFun.h"
 
 #define moveText "Move"
 #define phaserText "Phaser"
@@ -216,6 +217,16 @@ AppColor gameSession_specialTilesColor() {
     }
 }
 
+static void gameSession_updateViewPortOffset() {
+    Coordinate screenSize = deviceinfo_screenSize();
+    Coordinate gridSize = hexgrid_size();
+    if (gameSession.movement == NULL) {
+        return;
+    }
+    gameSession.viewportOffset.x = fmin(gridSize.x - screenSize.x + 1, fmax(0, gameSession.movement->pawnPosition.x - screenSize.x / 2));
+    gameSession.viewportOffset.y = fmin(gridSize.y - screenSize.y + 1, fmax(0, gameSession.movement->pawnPosition.y - screenSize.y / 2));
+}
+
 static void gameSession_progressUpdateMovement() {
     Int32 timeSinceLaunch;
     float timePassedScale;
@@ -227,6 +238,7 @@ static void gameSession_progressUpdateMovement() {
     timeSinceLaunch = TimGetTicks() - gameSession.movement->launchTimestamp;
     timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * ((float)gameSession.movement->trajectory.tileCount - 1) / 1.7);
     gameSession.movement->pawnPosition = movement_coordinateAtPercentageOfTrajectory(gameSession.movement->trajectory, timePassedScale);
+    gameSession_updateViewPortOffset();
 
     if (timePassedScale >= 1) {
         gameSession_clearMovement();

@@ -186,6 +186,9 @@ static void game_drawOverlay() {  // ships, special tiles, etc.
     game_drawSpecialTiles();
     game_drawPawns();
     game_drawDebugTrajectoryMovement();
+}
+
+static void game_drawUserInterfaceElements() {
     game_drawBottomMenu();
 }
 
@@ -203,6 +206,8 @@ static void game_drawLayout() {
     WinSetDrawWindow(screenBuffer);
     RctSetRectangle(&lamerect, gameSession.viewportOffset.x, gameSession.viewportOffset.y, screenSize.x, screenSize.y);
     WinCopyRectangle(overlayBuffer, screenBuffer, &lamerect, 0, 0, winPaint);
+
+    game_drawUserInterfaceElements();
 
     RctSetRectangle(&lamerect, 0, 0, screenSize.x, screenSize.y);
     WinCopyRectangle(screenBuffer, mainWindow, &lamerect, GAMEWINDOW_X,
