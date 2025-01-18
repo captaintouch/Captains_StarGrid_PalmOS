@@ -26,7 +26,7 @@ void gameSession_initialize() {
 
     gameSession.pawns = MemPtrNew(sizeof(Pawn) * 1);
     gameSession.pawnCount = 1;
-    gameSession.pawns[0] = (Pawn){(Coordinate){2, 3}, false};
+    gameSession.pawns[0] = (Pawn){(Coordinate){2, 3}, 0, false};
     gameSession.activePawn = &gameSession.pawns[0];
 
     gameSession.shouldRedrawOverlay = false;
@@ -237,7 +237,7 @@ static void gameSession_progressUpdateMovement() {
 
     timeSinceLaunch = TimGetTicks() - gameSession.movement->launchTimestamp;
     timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * ((float)gameSession.movement->trajectory.tileCount - 1) / 1.7);
-    gameSession.movement->pawnPosition = movement_coordinateAtPercentageOfTrajectory(gameSession.movement->trajectory, timePassedScale);
+    gameSession.movement->pawnPosition = movement_coordinateAtPercentageOfTrajectory(gameSession.movement->trajectory, timePassedScale, &gameSession.movement->pawn->orientation);
     gameSession_updateViewPortOffset();
 
     if (timePassedScale >= 1) {

@@ -19,15 +19,17 @@ ImageData *drawhelper_loadImage(UInt16 bitmapId) {
 }
 
 void spriteLibrary_initialize() {
+    int i;
     if (spriteLibrary.initialized) {
         return;
     }
-
-    spriteLibrary.shipSprite = (ImageSprite){
-        GFX_RES_SHIPA_0,
+    for (i = 0; i < 8; i++) {
+        spriteLibrary.shipSprite[i] = (ImageSprite){
+        GFX_RES_SHIPA_0 + i,
         (Coordinate){HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE},
     };
-    spriteLibrary.shipSprite.imageData = drawhelper_loadImage(spriteLibrary.shipSprite.resourceId);
+    spriteLibrary.shipSprite[i].imageData = drawhelper_loadImage(spriteLibrary.shipSprite[i].resourceId);
+    }
     
     spriteLibrary.initialized = true;
 }

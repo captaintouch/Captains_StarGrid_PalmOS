@@ -19,6 +19,7 @@ typedef struct Trajectory {
 
 typedef struct Pawn {
     Coordinate position;
+    UInt8 orientation;
     Boolean cloaked;
 } Pawn;
 

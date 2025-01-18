@@ -3,7 +3,6 @@
 #include "models.h"
 #include <PalmOS.h>
 
-Coordinate movement_coordinateAtPercentageOfTrajectory(Trajectory trajectory, float percentage);
+Coordinate movement_coordinateAtPercentageOfTrajectory(Trajectory trajectory, float percentage, UInt8 *orientation);
 Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate endCoordinate);
-
 #endif

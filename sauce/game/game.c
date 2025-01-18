@@ -83,10 +83,11 @@ static void game_drawPawns() {
     }
     for (i = 0; i < gameSession.pawnCount; i++) {
         Pawn *pawn = &gameSession.pawns[i];
+        ImageSprite *shipSprite = &spriteLibrary.shipSprite[pawn->orientation];
         if (gameSession.movement->pawn == pawn) {
-            drawhelper_drawSprite(&spriteLibrary.shipSprite, gameSession.movement->pawnPosition);
+            drawhelper_drawSprite(shipSprite, gameSession.movement->pawnPosition);
         } else {
-            hexgrid_drawSpriteAtTile(&spriteLibrary.shipSprite, pawn->position);
+            hexgrid_drawSpriteAtTile(shipSprite, pawn->position);
         }
     }
 }

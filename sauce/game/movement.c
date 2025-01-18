@@ -3,6 +3,24 @@
 #include "hexgrid.h"
 #include "mathIsFun.h"
 
+static UInt8 movement_orientationBetween(Coordinate coordA, Coordinate coordB) {
+    int dx = coordB.x - coordA.x;
+    int dy = coordB.y - coordA.y;
+
+    int direction = 0;
+    if (dx < 0 && dy == 0) direction = 0; //WEST
+    if (dx == 0 && dy < 0) direction = 2; //NORTH
+    if (dx > 0 && dy == 0) direction = 4; //EAST
+    if (dx == 0 && dy > 0) direction = 6; //SOUTH
+    if (dx < 0 && dy < 0) direction = 1; //NORTHWEST
+    if (dx > 0 && dy < 0) direction = 3; //NORTHEAST
+    if (dx < 0 && dy > 0) direction = 7; //SOUTHWEST
+    if (dx > 0 && dy > 0) direction = 5; //SOUTHEAST
+
+    // TODO: offset direction to take into account even/uneven rows which are not aligned
+    return direction;
+}
+
 static Coordinate movement_coordinateAtPercentageOfLine(Line line, float percentage) {
     Coordinate coordinate;
     coordinate.x = line.startpoint.x + percentage * (line.endpoint.x - line.startpoint.x);
@@ -10,12 +28,13 @@ static Coordinate movement_coordinateAtPercentageOfLine(Line line, float percent
     return coordinate;
 }
 
-Coordinate movement_coordinateAtPercentageOfTrajectory(Trajectory trajectory, float percentage) {
+Coordinate movement_coordinateAtPercentageOfTrajectory(Trajectory trajectory, float percentage, UInt8 *orientation) {
     float easingPercentage = 1.0 - (1.0 - percentage) * (1.0 - percentage);  // Use easing to make progress faster at the start and slower at the end
     float totalDistance = trajectory.tileCount - 1;
     float targetDistance = totalDistance * easingPercentage;
     int index = floor(targetDistance);  // point is between tile[index] and tile[index + 1]
     float diffDistance = targetDistance - index;
+    *orientation = movement_orientationBetween(trajectory.tileCoordinates[index], trajectory.tileCoordinates[index + 1]);
     return movement_coordinateAtPercentageOfLine(
         (Line){
             hexgrid_tileCenterPosition(trajectory.tileCoordinates[index]),

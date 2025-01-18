@@ -28,7 +28,7 @@ for image in ./resources/ships/*.png; do
     name="${filename%.*}"
     cp $image ./resources/hiresTMP/${name}_0.png
     for i in {1..7}; do
-        rotate "$image" $((i * -45)) "./resources/hiresTMP/${name}_${i}.png"
+        rotate "$image" $((i * 45)) "./resources/hiresTMP/${name}_${i}.png"
     done
 done
 
