@@ -83,6 +83,11 @@ static Coordinate hexgrid_tileStartPosition(int column, int row) {
     }
 }
 
+Coordinate hexgrid_tileCenterPosition(Coordinate tilePosition) {
+    Coordinate position = hexgrid_tileStartPosition(tilePosition.x, tilePosition.y);
+    return (Coordinate){position.x + HEXTILE_SIZE / 2, position.y + HEXTILE_SIZE / 2};
+}
+
 void hexgrid_drawTileAtPosition(Coordinate hexPosition) {
     Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
     hexgrid_drawTile(startPosition.x, startPosition.y);

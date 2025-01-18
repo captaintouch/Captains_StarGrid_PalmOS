@@ -33,6 +33,10 @@ void drawhelper_applyBackgroundColor(AppColor color) {
     WinSetBackColor(colors_reference[color]);
 }
 
+void drawhelper_drawText(char *text, Coordinate position) {
+    WinDrawChars(text, StrLen(text), position.x, position.y);
+}
+
 void drawhelper_drawTextWithValue(char *text, int value, Coordinate position) {
     char finalText[20];
     char valueText[20];

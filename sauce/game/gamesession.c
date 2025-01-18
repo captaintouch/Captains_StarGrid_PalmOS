@@ -2,7 +2,9 @@
 
 #include "../constants.h"
 #include "../deviceinfo.h"
+#include "drawhelper.h"
 #include "hexgrid.h"
+#include "movement.h"
 #include "viewport.h"
 
 #define moveText "Move"
@@ -90,7 +92,6 @@ static void gameSession_showPawnActions() {
     gameSession.displayButtonCount = 5;
     gameSession.displayButtons = (Button *)MemPtrNew(sizeof(Button) * 5);
 
-    
     for (i = 0; i < gameSession.displayButtonCount; i++) {
         gameSession.displayButtons[i].text = (char *)MemPtrNew(StrLen(buttonTexts[i]) + 1);
         StrCopy(gameSession.displayButtons[i].text, buttonTexts[i]);
@@ -121,6 +122,17 @@ static Boolean gameSession_specialTilesContains(Coordinate coordinate) {
     return false;
 }
 
+static void gameSession_clearMovement() {
+    if (gameSession.movement != NULL) {
+        if (gameSession.movement->trajectory.tileCoordinates != NULL) {
+            MemPtrFree(gameSession.movement->trajectory.tileCoordinates);
+            gameSession.movement->trajectory.tileCoordinates = NULL;
+        }
+        MemPtrFree(gameSession.movement);
+        gameSession.movement = NULL;
+    }
+}
+
 static void gameSession_handleTargetSelection() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
@@ -130,6 +142,12 @@ static void gameSession_handleTargetSelection() {
 
     switch (gameSession.targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
+
+            gameSession_clearMovement();
+            gameSession.movement = (Movement *)MemPtrNew(sizeof(Movement));
+            gameSession.movement->launchTimestamp = TimGetTicks();
+            gameSession.movement->trajectory = movement_trajectoryBetween((Coordinate){gameSession.activePawn->position.x, gameSession.activePawn->position.y}, selectedTile);
+            gameSession.movement->pawn = gameSession.activePawn;
             gameSession.activePawn->position = selectedTile;
             break;
         case TARGETSELECTIONTYPE_PHASER:
@@ -141,7 +159,7 @@ static void gameSession_handleTargetSelection() {
     MemPtrFree(gameSession.specialTiles);
     gameSession.specialTiles = NULL;
     gameSession.specialTileCount = 0;
-    gameSession.state = GAMESTATE_DEFAULT;
+
     gameSession.shouldRedrawOverlay = true;
 }
 
@@ -154,22 +172,22 @@ static void gameSession_handlePawnActionButtonSelection() {
     }
 
     switch (selectedIndex) {
-        case 0: // CANCEL
+        case 0:  // CANCEL
             gameSession.state = GAMESTATE_DEFAULT;
             break;
-        case 1: // CLOAK-DECLOAK
+        case 1:  // CLOAK-DECLOAK
             gameSession.state = GAMESTATE_DEFAULT;
             gameSession.activePawn->cloaked = !gameSession.activePawn->cloaked;
             break;
-        case 2: // TORPEDO
+        case 2:  // TORPEDO
             gameSession.state = GAMESTATE_SELECTTARGET;
             gameSession.targetSelectionType = TARGETSELECTIONTYPE_TORPEDO;
             break;
-        case 3: // PHASER
+        case 3:  // PHASER
             gameSession.state = GAMESTATE_SELECTTARGET;
             gameSession.targetSelectionType = TARGETSELECTIONTYPE_PHASER;
             break;
-        case 4: // MOVE
+        case 4:  // MOVE
             gameSession.state = GAMESTATE_SELECTTARGET;
             gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
             break;
@@ -198,6 +216,25 @@ AppColor gameSession_specialTilesColor() {
     }
 }
 
+static void gameSession_progressUpdateMovement() {
+    Int32 timeSinceLaunch;
+    float timePassedScale;
+    if (gameSession.movement == NULL) {
+        return;
+    }
+    gameSession.shouldRedrawOverlay = true;
+
+    timeSinceLaunch = TimGetTicks() - gameSession.movement->launchTimestamp;
+    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * ((float)gameSession.movement->trajectory.tileCount - 1) / 1.7);
+    gameSession.movement->pawnPosition = movement_coordinateAtPercentageOfTrajectory(gameSession.movement->trajectory, timePassedScale);
+
+    drawhelper_drawTextWithValue("time: ", timePassedScale * 100, (Coordinate){0, 0});
+    if (timePassedScale >= 1) {
+        gameSession_clearMovement();
+        gameSession.state = GAMESTATE_DEFAULT;
+    }
+}
+
 void gameSession_progressLogic() {
     if (gameSession.lastPenInput.wasUpdatedFlag) {
         // Handle pen input
@@ -214,6 +251,6 @@ void gameSession_progressLogic() {
                 gameSession_handleTargetSelection();
                 break;
         }
-        // if the user selected a SHIP, show the possible moves
     }
+    gameSession_progressUpdateMovement();
 }

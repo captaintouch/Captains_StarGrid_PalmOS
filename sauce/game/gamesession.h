@@ -6,11 +6,6 @@
 #include "colors.h"
 #include "bottomMenu.h"
 
-typedef struct Pawn {
-    Coordinate position;
-    Boolean cloaked;
-} Pawn;
-
 typedef enum TargetSelectionType {
     TARGETSELECTIONTYPE_MOVE,
     TARGETSELECTIONTYPE_PHASER,
@@ -43,6 +38,8 @@ typedef struct GameSession {
 
     Button *displayButtons;
     int displayButtonCount;
+
+    Movement *movement;
 } GameSession;
 
 GameSession gameSession;

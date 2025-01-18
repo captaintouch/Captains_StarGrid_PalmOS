@@ -77,15 +77,47 @@ static void game_drawSpecialTiles() {  // Tiles that need to be highlighted (for
 
 static void game_drawPawns() {
     int i;
-    if (gameSession.activePawn != NULL && gameSession.specialTileCount == 0) {
+    if (gameSession.activePawn != NULL) {
         drawhelper_applyForeColor(EMERALD);
         hexgrid_drawTileAtPosition(gameSession.activePawn->position);
     }
-
     for (i = 0; i < gameSession.pawnCount; i++) {
         Pawn *pawn = &gameSession.pawns[i];
-        hexgrid_drawSpriteAtTile(&spriteLibrary.shipSprite, pawn->position);
+        if (gameSession.movement->pawn == pawn) {
+            drawhelper_drawSprite(&spriteLibrary.shipSprite, gameSession.movement->pawnPosition);
+        } else {
+            hexgrid_drawSpriteAtTile(&spriteLibrary.shipSprite, pawn->position);
+        }
     }
+}
+
+static void game_drawDebugTrajectoryMovement() {
+#ifdef DEBUG
+    int i;
+    if (gameSession.movement == NULL) {
+        return;
+    }
+
+    for (i = 0; i < gameSession.movement->trajectory.tileCount; i++) {
+        Coordinate currentPosition = gameSession.movement->trajectory.tileCoordinates[i];
+        char finalText[20];
+        char valueText[20];
+        if (i % 2 == 0) {
+            drawhelper_applyForeColor(ALIZARIN);
+        } else {
+            drawhelper_applyForeColor(EMERALD);
+        }
+
+        StrIToA(finalText, currentPosition.x);
+        StrCat(finalText, ",");
+        StrIToA(valueText, currentPosition.y);
+        StrCat(finalText, valueText);
+        drawhelper_drawText(finalText, hexgrid_tileCenterPosition(currentPosition));
+        if (i > 0) {
+            drawhelper_drawLineBetweenCoordinates(hexgrid_tileCenterPosition(gameSession.movement->trajectory.tileCoordinates[i]), hexgrid_tileCenterPosition(gameSession.movement->trajectory.tileCoordinates[i - 1]));
+        }
+    }
+#endif
 }
 
 static void game_drawBottomMenu() {
@@ -153,6 +185,7 @@ static void game_drawOverlay() {  // ships, special tiles, etc.
 
     game_drawSpecialTiles();
     game_drawPawns();
+    game_drawDebugTrajectoryMovement();
     game_drawBottomMenu();
 }
 

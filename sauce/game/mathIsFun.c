@@ -24,3 +24,28 @@ int ceil(float a) {
         return intPart;
     }
 }
+
+int floor(float a) {
+    int intPart = (int)a;
+    if (a < intPart) {
+        return intPart - 1;
+    } else {
+        return intPart;
+    }
+}
+
+double fabs(double a) {
+    if (a < 0) {
+        return -a;
+    } else {
+        return a;
+    }
+}
+
+int round(float a) {
+    if (a >= 0) {
+        return (int)(a + 0.5);
+    } else {
+        return (int)(a - 0.5);
+    }
+}
