@@ -228,6 +228,7 @@ static void gameSession_progressUpdateMovement() {
     timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * ((float)gameSession.movement->trajectory.tileCount - 1) / 1.7);
     gameSession.movement->pawnPosition = movement_coordinateAtPercentageOfTrajectory(gameSession.movement->trajectory, timePassedScale);
 
+    drawhelper_drawTextWithValue("time: ", timePassedScale * 100, (Coordinate){0, 0});
     if (timePassedScale >= 1) {
         gameSession_clearMovement();
         gameSession.state = GAMESTATE_DEFAULT;
