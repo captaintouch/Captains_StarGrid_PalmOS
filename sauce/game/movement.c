@@ -107,13 +107,44 @@ static Coordinate movement_nextManualCoordinate(Coordinate originCoordinate, Coo
     return closestCoordinate;
 }
 
+static void addCoordinateToTrajectory(Trajectory *trajectory, Coordinate coordinate) {
+    trajectory->tileCoordinates[trajectory->tileCount] = coordinate;
+    trajectory->tileCount++;
+}
+
+static void finalizeTrajectory(Trajectory *trajectory, Coordinate endCoordinate) {
+    while (!isEqualCoordinate(trajectory->tileCoordinates[trajectory->tileCount - 1], endCoordinate)) {
+        addCoordinateToTrajectory(trajectory, movement_nextManualCoordinate(trajectory->tileCoordinates[trajectory->tileCount - 1], (Coordinate){-1, -1}, endCoordinate));
+        if (movement_isAdjacent(trajectory->tileCoordinates[trajectory->tileCount - 1], endCoordinate)) {
+            addCoordinateToTrajectory(trajectory, endCoordinate);
+            break;
+        }
+    }
+}
+
+static void removeUnnecessaryTiles(Trajectory *trajectory) {
+    int i, j;
+    for (i = 0; i < fmax(0, trajectory->tileCount - 2); i++) {
+        if (trajectory->tileCount <= 2) {
+            return;
+        }
+        if (!movement_isInvalid(trajectory->tileCoordinates[i], trajectory->tileCoordinates[i + 2])) {
+            for (j = i + 1; j < trajectory->tileCount - 1; j++) {
+                trajectory->tileCoordinates[j] = trajectory->tileCoordinates[j + 1];
+            }
+            trajectory->tileCount--;
+            i = 0;
+        }
+    }
+}
+
 Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate endCoordinate) {
     Trajectory trajectory;
-    int i,j;
+    int i;
     int distance = movement_hexDistance(startCoordinate, endCoordinate);
 
     trajectory.tileCoordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * 40);
-    trajectory.tileCoordinates[0] = (Coordinate){startCoordinate.x, startCoordinate.y };
+    trajectory.tileCoordinates[0] = startCoordinate;
     trajectory.tileCount = 1;
 
     for (i = 1; i <= distance; i++) {
@@ -123,55 +154,28 @@ Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate end
 
         Coordinate interCoordinate = movement_hexRound(q, r);
         if (movement_isInvalid(trajectory.tileCoordinates[trajectory.tileCount - 1], interCoordinate)) {
-            trajectory.tileCoordinates[trajectory.tileCount] = movement_nextManualCoordinate(trajectory.tileCoordinates[trajectory.tileCount - 1], interCoordinate, endCoordinate);
-            distance = movement_hexDistance(trajectory.tileCoordinates[trajectory.tileCount], endCoordinate);
-            startCoordinate = trajectory.tileCoordinates[trajectory.tileCount];
+            addCoordinateToTrajectory(&trajectory, movement_nextManualCoordinate(trajectory.tileCoordinates[trajectory.tileCount - 1], interCoordinate, endCoordinate));
+            distance = movement_hexDistance(trajectory.tileCoordinates[trajectory.tileCount - 1], endCoordinate);
+            startCoordinate = trajectory.tileCoordinates[trajectory.tileCount - 1];
             i = 1;
-            trajectory.tileCount++;
             if (movement_isAdjacent(trajectory.tileCoordinates[trajectory.tileCount - 1], endCoordinate)) {
-                trajectory.tileCoordinates[trajectory.tileCount] = endCoordinate;
-                trajectory.tileCount++;
+                addCoordinateToTrajectory(&trajectory, endCoordinate);
+                break;
             }
-            break;
         } else {
-            trajectory.tileCoordinates[i] = interCoordinate;
-            trajectory.tileCount++;
+            addCoordinateToTrajectory(&trajectory, interCoordinate);
             if (isEqualCoordinate(trajectory.tileCoordinates[trajectory.tileCount - 1], endCoordinate)) {
                 break;
             }
             if (movement_isAdjacent(trajectory.tileCoordinates[trajectory.tileCount - 1], endCoordinate)) {
-                trajectory.tileCoordinates[trajectory.tileCount] = endCoordinate;
-                trajectory.tileCount++;
+                addCoordinateToTrajectory(&trajectory, endCoordinate);
                 break;
             }
         }
     }
 
-    while (!isEqualCoordinate(trajectory.tileCoordinates[trajectory.tileCount - 1], endCoordinate)) {
-        trajectory.tileCoordinates[trajectory.tileCount] = movement_nextManualCoordinate(trajectory.tileCoordinates[trajectory.tileCount - 1], (Coordinate){-1, -1}, endCoordinate);
-        trajectory.tileCount++;
-
-        if (movement_isAdjacent(trajectory.tileCoordinates[trajectory.tileCount - 1], endCoordinate)) {
-            trajectory.tileCoordinates[trajectory.tileCount] = endCoordinate;
-            trajectory.tileCount++;
-            break;
-        }
-    }
-
-    // Delete unneccessary tiles
-    for (i = 0; i < fmax(0, trajectory.tileCount -2); i++) {
-        if (trajectory.tileCount <= 2) {
-            return;
-        }
-        if (!movement_isInvalid(trajectory.tileCoordinates[i], trajectory.tileCoordinates[i + 2])) {
-            for (j = i + 1; j < trajectory.tileCount - 1; j++) {
-                trajectory.tileCoordinates[j] = trajectory.tileCoordinates[j + 1];
-            }
-            trajectory.tileCount--;
-            i = 0;
-        }
-    }
-
+    finalizeTrajectory(&trajectory, endCoordinate);
+    removeUnnecessaryTiles(&trajectory);
     MemPtrResize(trajectory.tileCoordinates, trajectory.tileCount * sizeof(Coordinate));
     return trajectory;
 }
