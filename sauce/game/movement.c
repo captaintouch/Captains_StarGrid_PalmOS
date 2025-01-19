@@ -2,6 +2,8 @@
 #include <PalmOS.h>
 #include "hexgrid.h"
 #include "mathIsFun.h"
+#include "models.h"
+#include "../constants.h"
 
 static UInt8 movement_orientationBetween(Coordinate coordA, Coordinate coordB) {
     int dx = coordB.x - coordA.x;
@@ -193,4 +195,25 @@ Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate end
 
     MemPtrResize(trajectory.tileCoordinates, trajectory.tileCount * sizeof(Coordinate));
     return trajectory;
+}
+
+void movement_updateValidPawnPositionsForMovement(Coordinate currentPosition, int maxTileRange, Coordinate **results, int *numberOfPositions) {
+    int i, j;
+    int positionCount = 0;
+    Coordinate *positions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * maxTileRange * 2 * maxTileRange * 2);
+    for (i = -maxTileRange + 1; i < maxTileRange; i++) {
+        for (j = -maxTileRange + 1; j < maxTileRange; j++) {
+            Coordinate newPosition = (Coordinate){currentPosition.x + i, currentPosition.y + j};
+            if (newPosition.x == currentPosition.x && newPosition.y == currentPosition.y) {
+                continue;
+            }
+            if (newPosition.x >= 0 && newPosition.x < HEXGRID_COLS && newPosition.y >= 0 && newPosition.y < HEXGRID_ROWS) {
+                positions[positionCount] = newPosition;
+                positionCount++;
+            }
+        }
+    }
+    MemPtrResize(positions, positionCount * sizeof(Coordinate));
+    *results = positions;
+    *numberOfPositions = positionCount;
 }

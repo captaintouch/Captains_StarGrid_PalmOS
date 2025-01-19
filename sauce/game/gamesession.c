@@ -53,9 +53,6 @@ static Pawn *gameSession_pawnAtTile(Coordinate tile) {
 }
 
 static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPosition, TargetSelectionType targetSelectionType) {
-    int i, j;
-    Coordinate *positions;
-    int positionCount = 0;
     int maxTileRange = 0;
     switch (targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
@@ -68,22 +65,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
             maxTileRange = GAMEMECHANICS_MAXTILETORPEDORANGE;
             break;
     }
-    positions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * maxTileRange * 2 * maxTileRange * 2);
-    for (i = -maxTileRange + 1; i < maxTileRange; i++) {
-        for (j = -maxTileRange + 1; j < maxTileRange; j++) {
-            Coordinate newPosition = (Coordinate){currentPosition.x + i, currentPosition.y + j};
-            if (newPosition.x == currentPosition.x && newPosition.y == currentPosition.y) {
-                continue;
-            }
-            if (newPosition.x >= 0 && newPosition.x < HEXGRID_COLS && newPosition.y >= 0 && newPosition.y < HEXGRID_ROWS) {
-                positions[positionCount] = newPosition;
-                positionCount++;
-            }
-        }
-    }
-    MemPtrResize(positions, positionCount * sizeof(Coordinate));
-    gameSession.specialTiles = positions;
-    gameSession.specialTileCount = positionCount;
+    movement_updateValidPawnPositionsForMovement(currentPosition, maxTileRange, &gameSession.specialTiles, &gameSession.specialTileCount);;
     gameSession.shouldRedrawOverlay = true;
 }
 
