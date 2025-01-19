@@ -24,9 +24,10 @@ void gameSession_initialize() {
     gameSession.pawns = NULL;
     gameSession.activePawn = NULL;
 
-    gameSession.pawns = MemPtrNew(sizeof(Pawn) * 1);
-    gameSession.pawnCount = 1;
+    gameSession.pawns = MemPtrNew(sizeof(Pawn) * 2);
+    gameSession.pawnCount = 2;
     gameSession.pawns[0] = (Pawn){(Coordinate){2, 3}, 0, false};
+    gameSession.pawns[1] = (Pawn){(Coordinate){5, 4}, 0, false};
     gameSession.activePawn = &gameSession.pawns[0];
 
     gameSession.shouldRedrawOverlay = false;
@@ -40,6 +41,21 @@ void gameSession_initialize() {
 
 void gameSession_registerPenInput(EventPtr eventptr) {
     inputPen_updateEventDetails(&gameSession.lastPenInput, eventptr);
+}
+
+static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn) {
+    Coordinate screenSize = deviceinfo_screenSize();
+    Coordinate gridSize = hexgrid_size();
+    Coordinate position;
+    if (gameSession.activePawn != NULL && forceUpdateActivePawn) {
+        position = hexgrid_tileCenterPosition(gameSession.activePawn->position);
+    } else if (gameSession.movement != NULL) {
+        position = gameSession.movement->pawnPosition;
+    } else {
+        return;
+    }
+    gameSession.viewportOffset.x = fmin(gridSize.x - screenSize.x + 1, fmax(0, position.x - screenSize.x / 2));
+    gameSession.viewportOffset.y = fmin(gridSize.y - screenSize.y + 1, fmax(0, position.y - screenSize.y / 2));
 }
 
 static Pawn *gameSession_pawnAtTile(Coordinate tile) {
@@ -91,6 +107,7 @@ static void gameSession_handleTileTap() {
     Pawn *selectedPawn = gameSession_pawnAtTile(selectedTile);
     if (selectedPawn != NULL) {
         gameSession.activePawn = selectedPawn;
+        gameSession_updateViewPortOffset(true);
         gameSession_showPawnActions();
     }
 }
@@ -199,16 +216,6 @@ AppColor gameSession_specialTilesColor() {
     }
 }
 
-static void gameSession_updateViewPortOffset() {
-    Coordinate screenSize = deviceinfo_screenSize();
-    Coordinate gridSize = hexgrid_size();
-    if (gameSession.movement == NULL) {
-        return;
-    }
-    gameSession.viewportOffset.x = fmin(gridSize.x - screenSize.x + 1, fmax(0, gameSession.movement->pawnPosition.x - screenSize.x / 2));
-    gameSession.viewportOffset.y = fmin(gridSize.y - screenSize.y + 1, fmax(0, gameSession.movement->pawnPosition.y - screenSize.y / 2));
-}
-
 static void gameSession_progressUpdateMovement() {
     Int32 timeSinceLaunch;
     float timePassedScale;
@@ -220,7 +227,7 @@ static void gameSession_progressUpdateMovement() {
     timeSinceLaunch = TimGetTicks() - gameSession.movement->launchTimestamp;
     timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * ((float)gameSession.movement->trajectory.tileCount - 1) / 1.7);
     gameSession.movement->pawnPosition = movement_coordinateAtPercentageOfTrajectory(gameSession.movement->trajectory, timePassedScale, &gameSession.movement->pawn->orientation);
-    gameSession_updateViewPortOffset();
+    gameSession_updateViewPortOffset(false);
 
     if (timePassedScale >= 1) {
         gameSession_clearMovement();
