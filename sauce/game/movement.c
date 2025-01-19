@@ -1,31 +1,33 @@
 #include "movement.h"
+
 #include <PalmOS.h>
+
+#include "../constants.h"
 #include "hexgrid.h"
 #include "mathIsFun.h"
 #include "models.h"
-#include "../constants.h"
 
 typedef struct Cube {
-	int q;
-	int r;
-	int s;
+    int q;
+    int r;
+    int s;
 } Cube;
 
 static Cube movement_cubeFromCoordinates(Coordinate a) {
-	int q = a.x - (a.y + (a.y&1)) / 2;
-	int r = a.y;
-	int s = -q-r;
-	return (Cube){q, r, s};
+    int q = a.x - (a.y + (a.y & 1)) / 2;
+    int r = a.y;
+    int s = -q - r;
+    return (Cube){q, r, s};
 }
 
 static Cube movement_cubeSubtract(Cube a, Cube b) {
-	return (Cube){a.q - b.q, a.r - b.r, a.s - b.s};
+    return (Cube){a.q - b.q, a.r - b.r, a.s - b.s};
 }
 
 static int movement_distance(Coordinate axialA, Coordinate axialB) {
-	Cube a = movement_cubeFromCoordinates(axialA);
-	Cube b = movement_cubeFromCoordinates(axialB);
-	Cube vec = movement_cubeSubtract(a, b);
+    Cube a = movement_cubeFromCoordinates(axialA);
+    Cube b = movement_cubeFromCoordinates(axialB);
+    Cube vec = movement_cubeSubtract(a, b);
     return (abs(vec.q) + abs(vec.r) + abs(vec.s)) / 2;
 }
 
@@ -34,14 +36,18 @@ static UInt8 movement_orientationBetween(Coordinate coordA, Coordinate coordB) {
     int dy = coordB.y - coordA.y;
 
     int direction = 0;
-    if (dx < 0 && dy == 0) direction = 0; //WEST
-    if (dx == 0 && dy < 0) direction = 2; //NORTH
-    if (dx > 0 && dy == 0) direction = 4; //EAST
-    if (dx == 0 && dy > 0) direction = 6; //SOUTH
-    if (dx < 0 && dy < 0) direction = 1; //NORTHWEST
-    if (dx > 0 && dy < 0) direction = 3; //NORTHEAST
-    if (dx < 0 && dy > 0) direction = 7; //SOUTHWEST
-    if (dx > 0 && dy > 0) direction = 5; //SOUTHEAST
+    if (dx < 0 && dy == 0) direction = 0;  // WEST
+    if (dx == 0 && dy < 0) {
+        direction = (coordA.y % 2 == 0) ? 1 : 3;  // NORTHWEST : NORTHEAST
+    }
+    if (dx > 0 && dy == 0) direction = 4;  // EAST
+    if (dx == 0 && dy > 0) {
+        direction = (coordA.y % 2 == 0) ? 7 : 5;  // SOUTHWEST : SOUTHEAST
+    }
+    if (dx < 0 && dy < 0) direction = 1;  // NORTHWEST
+    if (dx > 0 && dy < 0) direction = 3;  // NORTHEAST
+    if (dx < 0 && dy > 0) direction = 7;  // SOUTHWEST
+    if (dx > 0 && dy > 0) direction = 5;  // SOUTHEAST
 
     // TODO: offset direction to take into account even/uneven rows which are not aligned
     return direction;
@@ -150,11 +156,11 @@ static Coordinate movement_nextManualCoordinate(Coordinate originCoordinate, Coo
 
 Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate endCoordinate) {
     Trajectory trajectory;
-    int i,j;
+    int i, j;
     int distance = movement_distance(startCoordinate, endCoordinate);
 
     trajectory.tileCoordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * 40);
-    trajectory.tileCoordinates[0] = (Coordinate){startCoordinate.x, startCoordinate.y };
+    trajectory.tileCoordinates[0] = (Coordinate){startCoordinate.x, startCoordinate.y};
     trajectory.tileCount = 1;
 
     for (i = 1; i <= distance; i++) {
@@ -200,7 +206,7 @@ Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate end
     }
 
     // Delete unneccessary tiles
-    for (i = 0; i < fmax(0, trajectory.tileCount -2); i++) {
+    for (i = 0; i < fmax(0, trajectory.tileCount - 2); i++) {
         if (trajectory.tileCount <= 2) {
             return;
         }
