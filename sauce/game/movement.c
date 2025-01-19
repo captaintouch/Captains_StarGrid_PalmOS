@@ -5,6 +5,30 @@
 #include "models.h"
 #include "../constants.h"
 
+typedef struct Cube {
+	int q;
+	int r;
+	int s;
+} Cube;
+
+static Cube movement_cubeFromCoordinates(Coordinate a) {
+	int q = a.x - (a.y + (a.y&1)) / 2;
+	int r = a.y;
+	int s = -q-r;
+	return (Cube){q, r, s};
+}
+
+static Cube movement_cubeSubtract(Cube a, Cube b) {
+	return (Cube){a.q - b.q, a.r - b.r, a.s - b.s};
+}
+
+static int movement_distance(Coordinate axialA, Coordinate axialB) {
+	Cube a = movement_cubeFromCoordinates(axialA);
+	Cube b = movement_cubeFromCoordinates(axialB);
+	Cube vec = movement_cubeSubtract(a, b);
+    return (abs(vec.q) + abs(vec.r) + abs(vec.s)) / 2;
+}
+
 static UInt8 movement_orientationBetween(Coordinate coordA, Coordinate coordB) {
     int dx = coordB.x - coordA.x;
     int dy = coordB.y - coordA.y;
@@ -63,10 +87,6 @@ static Coordinate movement_hexRound(float q, float r) {
     return (Coordinate){rq, rr};
 }
 
-static int movement_hexDistance(Coordinate a, Coordinate b) {
-    return (abs(a.x - b.y) + abs(a.y - b.y) + abs(-a.x - a.y + b.x + b.y)) / 2;
-}
-
 static Boolean movement_isInvalid(Coordinate originCoordinate, Coordinate interCoordinate) {
     int deltaX = interCoordinate.x - originCoordinate.x;
     int deltaY = interCoordinate.y - originCoordinate.y;
@@ -110,11 +130,11 @@ static Coordinate movement_nextManualCoordinate(Coordinate originCoordinate, Coo
         int yOffset = (endCoordinate.y > originCoordinate.y) ? 1 : -1;
         return (Coordinate){originCoordinate.x, originCoordinate.y + yOffset};
     }
-    closestDistance = movement_hexDistance(closestCoordinate, endCoordinate);
+    closestDistance = movement_distance(closestCoordinate, endCoordinate);
     for (i = -1; i <= 1; i++) {
         for (j = -1; j <= 1; j++) {
             Coordinate updatedCoordinate = (Coordinate){originCoordinate.x + i, originCoordinate.y + j};
-            int updatedDistance = movement_hexDistance(updatedCoordinate, endCoordinate);
+            int updatedDistance = movement_distance(updatedCoordinate, endCoordinate);
             if (movement_isInvalid(originCoordinate, updatedCoordinate) || isEqualCoordinate(invalidCoordinate, updatedCoordinate) || isEqualCoordinate(invalidCoordinate, originCoordinate)) {
                 continue;
             } else if (isEqualCoordinate(endCoordinate, updatedCoordinate)) {
@@ -131,7 +151,7 @@ static Coordinate movement_nextManualCoordinate(Coordinate originCoordinate, Coo
 Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate endCoordinate) {
     Trajectory trajectory;
     int i,j;
-    int distance = movement_hexDistance(startCoordinate, endCoordinate);
+    int distance = movement_distance(startCoordinate, endCoordinate);
 
     trajectory.tileCoordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * 40);
     trajectory.tileCoordinates[0] = (Coordinate){startCoordinate.x, startCoordinate.y };
@@ -145,7 +165,7 @@ Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate end
         Coordinate interCoordinate = movement_hexRound(q, r);
         if (movement_isInvalid(trajectory.tileCoordinates[trajectory.tileCount - 1], interCoordinate)) {
             trajectory.tileCoordinates[trajectory.tileCount] = movement_nextManualCoordinate(trajectory.tileCoordinates[trajectory.tileCount - 1], interCoordinate, endCoordinate);
-            distance = movement_hexDistance(trajectory.tileCoordinates[trajectory.tileCount], endCoordinate);
+            distance = movement_distance(trajectory.tileCoordinates[trajectory.tileCount], endCoordinate);
             startCoordinate = trajectory.tileCoordinates[trajectory.tileCount];
             i = 1;
             trajectory.tileCount++;
@@ -204,7 +224,10 @@ void movement_updateValidPawnPositionsForMovement(Coordinate currentPosition, in
     for (i = -maxTileRange + 1; i < maxTileRange; i++) {
         for (j = -maxTileRange + 1; j < maxTileRange; j++) {
             Coordinate newPosition = (Coordinate){currentPosition.x + i, currentPosition.y + j};
-            if (newPosition.x == currentPosition.x && newPosition.y == currentPosition.y) {
+            if (isEqualCoordinate(currentPosition, newPosition)) {
+                continue;
+            }
+            if (movement_distance(currentPosition, newPosition) >= maxTileRange) {
                 continue;
             }
             if (newPosition.x >= 0 && newPosition.x < HEXGRID_COLS && newPosition.y >= 0 && newPosition.y < HEXGRID_ROWS) {
