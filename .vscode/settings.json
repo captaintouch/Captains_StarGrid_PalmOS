@@ -20,7 +20,8 @@
         "hexgrid.h": "c",
         "viewport.h": "c",
         "bottommenu.h": "c",
-        "mathisfun.h": "c"
+        "mathisfun.h": "c",
+        "movement.h": "c"
     },
     "C_Cpp.default.includePath": [
         "/opt/palmdev/sdk-5r3/include"

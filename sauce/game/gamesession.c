@@ -24,10 +24,11 @@ void gameSession_initialize() {
     gameSession.pawns = NULL;
     gameSession.activePawn = NULL;
 
-    gameSession.pawns = MemPtrNew(sizeof(Pawn) * 2);
-    gameSession.pawnCount = 2;
+    gameSession.pawns = MemPtrNew(sizeof(Pawn) * 3);
+    gameSession.pawnCount = 3;
     gameSession.pawns[0] = (Pawn){(Coordinate){2, 3}, 0, false};
     gameSession.pawns[1] = (Pawn){(Coordinate){5, 4}, 0, false};
+    gameSession.pawns[2] = (Pawn){(Coordinate){1, 4}, 0, false};
     gameSession.activePawn = &gameSession.pawns[0];
 
     gameSession.shouldRedrawOverlay = false;
@@ -70,9 +71,17 @@ static Pawn *gameSession_pawnAtTile(Coordinate tile) {
 
 static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPosition, TargetSelectionType targetSelectionType) {
     int maxTileRange = 0;
+    int i;
+    Coordinate *invalidCoordinates = NULL;
+    int invalidCoordinatesCount = 0;
     switch (targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
             maxTileRange = GAMEMECHANICS_MAXTILEMOVERANGE;
+            invalidCoordinatesCount = gameSession.pawnCount;
+            invalidCoordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * invalidCoordinatesCount);
+            for (i = 0; i < gameSession.pawnCount; i++) {
+                invalidCoordinates[i] = gameSession.pawns[i].position;
+            }
             break;
         case TARGETSELECTIONTYPE_PHASER:
             maxTileRange = GAMEMECHANICS_MAXTILEPHASERRANGE;
@@ -81,7 +90,11 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
             maxTileRange = GAMEMECHANICS_MAXTILETORPEDORANGE;
             break;
     }
-    movement_updateValidPawnPositionsForMovement(currentPosition, maxTileRange, &gameSession.specialTiles, &gameSession.specialTileCount);;
+
+    movement_updateValidPawnPositionsForMovement(currentPosition, maxTileRange, invalidCoordinates, invalidCoordinatesCount, &gameSession.specialTiles, &gameSession.specialTileCount);
+    if (invalidCoordinates != NULL) {
+        MemPtrFree(invalidCoordinates);
+    }
     gameSession.shouldRedrawOverlay = true;
 }
 
@@ -142,7 +155,6 @@ static void gameSession_handleTargetSelection() {
 
     switch (gameSession.targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
-
             gameSession_clearMovement();
             gameSession.movement = (Movement *)MemPtrNew(sizeof(Movement));
             gameSession.movement->launchTimestamp = TimGetTicks();

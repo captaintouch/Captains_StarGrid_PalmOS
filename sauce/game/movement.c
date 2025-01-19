@@ -223,7 +223,20 @@ Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate end
     return trajectory;
 }
 
-void movement_updateValidPawnPositionsForMovement(Coordinate currentPosition, int maxTileRange, Coordinate **results, int *numberOfPositions) {
+static Boolean movement_positionInCoordinates(Coordinate referenceCoordinate, Coordinate *invalidCoordinates, int invalidCoordinatesCount) {
+    int i;
+    if (invalidCoordinates == NULL) {
+        return false;
+    }
+    for (i = 0; i < invalidCoordinatesCount; i++) {
+        if (isEqualCoordinate(referenceCoordinate, invalidCoordinates[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void movement_updateValidPawnPositionsForMovement(Coordinate currentPosition, int maxTileRange, Coordinate *invalidCoordinates, int invalidCoordinatesCount, Coordinate **results, int *numberOfPositions) {
     int i, j;
     int positionCount = 0;
     Coordinate *positions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * maxTileRange * 2 * maxTileRange * 2);
@@ -234,6 +247,9 @@ void movement_updateValidPawnPositionsForMovement(Coordinate currentPosition, in
                 continue;
             }
             if (movement_distance(currentPosition, newPosition) >= maxTileRange) {
+                continue;
+            }
+            if (movement_positionInCoordinates(newPosition, invalidCoordinates, invalidCoordinatesCount)) {
                 continue;
             }
             if (newPosition.x >= 0 && newPosition.x < HEXGRID_COLS && newPosition.y >= 0 && newPosition.y < HEXGRID_ROWS) {
