@@ -30,7 +30,7 @@ void bottomMenu_display(Button *buttons, Int8 buttonCount) {
 
         drawhelper_applyBackgroundColor(bgColor);
         drawhelper_applyForeColor(bgColor);
-        drawhelper_fillRectangle(&rect);
+        drawhelper_fillRectangle(&rect, 0);
 
         WinDrawChars(buttons[i].text, buttons[i].length, position.x + 4, position.y + 2);
 

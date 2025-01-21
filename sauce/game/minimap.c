@@ -2,17 +2,30 @@
 #include "hexgrid.h"
 #include "drawhelper.h"
 #include "../deviceinfo.h"
+#include "../constants.h"
 
 static Coordinate minimap_positionOnMap(Coordinate coordinate, Coordinate mapSize, Coordinate gridSize) {
     return (Coordinate){(float)coordinate.x / (float)gridSize.x * (float)mapSize.x, (float)coordinate.y / (float)gridSize.y * (float)mapSize.y};
 }
 
-void minimap_draw(Pawn *pawns, int pawnCount, Coordinate drawPosition, Coordinate mapSize, Movement *activeMovement, Pawn *activePawn) {
+static void minimap_updateViewport(Coordinate originalOffset, Coordinate mapSize, Coordinate gridSize, Coordinate *targetOffset, Coordinate *targetSize) {
+    Coordinate screenSize = deviceinfo_screenSize();
+    Coordinate offset = minimap_positionOnMap(originalOffset, mapSize, gridSize);
+    targetOffset->x = offset.x;
+    targetOffset->y = offset.y;
+    targetSize->x = (float)screenSize.x / (float)gridSize.x * (float)mapSize.x;
+    targetSize->y = ((float)screenSize.y - (float)BOTTOMMENU_HEIGHT) / (float)gridSize.y * (float)mapSize.y;
+}
+
+void minimap_draw(Pawn *pawns, int pawnCount, Coordinate drawPosition, Coordinate mapSize, Movement *activeMovement, Pawn *activePawn, Coordinate viewportOffset) {
     int i, j, k;
     RectangleType rect = (RectangleType){drawPosition.x, drawPosition.y, mapSize.x, mapSize.y};
     Coordinate gridSize = hexgrid_size();
+    Coordinate minimapViewportOffset;
+    Coordinate minimapViewportSize;
+    RectangleType minimapViewportRect;
     drawhelper_applyForeColor(DRACULAORCHID);
-    drawhelper_fillRectangle(&rect);
+    drawhelper_fillRectangle(&rect, 0);
     for (i = 0; i < pawnCount; i++) {
         Coordinate convertedPoint;
         if (activeMovement != NULL && activeMovement->pawn == &pawns[i]) {
@@ -36,4 +49,10 @@ void minimap_draw(Pawn *pawns, int pawnCount, Coordinate drawPosition, Coordinat
         }
 
     }
+
+    // Draw the viewport with a border around it
+    drawhelper_applyForeColor(CLOUDS);
+    minimap_updateViewport(viewportOffset, mapSize, gridSize, &minimapViewportOffset, &minimapViewportSize);
+    minimapViewportRect = (RectangleType){minimapViewportOffset.x + drawPosition.x, minimapViewportOffset.y + drawPosition.y, minimapViewportSize.x, minimapViewportSize.y};
+    drawhelper_borderRectangle(&minimapViewportRect);
 }

@@ -3,8 +3,12 @@
 #include "spriteLibrary.h"
 #include <PalmOS.h>
 
-void drawhelper_fillRectangle(RectangleType *rect) {
-    WinPaintRectangle(rect, 0);
+void drawhelper_fillRectangle(RectangleType *rect, UInt16 cornerDiam) {
+    WinPaintRectangle(rect, cornerDiam);
+}
+
+void drawhelper_borderRectangle(RectangleType *rect) {
+    WinDrawRectangleFrame(roundFrame, rect);
 }
 
 void drawhelper_drawLine(Line *line) {

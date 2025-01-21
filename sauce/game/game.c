@@ -135,7 +135,7 @@ static void game_drawBackdrop() {
     RectangleType rect;
     RctSetRectangle(&rect, 0, 0, gridSize.x, gridSize.y);
     drawhelper_applyForeColor(DRACULAORCHID);
-    drawhelper_fillRectangle(&rect);
+    drawhelper_fillRectangle(&rect, 0);
 
     // Draw stars at random locations
     for (i = 0; i < BACKDROP_STARCOUNT; i++) {
@@ -192,16 +192,31 @@ static void game_drawOverlay() {  // ships, special tiles, etc.
 
 static void game_drawMiniMap() {
     Coordinate screenSize = deviceinfo_screenSize();
-    int width = (float)screenSize.x * 0.75;
+    int width = (float)screenSize.x * 0.5;
     int centerOffsetX = (screenSize.x - width) / 2;
     minimap_draw(gameSession.pawns,
                  gameSession.pawnCount,
-                 (Coordinate){centerOffsetX, screenSize.y - BOTTOMMENU_HEIGHT}, (Coordinate){screenSize.x * 0.75, BOTTOMMENU_HEIGHT},
+                 (Coordinate){centerOffsetX, screenSize.y - MINIMAP_HEIGHT + 2}, (Coordinate){width, MINIMAP_HEIGHT - 2},
                  gameSession.movement,
-                 gameSession.activePawn);
+                 gameSession.activePawn,
+                 gameSession.viewportOffset);
+}
+
+static void game_drawBottomBackground() {
+    Coordinate screenSize = deviceinfo_screenSize();
+    int width = (float)screenSize.x * 0.5;
+    int centerOffsetX = (screenSize.x - width) / 2;
+    RectangleType rect;
+    RctSetRectangle(&rect, 0, screenSize.y - BOTTOMMENU_HEIGHT, screenSize.x, BOTTOMMENU_HEIGHT);
+    drawhelper_applyForeColor(BELIZEHOLE);
+    drawhelper_fillRectangle(&rect, 0);
+    drawhelper_applyForeColor(CLOUDS);
+    RctSetRectangle(&rect, centerOffsetX - 2, screenSize.y - MINIMAP_HEIGHT, width + 4, MINIMAP_HEIGHT + 10);
+    drawhelper_fillRectangle(&rect, 4);
 }
 
 static void game_drawUserInterfaceElements() {
+    game_drawBottomBackground();
     game_drawMiniMap();
     game_drawBottomMenu();
 }
