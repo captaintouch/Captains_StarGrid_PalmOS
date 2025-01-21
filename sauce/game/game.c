@@ -197,7 +197,8 @@ static void game_drawMiniMap() {
     minimap_draw(gameSession.pawns,
                  gameSession.pawnCount,
                  (Coordinate){centerOffsetX, screenSize.y - BOTTOMMENU_HEIGHT}, (Coordinate){screenSize.x * 0.75, BOTTOMMENU_HEIGHT},
-                 gameSession.movement);
+                 gameSession.movement,
+                 gameSession.activePawn);
 }
 
 static void game_drawUserInterfaceElements() {

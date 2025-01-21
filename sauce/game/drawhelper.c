@@ -60,3 +60,32 @@ void drawhelper_drawSprite(ImageSprite *imageSprite, Coordinate coordinate) {
     updatedPosition.y = coordinate.y - imageSprite->size.y / 2;
     drawhelper_drawImage(imageSprite->imageData, updatedPosition);
 }
+
+void drawhelper_drawBoxAround(Coordinate coordinate, int dimension) {
+  Line line;
+  int offset = dimension / 2 + 2;
+  // TOP
+  line.startpoint.x = coordinate.x - offset;
+  line.endpoint.x = coordinate.x + offset;
+  line.startpoint.y = coordinate.y - offset;
+  line.endpoint.y = coordinate.y - offset;
+  drawhelper_drawLine(&line);
+  // LEFT
+  line.startpoint.x = coordinate.x - offset;
+  line.endpoint.x = coordinate.x - offset;
+  line.startpoint.y = coordinate.y - offset;
+  line.endpoint.y = coordinate.y + offset;
+  drawhelper_drawLine(&line);
+  // BOTTOM
+  line.startpoint.x = coordinate.x - offset;
+  line.endpoint.x = coordinate.x + offset;
+  line.startpoint.y = coordinate.y + offset;
+  line.endpoint.y = coordinate.y + offset;
+  drawhelper_drawLine(&line);
+  // RIGHT
+  line.startpoint.x = coordinate.x + offset;
+  line.endpoint.x = coordinate.x + offset;
+  line.startpoint.y = coordinate.y - offset;
+  line.endpoint.y = coordinate.y + offset ;
+  drawhelper_drawLine(&line);
+}

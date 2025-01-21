@@ -7,8 +7,8 @@ static Coordinate minimap_positionOnMap(Coordinate coordinate, Coordinate mapSiz
     return (Coordinate){(float)coordinate.x / (float)gridSize.x * (float)mapSize.x, (float)coordinate.y / (float)gridSize.y * (float)mapSize.y};
 }
 
-void minimap_draw(Pawn *pawns, int pawnCount, Coordinate drawPosition, Coordinate mapSize, Movement *activeMovement) {
-    int i;
+void minimap_draw(Pawn *pawns, int pawnCount, Coordinate drawPosition, Coordinate mapSize, Movement *activeMovement, Pawn *activePawn) {
+    int i, j, k;
     RectangleType rect = (RectangleType){drawPosition.x, drawPosition.y, mapSize.x, mapSize.y};
     Coordinate gridSize = hexgrid_size();
     drawhelper_applyForeColor(DRACULAORCHID);
@@ -23,6 +23,17 @@ void minimap_draw(Pawn *pawns, int pawnCount, Coordinate drawPosition, Coordinat
         convertedPoint.x += drawPosition.x;
         convertedPoint.y += drawPosition.y;
         drawhelper_applyForeColor(EMERALD);  // TODO: get color for faction
-        drawhelper_drawPoint(convertedPoint);
+
+        for (j = -1; j <= 1; j++) {
+            for (k = -1; k <= 1; k++) {
+                drawhelper_drawPoint((Coordinate){convertedPoint.x + j, convertedPoint.y + k});
+            }
+        }
+
+        if (&pawns[i] == activePawn) {
+            drawhelper_applyForeColor(CLOUDS);
+            drawhelper_drawBoxAround(convertedPoint, 3);
+        }
+
     }
 }

@@ -15,5 +15,6 @@ void drawhelper_drawText(char *text, Coordinate position);
 void drawhelper_drawTextWithValue(char *text, int value, Coordinate position);
 void drawhelper_drawSprite(ImageSprite *imageSprite, Coordinate coordinate);
 void drawhelper_drawPoint(Coordinate point);
+void drawhelper_drawBoxAround(Coordinate coordinate, int dimension);
 
 #endif
