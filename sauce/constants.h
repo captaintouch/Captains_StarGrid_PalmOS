@@ -5,6 +5,8 @@
 #define GAMEWINDOW_X 0
 #define GAMEWINDOW_Y 0
 
+#define BOTTOMMENU_HEIGHT 40
+
 #define BACKDROP_STARCOUNT 100
 
 // Hexgrid setup

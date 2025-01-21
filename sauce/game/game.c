@@ -7,6 +7,7 @@
 #include "drawhelper.h"
 #include "gamesession.h"
 #include "hexgrid.h"
+#include "minimap.h"
 #include "spriteLibrary.h"
 
 WinHandle backgroundBuffer = NULL;
@@ -146,7 +147,7 @@ static void game_drawBackdrop() {
             drawhelper_applyForeColor(CLOUDS);
         }
 
-        WinDrawPixel(SysRandom(0) % gridSize.x, SysRandom(0) % gridSize.y);
+        drawhelper_drawPoint((Coordinate){SysRandom(0) % gridSize.x, SysRandom(0) % gridSize.y});
     }
 }
 
@@ -189,7 +190,18 @@ static void game_drawOverlay() {  // ships, special tiles, etc.
     game_drawDebugTrajectoryMovement();
 }
 
+static void game_drawMiniMap() {
+    Coordinate screenSize = deviceinfo_screenSize();
+    int width = (float)screenSize.x * 0.75;
+    int centerOffsetX = (screenSize.x - width) / 2;
+    minimap_draw(gameSession.pawns,
+                 gameSession.pawnCount,
+                 (Coordinate){centerOffsetX, screenSize.y - BOTTOMMENU_HEIGHT}, (Coordinate){screenSize.x * 0.75, BOTTOMMENU_HEIGHT},
+                 gameSession.movement);
+}
+
 static void game_drawUserInterfaceElements() {
+    game_drawMiniMap();
     game_drawBottomMenu();
 }
 
@@ -205,7 +217,7 @@ static void game_drawLayout() {
     game_drawOverlay();
 
     WinSetDrawWindow(screenBuffer);
-    RctSetRectangle(&lamerect, gameSession.viewportOffset.x, gameSession.viewportOffset.y, screenSize.x, screenSize.y);
+    RctSetRectangle(&lamerect, gameSession.viewportOffset.x, gameSession.viewportOffset.y, screenSize.x, screenSize.y - BOTTOMMENU_HEIGHT);
     WinCopyRectangle(overlayBuffer, screenBuffer, &lamerect, 0, 0, winPaint);
 
     game_drawUserInterfaceElements();

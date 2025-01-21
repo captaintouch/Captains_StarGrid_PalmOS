@@ -46,6 +46,7 @@ void gameSession_registerPenInput(EventPtr eventptr) {
 
 static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn) {
     Coordinate screenSize = deviceinfo_screenSize();
+    int gameWindowHeight = screenSize.y - BOTTOMMENU_HEIGHT;
     Coordinate gridSize = hexgrid_size();
     Coordinate position;
     if (gameSession.activePawn != NULL && forceUpdateActivePawn) {
@@ -56,7 +57,7 @@ static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn) {
         return;
     }
     gameSession.viewportOffset.x = fmin(gridSize.x - screenSize.x + 1, fmax(0, position.x - screenSize.x / 2));
-    gameSession.viewportOffset.y = fmin(gridSize.y - screenSize.y + 1, fmax(0, position.y - screenSize.y / 2));
+    gameSession.viewportOffset.y = fmin(gridSize.y - gameWindowHeight + 1, fmax(0, position.y - gameWindowHeight / 2));
 }
 
 static Pawn *gameSession_pawnAtTile(Coordinate tile) {

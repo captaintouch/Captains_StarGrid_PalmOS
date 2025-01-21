@@ -21,6 +21,10 @@ void drawhelper_drawLineBetweenCoordinates(Coordinate startpoint, Coordinate end
                 endpoint.y);
 }
 
+void drawhelper_drawPoint(Coordinate point) {
+    WinDrawPixel(point.x, point.y);
+}
+
 void drawhelper_applyForeColor(AppColor color) {
     WinSetForeColor(colors_reference[color]);
 }
