@@ -31,5 +31,6 @@ typedef struct Movement {
 } Movement;
 
 Boolean isEqualCoordinate(Coordinate coordA, Coordinate coordB);
+Boolean isInvalidCoordinate(Coordinate coord);
 
 #endif

@@ -46,7 +46,7 @@ static void game_resetForm() {
             screenBuffer = NULL;
         }
         shouldRedrawBackground = true;
-        gameSession.shouldRedrawOverlay = true;
+        gameSession.drawingState.shouldRedrawOverlay = true;
     }
 }
 
@@ -172,10 +172,10 @@ static void game_drawOverlay() {  // ships, special tiles, etc.
     RectangleType lamerect;
     Err err = errNone;
     Coordinate gridSize;
-    if (!gameSession.shouldRedrawOverlay && overlayBuffer != NULL) {
+    if (!gameSession.drawingState.shouldRedrawOverlay && overlayBuffer != NULL) {
         return;
     }
-    gameSession.shouldRedrawOverlay = false;
+    gameSession.drawingState.shouldRedrawOverlay = false;
     gridSize = hexgrid_size();
     if (overlayBuffer == NULL) {
         overlayBuffer = WinCreateOffscreenWindow(gridSize.x, gridSize.y, screenFormat, &err);
@@ -190,13 +190,19 @@ static void game_drawOverlay() {  // ships, special tiles, etc.
     game_drawDebugTrajectoryMovement();
 }
 
-static void game_drawMiniMap() {
+static void game_updateMiniMapDrawPosition() {
     Coordinate screenSize = deviceinfo_screenSize();
     int width = (float)screenSize.x * 0.5;
     int centerOffsetX = (screenSize.x - width) / 2;
+    gameSession.drawingState.miniMapDrawPosition = (Coordinate){centerOffsetX, screenSize.y - MINIMAP_HEIGHT + 2};
+    gameSession.drawingState.miniMapSize = (Coordinate){width, MINIMAP_HEIGHT - 2};
+}
+
+static void game_drawMiniMap() {
     minimap_draw(gameSession.pawns,
                  gameSession.pawnCount,
-                 (Coordinate){centerOffsetX, screenSize.y - MINIMAP_HEIGHT + 2}, (Coordinate){width, MINIMAP_HEIGHT - 2},
+                 gameSession.drawingState.miniMapDrawPosition,
+                 gameSession.drawingState.miniMapSize,
                  gameSession.movement,
                  gameSession.activePawn,
                  gameSession.viewportOffset);
@@ -216,6 +222,7 @@ static void game_drawBottomBackground() {
 }
 
 static void game_drawUserInterfaceElements() {
+    game_updateMiniMapDrawPosition();
     game_drawBottomBackground();
     game_drawMiniMap();
     game_drawBottomMenu();

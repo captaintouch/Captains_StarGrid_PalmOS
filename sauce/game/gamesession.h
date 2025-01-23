@@ -18,6 +18,14 @@ typedef enum GameState {
     GAMESTATE_CHOOSEPAWNACTION
 } GameState;
 
+typedef struct DrawingState {
+    Boolean shouldRedrawBackground;
+    Boolean shouldRedrawOverlay;
+
+    Coordinate miniMapDrawPosition;
+    Coordinate miniMapSize;
+} DrawingState;
+
 typedef struct GameSession {
     GameState state;
     InputPen lastPenInput;
@@ -28,7 +36,7 @@ typedef struct GameSession {
 
     Coordinate *specialTiles; //Contains the tiles that should be colored to indicate where movement is possible
     int specialTileCount;
-    Boolean shouldRedrawOverlay;
+    DrawingState drawingState;
 
     TargetSelectionType targetSelectionType;
 

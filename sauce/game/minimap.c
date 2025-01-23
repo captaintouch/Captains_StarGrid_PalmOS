@@ -56,3 +56,12 @@ void minimap_draw(Pawn *pawns, int pawnCount, Coordinate drawPosition, Coordinat
     minimapViewportRect = (RectangleType){minimapViewportOffset.x + drawPosition.x, minimapViewportOffset.y + drawPosition.y, minimapViewportSize.x, minimapViewportSize.y};
     drawhelper_borderRectangle(&minimapViewportRect);
 }
+
+Coordinate minimap_viewportOffsetForTap(Coordinate tapPoint, Coordinate drawPosition, Coordinate mapSize) {
+    Coordinate screenSize = deviceinfo_screenSize();
+    Coordinate deltaCoordinate = (Coordinate){tapPoint.x - drawPosition.x, tapPoint.y - drawPosition.y};
+    if (deltaCoordinate.x < 0 || deltaCoordinate.x > mapSize.x || deltaCoordinate.y < 0 || deltaCoordinate.y > mapSize.y ) {
+        return (Coordinate){-1, -1};
+    }
+    return (Coordinate){ (float)deltaCoordinate.x / (float)mapSize.x * (float)screenSize.x * 2, (float)deltaCoordinate.y / (float)mapSize.y * (float)screenSize.y * 2};
+}

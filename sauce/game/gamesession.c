@@ -4,9 +4,10 @@
 #include "../deviceinfo.h"
 #include "drawhelper.h"
 #include "hexgrid.h"
+#include "mathIsFun.h"
+#include "minimap.h"
 #include "movement.h"
 #include "viewport.h"
-#include "mathIsFun.h"
 
 #define moveText "Move"
 #define phaserText "Phaser"
@@ -31,7 +32,7 @@ void gameSession_initialize() {
     gameSession.pawns[2] = (Pawn){(Coordinate){1, 4}, 0, false};
     gameSession.activePawn = &gameSession.pawns[0];
 
-    gameSession.shouldRedrawOverlay = false;
+    gameSession.drawingState = (DrawingState){true, true, (Coordinate){0, 0}};
     gameSession.specialTiles = NULL;
     gameSession.specialTileCount = 0;
 
@@ -44,10 +45,17 @@ void gameSession_registerPenInput(EventPtr eventptr) {
     inputPen_updateEventDetails(&gameSession.lastPenInput, eventptr);
 }
 
-static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn) {
+static Coordinate gameSession_validViewportOffset(Coordinate position) {
+    Coordinate newOffset;
     Coordinate screenSize = deviceinfo_screenSize();
     int gameWindowHeight = screenSize.y - BOTTOMMENU_HEIGHT;
     Coordinate gridSize = hexgrid_size();
+    newOffset.x = fmin(gridSize.x - screenSize.x + 1, fmax(0, position.x - screenSize.x / 2));
+    newOffset.y = fmin(gridSize.y - gameWindowHeight + 1, fmax(0, position.y - gameWindowHeight / 2));
+    return newOffset;
+}
+
+static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn) {
     Coordinate position;
     if (gameSession.activePawn != NULL && forceUpdateActivePawn) {
         position = hexgrid_tileCenterPosition(gameSession.activePawn->position);
@@ -56,8 +64,7 @@ static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn) {
     } else {
         return;
     }
-    gameSession.viewportOffset.x = fmin(gridSize.x - screenSize.x + 1, fmax(0, position.x - screenSize.x / 2));
-    gameSession.viewportOffset.y = fmin(gridSize.y - gameWindowHeight + 1, fmax(0, position.y - gameWindowHeight / 2));
+    gameSession.viewportOffset = gameSession_validViewportOffset(position);
 }
 
 static Pawn *gameSession_pawnAtTile(Coordinate tile) {
@@ -96,7 +103,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
     if (invalidCoordinates != NULL) {
         MemPtrFree(invalidCoordinates);
     }
-    gameSession.shouldRedrawOverlay = true;
+    gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
 static void gameSession_showPawnActions() {
@@ -111,11 +118,11 @@ static void gameSession_showPawnActions() {
         gameSession.displayButtons[i].length = StrLen(buttonTexts[i]);
     }
 
-    gameSession.shouldRedrawOverlay = true;
+    gameSession.drawingState.shouldRedrawOverlay = true;
     gameSession.state = GAMESTATE_CHOOSEPAWNACTION;
 }
 
-static void gameSession_handleTileTap() {
+static Boolean gameSession_handleTileTap() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
     Pawn *selectedPawn = gameSession_pawnAtTile(selectedTile);
@@ -123,7 +130,18 @@ static void gameSession_handleTileTap() {
         gameSession.activePawn = selectedPawn;
         gameSession_updateViewPortOffset(true);
         gameSession_showPawnActions();
+        return true;
     }
+    return false;
+}
+
+static Boolean gameSession_handleMiniMapTap() {
+    Coordinate viewportOffset = minimap_viewportOffsetForTap(gameSession.lastPenInput.touchCoordinate, gameSession.drawingState.miniMapDrawPosition, gameSession.drawingState.miniMapSize);
+    if (isInvalidCoordinate(viewportOffset)) {
+        return false;
+    }
+    gameSession.viewportOffset = gameSession_validViewportOffset(viewportOffset);
+    return true;
 }
 
 static Boolean gameSession_specialTilesContains(Coordinate coordinate) {
@@ -173,7 +191,7 @@ static void gameSession_handleTargetSelection() {
     gameSession.specialTiles = NULL;
     gameSession.specialTileCount = 0;
 
-    gameSession.shouldRedrawOverlay = true;
+    gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
 static void gameSession_handlePawnActionButtonSelection() {
@@ -216,7 +234,7 @@ static void gameSession_handlePawnActionButtonSelection() {
     if (gameSession.state == GAMESTATE_SELECTTARGET) {
         gameSession_updateValidPawnPositionsForMovement(gameSession.activePawn->position, gameSession.targetSelectionType);
     }
-    gameSession.shouldRedrawOverlay = true;
+    gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
 AppColor gameSession_specialTilesColor() {
@@ -235,7 +253,7 @@ static void gameSession_progressUpdateMovement() {
     if (gameSession.movement == NULL) {
         return;
     }
-    gameSession.shouldRedrawOverlay = true;
+    gameSession.drawingState.shouldRedrawOverlay = true;
 
     timeSinceLaunch = TimGetTicks() - gameSession.movement->launchTimestamp;
     timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * ((float)gameSession.movement->trajectory.tileCount - 1) / 1.7);
@@ -253,16 +271,28 @@ void gameSession_progressLogic() {
         // Handle pen input
         gameSession.lastPenInput.wasUpdatedFlag = false;
 
-        switch (gameSession.state) {
-            case GAMESTATE_DEFAULT:
-                gameSession_handleTileTap();
-                break;
-            case GAMESTATE_CHOOSEPAWNACTION:
-                gameSession_handlePawnActionButtonSelection();
-                break;
-            case GAMESTATE_SELECTTARGET:
-                gameSession_handleTargetSelection();
-                break;
+        if (gameSession.lastPenInput.moving) {
+            switch (gameSession.state) {
+                case GAMESTATE_DEFAULT:
+                    gameSession_handleMiniMapTap();
+                    break;
+                case GAMESTATE_CHOOSEPAWNACTION:
+                case GAMESTATE_SELECTTARGET:
+                    break;
+            }
+        } else {
+            switch (gameSession.state) {
+                case GAMESTATE_DEFAULT:
+                    if (gameSession_handleMiniMapTap()) break;
+                    if (gameSession_handleTileTap()) break;
+                    break;
+                case GAMESTATE_CHOOSEPAWNACTION:
+                    gameSession_handlePawnActionButtonSelection();
+                    break;
+                case GAMESTATE_SELECTTARGET:
+                    gameSession_handleTargetSelection();
+                    break;
+            }
         }
     }
     gameSession_progressUpdateMovement();
