@@ -1,6 +1,7 @@
 #include "spriteLibrary.h"
-#include "../graphicResources.h"
+
 #include "../constants.h"
+#include "../graphicResources.h"
 #include "drawhelper.h"
 
 ImageData *drawhelper_loadImage(UInt16 bitmapId) {
@@ -25,11 +26,19 @@ void spriteLibrary_initialize() {
     }
     for (i = 0; i < 8; i++) {
         spriteLibrary.shipSprite[i] = (ImageSprite){
-        GFX_RES_SHIPA_0 + i,
-        (Coordinate){HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE},
-    };
-    spriteLibrary.shipSprite[i].imageData = drawhelper_loadImage(spriteLibrary.shipSprite[i].resourceId);
+            GFX_RES_SHIPA_0 + i,
+            (Coordinate){HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE},
+        };
+        spriteLibrary.shipSprite[i].imageData = drawhelper_loadImage(spriteLibrary.shipSprite[i].resourceId);
     }
-    
+
+    for (i = 0; i < 8; i++) {
+        spriteLibrary.shipCloakedSprite[i] = (ImageSprite){
+            GFX_RES_SHIPCLOAKED_0 + i,
+            (Coordinate){HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE},
+        };
+        spriteLibrary.shipCloakedSprite[i].imageData = drawhelper_loadImage(spriteLibrary.shipCloakedSprite[i].resourceId);
+    }
+
     spriteLibrary.initialized = true;
 }

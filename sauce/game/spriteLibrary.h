@@ -17,6 +17,7 @@ typedef struct ImageSprite {
 typedef struct SpriteLibrary {
     Boolean initialized;
     ImageSprite shipSprite[8];
+    ImageSprite shipCloakedSprite[8];
 } SpriteLibrary;
 
 SpriteLibrary spriteLibrary;

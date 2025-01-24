@@ -84,7 +84,13 @@ static void game_drawPawns() {
     }
     for (i = 0; i < gameSession.pawnCount; i++) {
         Pawn *pawn = &gameSession.pawns[i];
-        ImageSprite *shipSprite = &spriteLibrary.shipSprite[pawn->orientation];
+        ImageSprite *shipSprite;
+        if (pawn->cloaked) {
+            shipSprite = &spriteLibrary.shipCloakedSprite[pawn->orientation];
+        } else {
+            shipSprite = &spriteLibrary.shipSprite[pawn->orientation];
+        }
+         
         if (gameSession.movement->pawn == pawn) {
             drawhelper_drawSprite(shipSprite, gameSession.movement->pawnPosition);
         } else {

@@ -262,6 +262,7 @@ static void gameSession_progressUpdateMovement() {
 
     if (timePassedScale >= 1) {
         gameSession_clearMovement();
+        gameSession_updateViewPortOffset(true);
         gameSession.state = GAMESTATE_DEFAULT;
     }
 }
