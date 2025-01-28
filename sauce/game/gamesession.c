@@ -35,8 +35,8 @@ void gameSession_initialize() {
     gameSession.activePawn = &gameSession.pawns[0];
 
     gameSession.drawingState = (DrawingState){true, true, (Coordinate){0, 0}};
-    gameSession.specialTiles = NULL;
-    gameSession.specialTileCount = 0;
+    gameSession.highlightTiles = NULL;
+    gameSession.highlightTileCount = 0;
 
     gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
 
@@ -80,8 +80,8 @@ static Pawn *gameSession_pawnAtTile(Coordinate tile) {
 }
 
 static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPosition, TargetSelectionType targetSelectionType) {
-    int maxTileRange = 0;
     int i;
+    int maxTileRange;
     Coordinate *invalidCoordinates = NULL;
     int invalidCoordinatesCount = 0;
     switch (targetSelectionType) {
@@ -92,6 +92,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
             for (i = 0; i < gameSession.pawnCount; i++) {
                 invalidCoordinates[i] = gameSession.pawns[i].position;
             }
+            movement_updateValidPawnPositionsForMovement(currentPosition, maxTileRange, invalidCoordinates, invalidCoordinatesCount, &gameSession.highlightTiles, &gameSession.highlightTileCount);
             break;
         case TARGETSELECTIONTYPE_PHASER:
             maxTileRange = GAMEMECHANICS_MAXTILEPHASERRANGE;
@@ -101,7 +102,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
             break;
     }
 
-    movement_updateValidPawnPositionsForMovement(currentPosition, maxTileRange, invalidCoordinates, invalidCoordinatesCount, &gameSession.specialTiles, &gameSession.specialTileCount);
+    
     if (invalidCoordinates != NULL) {
         MemPtrFree(invalidCoordinates);
     }
@@ -146,10 +147,10 @@ static Boolean gameSession_handleMiniMapTap() {
     return true;
 }
 
-static Boolean gameSession_specialTilesContains(Coordinate coordinate) {
+static Boolean gameSession_highlightTilesContains(Coordinate coordinate) {
     int i;
-    for (i = 0; i < gameSession.specialTileCount; i++) {
-        if (gameSession.specialTiles[i].x == coordinate.x && gameSession.specialTiles[i].y == coordinate.y) {
+    for (i = 0; i < gameSession.highlightTileCount; i++) {
+        if (gameSession.highlightTiles[i].x == coordinate.x && gameSession.highlightTiles[i].y == coordinate.y) {
             return true;
         }
     }
@@ -170,7 +171,7 @@ static void gameSession_clearMovement() {
 static void gameSession_handleTargetSelection() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
-    if (!gameSession_specialTilesContains(selectedTile)) {
+    if (!gameSession_highlightTilesContains(selectedTile)) {
         return;
     }
 
@@ -189,9 +190,9 @@ static void gameSession_handleTargetSelection() {
             break;
     }
 
-    MemPtrFree(gameSession.specialTiles);
-    gameSession.specialTiles = NULL;
-    gameSession.specialTileCount = 0;
+    MemPtrFree(gameSession.highlightTiles);
+    gameSession.highlightTiles = NULL;
+    gameSession.highlightTileCount = 0;
 
     gameSession.drawingState.shouldRedrawOverlay = true;
 }
@@ -239,7 +240,7 @@ static void gameSession_handlePawnActionButtonSelection() {
     gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
-AppColor gameSession_specialTilesColor() {
+AppColor gameSession_hightlightTilesColor() {
     switch (gameSession.targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
             return EMERALD;

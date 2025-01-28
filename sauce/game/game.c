@@ -61,18 +61,18 @@ void game_setup() {
     game_resetForm();
 }
 
-static void game_drawSpecialTiles() {  // Tiles that need to be highlighted (for example to indicate where a pawn can move)
+static void game_drawHighlightTiles() {  // Tiles that need to be highlighted (for example to indicate where a pawn can move)
     int i;
-    if (gameSession.specialTiles == NULL || gameSession.specialTileCount == 0) {
+    if (gameSession.highlightTiles == NULL || gameSession.highlightTileCount == 0) {
         return;
     }
-    drawhelper_applyForeColor(gameSession_specialTilesColor());
-    for (i = 0; i < gameSession.specialTileCount; i++) {
-        hexgrid_fillTileAtPosition(gameSession.specialTiles[i]);
+    drawhelper_applyForeColor(gameSession_hightlightTilesColor());
+    for (i = 0; i < gameSession.highlightTileCount; i++) {
+        hexgrid_fillTileAtPosition(gameSession.highlightTiles[i]);
     }
     drawhelper_applyForeColor(CLOUDS);
-    for (i = 0; i < gameSession.specialTileCount; i++) {
-        hexgrid_drawTileAtPosition(gameSession.specialTiles[i]);
+    for (i = 0; i < gameSession.highlightTileCount; i++) {
+        hexgrid_drawTileAtPosition(gameSession.highlightTiles[i]);
     }
 }
 
@@ -202,7 +202,7 @@ static void game_drawOverlay() {  // ships, special tiles, etc.
     RctSetRectangle(&lamerect, 0, 0, gridSize.x, gridSize.y);
     WinCopyRectangle(backgroundBuffer, overlayBuffer, &lamerect, 0, 0, winPaint);
 
-    game_drawSpecialTiles();
+    game_drawHighlightTiles();
     game_drawPawns();
     game_drawDebugTrajectoryMovement();
 }

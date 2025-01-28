@@ -34,8 +34,8 @@ typedef struct GameSession {
     int pawnCount;
     Pawn *activePawn;
 
-    Coordinate *specialTiles; //Contains the tiles that should be colored to indicate where movement is possible
-    int specialTileCount;
+    Coordinate *highlightTiles; //Contains the tiles that should be colored to indicate where movement is possible
+    int highlightTileCount;
     DrawingState drawingState;
 
     TargetSelectionType targetSelectionType;
@@ -56,7 +56,7 @@ GameSession gameSession;
 void gameSession_initialize();
 void gameSession_registerPenInput(EventPtr eventptr);
 void gameSession_progressLogic();
-AppColor gameSession_specialTilesColor();
+AppColor gameSession_hightlightTilesColor();
 AppColor gameSession_factionColor(UInt8 faction);
 
 #endif
