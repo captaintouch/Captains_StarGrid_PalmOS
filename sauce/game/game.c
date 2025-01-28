@@ -84,17 +84,28 @@ static void game_drawPawns() {
     }
     for (i = 0; i < gameSession.pawnCount; i++) {
         Pawn *pawn = &gameSession.pawns[i];
+        Coordinate pawnPosition = hexgrid_tileCenterPosition(pawn->position);
+        RectangleType flagRect;
         ImageSprite *shipSprite;
         if (pawn->cloaked) {
             shipSprite = &spriteLibrary.shipCloakedSprite[pawn->orientation];
         } else {
             shipSprite = &spriteLibrary.shipSprite[pawn->orientation];
         }
-         
+
         if (gameSession.movement->pawn == pawn) {
             drawhelper_drawSprite(shipSprite, gameSession.movement->pawnPosition);
         } else {
             hexgrid_drawSpriteAtTile(shipSprite, pawn->position);
+            // Draw faction flag
+            if (gameSession.colorSupport) {
+                RctSetRectangle(&flagRect, pawnPosition.x + 5, pawnPosition.y - 10, 5, 5);
+                drawhelper_applyForeColor(gameSession_factionColor(pawn->faction));
+                drawhelper_fillRectangle(&flagRect, 0);
+            } else {
+                drawhelper_applyForeColor(CLOUDS);
+                drawhelper_drawTextWithValue("", pawn->faction +1, (Coordinate){pawnPosition.x + 10, pawnPosition.y - 10});
+            }
         }
     }
 }

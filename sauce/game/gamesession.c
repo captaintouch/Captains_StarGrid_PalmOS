@@ -18,6 +18,7 @@
 
 void gameSession_initialize() {
     gameSession.diaSupport = deviceinfo_diaSupported();
+    gameSession.colorSupport = deviceinfo_colorSupported();
 
     gameSession.state = GAMESTATE_DEFAULT;
     gameSession.lastPenInput = (InputPen){0};
@@ -28,9 +29,9 @@ void gameSession_initialize() {
     gameSession.pawns = MemPtrNew(sizeof(Pawn) * 3);
     MemSet(gameSession.pawns, sizeof(Pawn) * 3, 0);
     gameSession.pawnCount = 3;
-    gameSession.pawns[0] = (Pawn){(Coordinate){2, 3}, 0, false};
-    gameSession.pawns[1] = (Pawn){(Coordinate){5, 4}, 0, false};
-    gameSession.pawns[2] = (Pawn){(Coordinate){1, 4}, 0, false};
+    gameSession.pawns[0] = (Pawn){(Coordinate){2, 3}, 0, false, 0};
+    gameSession.pawns[1] = (Pawn){(Coordinate){5, 4}, 0, false, 0};
+    gameSession.pawns[2] = (Pawn){(Coordinate){1, 4}, 0, false, 1};
     gameSession.activePawn = &gameSession.pawns[0];
 
     gameSession.drawingState = (DrawingState){true, true, (Coordinate){0, 0}};
@@ -298,4 +299,19 @@ void gameSession_progressLogic() {
         }
     }
     gameSession_progressUpdateMovement();
+}
+
+AppColor gameSession_factionColor(UInt8 faction) {
+    switch (faction % 5) {
+        case 0:
+            return EMERALD;
+        case 1:
+            return CLOUDS;
+        case 2:
+            return DIRT;
+        case 3:
+            return BELIZEHOLE;
+        default:
+            return DRACULAORCHID;  // Default case, should not be reached
+    }
 }

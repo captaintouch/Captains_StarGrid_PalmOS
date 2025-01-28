@@ -21,6 +21,7 @@ typedef struct Pawn {
     Coordinate position;
     UInt8 orientation;
     Boolean cloaked;
+    UInt8 faction;
 } Pawn;
 
 typedef struct Movement {
