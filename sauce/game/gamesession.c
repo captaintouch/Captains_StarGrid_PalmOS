@@ -26,6 +26,7 @@ void gameSession_initialize() {
     gameSession.activePawn = NULL;
 
     gameSession.pawns = MemPtrNew(sizeof(Pawn) * 3);
+    MemSet(gameSession.pawns, sizeof(Pawn) * 3, 0);
     gameSession.pawnCount = 3;
     gameSession.pawns[0] = (Pawn){(Coordinate){2, 3}, 0, false};
     gameSession.pawns[1] = (Pawn){(Coordinate){5, 4}, 0, false};
