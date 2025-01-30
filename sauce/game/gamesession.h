@@ -36,6 +36,8 @@ typedef struct GameSession {
 
     Coordinate *highlightTiles; //Contains the tiles that should be colored to indicate where movement is possible
     int highlightTileCount;
+    Coordinate *secondaryHighlightTiles; //Tiles that indicate the range but can't be selected
+    int secondaryHighlightTileCount;
     DrawingState drawingState;
 
     TargetSelectionType targetSelectionType;

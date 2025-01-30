@@ -63,16 +63,21 @@ void game_setup() {
 
 static void game_drawHighlightTiles() {  // Tiles that need to be highlighted (for example to indicate where a pawn can move)
     int i;
-    if (gameSession.highlightTiles == NULL || gameSession.highlightTileCount == 0) {
-        return;
+    if (gameSession.secondaryHighlightTiles != NULL && gameSession.secondaryHighlightTileCount > 0) {
+        drawhelper_applyForeColor(gameSession_hightlightTilesColor());
+        for (i = 0; i < gameSession.secondaryHighlightTileCount; i++) {
+            hexgrid_drawTileAtPosition(gameSession.secondaryHighlightTiles[i]);
+        }
     }
-    drawhelper_applyForeColor(gameSession_hightlightTilesColor());
-    for (i = 0; i < gameSession.highlightTileCount; i++) {
-        hexgrid_fillTileAtPosition(gameSession.highlightTiles[i]);
-    }
-    drawhelper_applyForeColor(CLOUDS);
-    for (i = 0; i < gameSession.highlightTileCount; i++) {
-        hexgrid_drawTileAtPosition(gameSession.highlightTiles[i]);
+    if (gameSession.highlightTiles != NULL && gameSession.highlightTileCount > 0) {
+        drawhelper_applyForeColor(gameSession_hightlightTilesColor());
+        for (i = 0; i < gameSession.highlightTileCount; i++) {
+            hexgrid_fillTileAtPosition(gameSession.highlightTiles[i]);
+        }
+        drawhelper_applyForeColor(CLOUDS);
+        for (i = 0; i < gameSession.highlightTileCount; i++) {
+            hexgrid_drawTileAtPosition(gameSession.highlightTiles[i]);
+        }
     }
 }
 
@@ -104,7 +109,7 @@ static void game_drawPawns() {
                 drawhelper_fillRectangle(&flagRect, 0);
             } else {
                 drawhelper_applyForeColor(CLOUDS);
-                drawhelper_drawTextWithValue("", pawn->faction +1, (Coordinate){pawnPosition.x + 10, pawnPosition.y - 10});
+                drawhelper_drawTextWithValue("", pawn->faction + 1, (Coordinate){pawnPosition.x + 10, pawnPosition.y - 10});
             }
         }
     }

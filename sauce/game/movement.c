@@ -236,7 +236,7 @@ static Boolean movement_positionInCoordinates(Coordinate referenceCoordinate, Co
     return false;
 }
 
-void movement_updateValidPawnPositionsForMovement(Coordinate currentPosition, int maxTileRange, Coordinate *invalidCoordinates, int invalidCoordinatesCount, Coordinate **results, int *numberOfPositions) {
+void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coordinate *invalidCoordinates, int invalidCoordinatesCount, Coordinate **results, int *numberOfPositions) {
     int i, j;
     int positionCount = 0;
     Coordinate *positions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * maxTileRange * 2 * maxTileRange * 2);
@@ -249,7 +249,7 @@ void movement_updateValidPawnPositionsForMovement(Coordinate currentPosition, in
             if (movement_distance(currentPosition, newPosition) >= maxTileRange) {
                 continue;
             }
-            if (movement_positionInCoordinates(newPosition, invalidCoordinates, invalidCoordinatesCount)) {
+            if (invalidCoordinates != NULL && movement_positionInCoordinates(newPosition, invalidCoordinates, invalidCoordinatesCount)) {
                 continue;
             }
             if (newPosition.x >= 0 && newPosition.x < HEXGRID_COLS && newPosition.y >= 0 && newPosition.y < HEXGRID_ROWS) {

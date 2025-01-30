@@ -37,6 +37,8 @@ void gameSession_initialize() {
     gameSession.drawingState = (DrawingState){true, true, (Coordinate){0, 0}};
     gameSession.highlightTiles = NULL;
     gameSession.highlightTileCount = 0;
+    gameSession.secondaryHighlightTiles = NULL;
+    gameSession.secondaryHighlightTileCount = 0;
 
     gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
 
@@ -79,32 +81,51 @@ static Pawn *gameSession_pawnAtTile(Coordinate tile) {
     return NULL;
 }
 
-static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPosition, TargetSelectionType targetSelectionType) {
-    int i;
-    int maxTileRange;
-    Coordinate *invalidCoordinates = NULL;
-    int invalidCoordinatesCount = 0;
+static UInt8 gameSession_maxRange(TargetSelectionType targetSelectionType) {
     switch (targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
-            maxTileRange = GAMEMECHANICS_MAXTILEMOVERANGE;
-            invalidCoordinatesCount = gameSession.pawnCount;
-            invalidCoordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * invalidCoordinatesCount);
+            return GAMEMECHANICS_MAXTILEMOVERANGE;
+        case TARGETSELECTIONTYPE_PHASER:
+            return GAMEMECHANICS_MAXTILEPHASERRANGE;
+        case TARGETSELECTIONTYPE_TORPEDO:
+            return GAMEMECHANICS_MAXTILETORPEDORANGE;
+    }
+}
+
+static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPosition, TargetSelectionType targetSelectionType) {
+    int i;
+    int maxTileRange = gameSession_maxRange(targetSelectionType);
+    Coordinate *coordinates = NULL;
+    int coordinatesCount = 0;
+    switch (targetSelectionType) {
+        case TARGETSELECTIONTYPE_MOVE:
+            //maxTileRange = ;
+            coordinatesCount = gameSession.pawnCount;
+            coordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * coordinatesCount);
             for (i = 0; i < gameSession.pawnCount; i++) {
-                invalidCoordinates[i] = gameSession.pawns[i].position;
+                coordinates[i] = gameSession.pawns[i].position;
             }
-            movement_updateValidPawnPositionsForMovement(currentPosition, maxTileRange, invalidCoordinates, invalidCoordinatesCount, &gameSession.highlightTiles, &gameSession.highlightTileCount);
+            movement_findTilesInRange(currentPosition, maxTileRange, coordinates, coordinatesCount, &gameSession.highlightTiles, &gameSession.highlightTileCount);
             break;
         case TARGETSELECTIONTYPE_PHASER:
-            maxTileRange = GAMEMECHANICS_MAXTILEPHASERRANGE;
-            break;
         case TARGETSELECTIONTYPE_TORPEDO:
-            maxTileRange = GAMEMECHANICS_MAXTILETORPEDORANGE;
+            gameSession.highlightTiles = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.pawnCount);
+            for (i = 0; i < gameSession.pawnCount; i++) {
+                if (gameSession.pawns[i].faction == gameSession.activePawn->faction) {
+                    continue;
+                }
+                gameSession.highlightTiles[coordinatesCount] = gameSession.pawns[i].position;
+                coordinatesCount++;
+            }
+            coordinatesCount++;
+            gameSession.highlightTileCount = coordinatesCount;
+            movement_findTilesInRange(currentPosition, maxTileRange, NULL, 0, &gameSession.secondaryHighlightTiles, &gameSession.secondaryHighlightTileCount);
             break;
     }
 
     
-    if (invalidCoordinates != NULL) {
-        MemPtrFree(invalidCoordinates);
+    if (coordinates != NULL) {
+        MemPtrFree(coordinates);
     }
     gameSession.drawingState.shouldRedrawOverlay = true;
 }
