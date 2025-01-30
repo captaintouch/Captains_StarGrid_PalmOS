@@ -8,13 +8,7 @@
 #include "minimap.h"
 #include "movement.h"
 #include "viewport.h"
-
-#define moveText "Move"
-#define phaserText "Phaser"
-#define torpedoText "Torpedo"
-#define cloakText "Cloak"
-#define decloakText "Decloak"
-#define cancelText "Cancel"
+#include "pawnActionMenuViewModel.h"
 
 void gameSession_initialize() {
     gameSession.diaSupport = deviceinfo_diaSupported();
@@ -131,17 +125,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
 }
 
 static void gameSession_showPawnActions() {
-    int i;
-    const char *buttonTexts[] = {cancelText, gameSession.activePawn->cloaked ? decloakText : cloakText, torpedoText, phaserText, moveText};
-    gameSession.displayButtonCount = 5;
-    gameSession.displayButtons = (Button *)MemPtrNew(sizeof(Button) * 5);
-
-    for (i = 0; i < gameSession.displayButtonCount; i++) {
-        gameSession.displayButtons[i].text = (char *)MemPtrNew(StrLen(buttonTexts[i]) + 1);
-        StrCopy(gameSession.displayButtons[i].text, buttonTexts[i]);
-        gameSession.displayButtons[i].length = StrLen(buttonTexts[i]);
-    }
-
+    pawnActionMenuViewModel_setupMenuForPawn(gameSession.activePawn, &gameSession.displayButtons, &gameSession.displayButtonCount);
     gameSession.drawingState.shouldRedrawOverlay = true;
     gameSession.state = GAMESTATE_CHOOSEPAWNACTION;
 }
@@ -189,10 +173,27 @@ static void gameSession_clearMovement() {
     }
 }
 
+static void gameSession_resetHighlightTiles() {
+    if (gameSession.highlightTiles != NULL) {
+        MemPtrFree(gameSession.highlightTiles);
+        gameSession.highlightTiles = NULL;
+        gameSession.highlightTileCount = 0;
+    }
+    if (gameSession.secondaryHighlightTiles != NULL) {
+        MemPtrFree(gameSession.secondaryHighlightTiles);
+        gameSession.secondaryHighlightTiles = NULL;
+        gameSession.secondaryHighlightTileCount = 0;
+    }
+}
+
 static void gameSession_handleTargetSelection() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
+    Pawn *selectedPawn;
     if (!gameSession_highlightTilesContains(selectedTile)) {
+        gameSession_resetHighlightTiles();
+        gameSession.state = GAMESTATE_DEFAULT;
+        gameSession.drawingState.shouldRedrawOverlay = true;
         return;
     }
 
@@ -206,15 +207,14 @@ static void gameSession_handleTargetSelection() {
             gameSession.activePawn->position = selectedTile;
             break;
         case TARGETSELECTIONTYPE_PHASER:
-            break;
         case TARGETSELECTIONTYPE_TORPEDO:
+            // TODO: Trigger attack
+            selectedPawn = gameSession_pawnAtTile(selectedTile);
+            gameSession.state = GAMESTATE_DEFAULT;
             break;
     }
 
-    MemPtrFree(gameSession.highlightTiles);
-    gameSession.highlightTiles = NULL;
-    gameSession.highlightTileCount = 0;
-
+    gameSession_resetHighlightTiles();
     gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
@@ -226,23 +226,23 @@ static void gameSession_handlePawnActionButtonSelection() {
         return;
     }
 
-    switch (selectedIndex) {
-        case 0:  // CANCEL
+    switch (pawnActionMenuViewModel_actionAtIndex(selectedIndex, gameSession.activePawn)) {
+        case MenuActionTypeCancel:
             gameSession.state = GAMESTATE_DEFAULT;
             break;
-        case 1:  // CLOAK-DECLOAK
-            gameSession.state = GAMESTATE_DEFAULT;
+        case MenuActionTypeCloak:
             gameSession.activePawn->cloaked = !gameSession.activePawn->cloaked;
+            gameSession.state = GAMESTATE_DEFAULT;
             break;
-        case 2:  // TORPEDO
+        case MenuActionTypeTorpedo:
             gameSession.state = GAMESTATE_SELECTTARGET;
             gameSession.targetSelectionType = TARGETSELECTIONTYPE_TORPEDO;
             break;
-        case 3:  // PHASER
+        case MenuActionTypePhaser:
             gameSession.state = GAMESTATE_SELECTTARGET;
             gameSession.targetSelectionType = TARGETSELECTIONTYPE_PHASER;
             break;
-        case 4:  // MOVE
+        case MenuActionTypeMove:
             gameSession.state = GAMESTATE_SELECTTARGET;
             gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
             break;
