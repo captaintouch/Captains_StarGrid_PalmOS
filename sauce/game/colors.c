@@ -59,12 +59,12 @@ void colors_setupReferenceColors(Boolean colorSupport, UInt32 depth) {
         colors_reference[SUNFLOWER] = WinRGBToIndex(&color);
     } else {
         int i;
-        colors_reference[ALIZARIN] = 15;
+        colors_reference[ALIZARIN] = 9;
         colors_reference[BELIZEHOLE] = 6;
         colors_reference[DRACULAORCHID] = 0;
         colors_reference[EMERALD] = 9;
-        colors_reference[CLOUDS] = 13;
-        colors_reference[ASBESTOS] = 13;
+        colors_reference[CLOUDS] = 5;
+        colors_reference[ASBESTOS] = 15;
         colors_reference[SUNFLOWER] = 7;
 
         if (depth == 8) {
