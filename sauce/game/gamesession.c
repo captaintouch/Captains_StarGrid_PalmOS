@@ -34,6 +34,9 @@ void gameSession_initialize() {
     gameSession.secondaryHighlightTiles = NULL;
     gameSession.secondaryHighlightTileCount = 0;
 
+    gameSession.attackAnimation = NULL;
+    gameSession.movement = NULL;
+
     gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
 
     gameSession.viewportOffset = (Coordinate){0, 0};
@@ -162,6 +165,17 @@ static Boolean gameSession_highlightTilesContains(Coordinate coordinate) {
     return false;
 }
 
+static void gameSession_clearAttack() {
+    if (gameSession.attackAnimation != NULL) {
+        if (gameSession.attackAnimation->lines != NULL) {
+            MemPtrFree(gameSession.attackAnimation->lines);
+            gameSession.attackAnimation->lines = NULL;
+        }
+        MemPtrFree(gameSession.attackAnimation);
+        gameSession.attackAnimation = NULL;
+    }
+}
+
 static void gameSession_clearMovement() {
     if (gameSession.movement != NULL) {
         if (gameSession.movement->trajectory.tileCoordinates != NULL) {
@@ -189,7 +203,6 @@ static void gameSession_resetHighlightTiles() {
 static void gameSession_handleTargetSelection() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
-    Pawn *selectedPawn;
     if (!gameSession_highlightTilesContains(selectedTile)) {
         gameSession_resetHighlightTiles();
         gameSession.state = GAMESTATE_DEFAULT;
@@ -201,6 +214,7 @@ static void gameSession_handleTargetSelection() {
         case TARGETSELECTIONTYPE_MOVE:
             gameSession_clearMovement();
             gameSession.movement = (Movement *)MemPtrNew(sizeof(Movement));
+            MemSet(gameSession.movement, sizeof(Movement), 0);
             gameSession.movement->launchTimestamp = TimGetTicks();
             gameSession.movement->trajectory = movement_trajectoryBetween((Coordinate){gameSession.activePawn->position.x, gameSession.activePawn->position.y}, selectedTile);
             gameSession.movement->pawn = gameSession.activePawn;
@@ -208,9 +222,15 @@ static void gameSession_handleTargetSelection() {
             break;
         case TARGETSELECTIONTYPE_PHASER:
         case TARGETSELECTIONTYPE_TORPEDO:
-            // TODO: Trigger attack
-            selectedPawn = gameSession_pawnAtTile(selectedTile);
-            gameSession.state = GAMESTATE_DEFAULT;
+            gameSession_clearAttack();
+            if (gameSession_pawnAtTile(selectedTile) != NULL) {
+                gameSession.attackAnimation = (AttackAnimation *)MemPtrNew(sizeof(AttackAnimation));
+                MemSet(gameSession.attackAnimation, sizeof(AttackAnimation), 0);
+                gameSession.attackAnimation->launchTimestamp = TimGetTicks();
+                gameSession.attackAnimation->target = selectedTile;
+            } else {
+                gameSession.state = GAMESTATE_DEFAULT;
+            }
             break;
     }
 
@@ -271,6 +291,61 @@ AppColor gameSession_hightlightTilesColor() {
     }
 }
 
+static Coordinate gameSession_getBoxCoordinate(Coordinate center, float t, int boxSize) {
+    int halfSize = boxSize / 2;
+    int perimeter = 4 * boxSize;
+    int pos = (int)(t * perimeter) % perimeter;
+    
+    Coordinate result = {center.x, center.y};
+    
+    if (pos < boxSize) {
+        result.x = center.x - halfSize + pos;
+        result.y = center.y - halfSize;
+    } else if (pos < 2 * boxSize) {
+        result.x = center.x + halfSize;
+        result.y = center.y - halfSize + (pos - boxSize);
+    } else if (pos < 3 * boxSize) {
+        result.x = center.x + halfSize - (pos - 2 * boxSize);
+        result.y = center.y + halfSize;
+    } else {
+        result.x = center.x - halfSize;
+        result.y = center.y + halfSize - (pos - 3 * boxSize);
+    }
+    
+    return result;
+}
+
+static void gameSession_progressUpdateAttack() {
+    Int32 timeSinceLaunch;
+    float timePassedScale;
+    Coordinate targetCenter;
+    Line attackLine;
+    if (gameSession.attackAnimation == NULL) {
+        return;
+    }
+    gameSession.drawingState.shouldRedrawOverlay = true;
+    timeSinceLaunch = TimGetTicks() - gameSession.attackAnimation->launchTimestamp;
+    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * 1.5);
+
+    if (gameSession.attackAnimation->lines != NULL) {
+        MemPtrFree(gameSession.attackAnimation->lines);
+    }
+
+    targetCenter = hexgrid_tileCenterPosition(gameSession.attackAnimation->target);
+    attackLine = (Line){hexgrid_tileCenterPosition(gameSession.activePawn->position), gameSession_getBoxCoordinate(targetCenter, timePassedScale, HEXTILE_PAWNSIZE / 3)};
+    gameSession.attackAnimation->lines = (Line *)MemPtrNew(sizeof(Line) * 3);
+    gameSession.attackAnimation->lines[0] = (Line){attackLine.startpoint, movement_coordinateAtPercentageOfLine(attackLine, remapToMax(timePassedScale * 2.4, 1))};
+    attackLine.startpoint = gameSession.attackAnimation->lines[0].endpoint;
+    gameSession.attackAnimation->lines[1] = (Line){gameSession.attackAnimation->lines[0].endpoint, movement_coordinateAtPercentageOfLine(attackLine, 0.7)};
+    gameSession.attackAnimation->lines[2] = (Line){gameSession.attackAnimation->lines[1].endpoint, attackLine.endpoint};
+    gameSession.attackAnimation->lineCount = 3;
+
+    if (timePassedScale >= 1) {
+        gameSession_clearAttack();
+        gameSession.state = GAMESTATE_DEFAULT;
+    }
+}
+
 static void gameSession_progressUpdateMovement() {
     Int32 timeSinceLaunch;
     float timePassedScale;
@@ -321,6 +396,7 @@ void gameSession_progressLogic() {
         }
     }
     gameSession_progressUpdateMovement();
+    gameSession_progressUpdateAttack();
 }
 
 AppColor gameSession_factionColor(UInt8 faction) {
@@ -330,7 +406,7 @@ AppColor gameSession_factionColor(UInt8 faction) {
         case 1:
             return CLOUDS;
         case 2:
-            return DIRT;
+            return SUNFLOWER;
         case 3:
             return BELIZEHOLE;
         default:

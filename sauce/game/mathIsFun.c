@@ -49,3 +49,13 @@ int round(float a) {
         return (int)(a - 0.5);
     }
 }
+
+
+float remapToMax(float a, float maxValue) {
+    float result = a;
+    while (result >= maxValue) {
+        result -= maxValue;
+    }
+    return result;
+}
+

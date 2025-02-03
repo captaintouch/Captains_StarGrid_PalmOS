@@ -36,8 +36,8 @@ static RGBColorType colors_asbestos() {
     return colors_rgb(127, 140, 141);
 }
 
-static RGBColorType colors_dirt() {
-    return colors_rgb(219, 197, 165);
+static RGBColorType colors_sunflower() {
+    return colors_rgb(241, 196, 15);
 }
 
 void colors_setupReferenceColors(Boolean colorSupport, UInt32 depth) {
@@ -55,8 +55,8 @@ void colors_setupReferenceColors(Boolean colorSupport, UInt32 depth) {
         colors_reference[CLOUDS] = WinRGBToIndex(&color);
         color = colors_asbestos();
         colors_reference[ASBESTOS] = WinRGBToIndex(&color);
-        color = colors_dirt();
-        colors_reference[DIRT] = WinRGBToIndex(&color);
+        color = colors_sunflower();
+        colors_reference[SUNFLOWER] = WinRGBToIndex(&color);
     } else {
         int i;
         colors_reference[ALIZARIN] = 15;
@@ -65,7 +65,7 @@ void colors_setupReferenceColors(Boolean colorSupport, UInt32 depth) {
         colors_reference[EMERALD] = 9;
         colors_reference[CLOUDS] = 0;
         colors_reference[ASBESTOS] = 13;
-        colors_reference[DIRT] = 7;
+        colors_reference[SUNFLOWER] = 7;
 
         if (depth == 8) {
             for (i = 0; i < 7; i++) {

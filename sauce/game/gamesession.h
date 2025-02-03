@@ -15,7 +15,7 @@ typedef enum TargetSelectionType {
 typedef enum GameState {
     GAMESTATE_SELECTTARGET,
     GAMESTATE_DEFAULT,
-    GAMESTATE_CHOOSEPAWNACTION
+    GAMESTATE_CHOOSEPAWNACTION,
 } GameState;
 
 typedef struct DrawingState {
@@ -51,6 +51,7 @@ typedef struct GameSession {
     UInt8 displayButtonCount;
 
     Movement *movement;
+    AttackAnimation *attackAnimation;
 } GameSession;
 
 GameSession gameSession;

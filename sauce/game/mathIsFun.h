@@ -7,4 +7,5 @@ int ceil(float a);
 int floor(float a);
 double fabs(double a);
 int round(float a);
+float remapToMax(float a, float maxValue);
 #endif

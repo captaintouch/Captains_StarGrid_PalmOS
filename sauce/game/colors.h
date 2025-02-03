@@ -10,7 +10,7 @@ typedef enum {
     EMERALD,
     CLOUDS,
     ASBESTOS,
-    DIRT
+    SUNFLOWER
 } AppColor;
 
 IndexedColorType colors_reference[5];

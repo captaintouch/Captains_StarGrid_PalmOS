@@ -61,6 +61,23 @@ void game_setup() {
     game_resetForm();
 }
 
+static void game_drawAttackAnimation() {
+    int i;
+    if (gameSession.attackAnimation == NULL) {
+        return;
+    }
+    
+    drawhelper_applyForeColor(ALIZARIN);
+    for (i = 0; i < gameSession.attackAnimation->lineCount; i++) {
+        if (i % 2 == 0) {
+            drawhelper_applyForeColor(ALIZARIN);
+        } else {
+            drawhelper_applyForeColor(SUNFLOWER);
+        }
+        drawhelper_drawLine(&gameSession.attackAnimation->lines[i]);
+    }
+}
+
 static void game_drawHighlightTiles() {  // Tiles that need to be highlighted (for example to indicate where a pawn can move)
     int i;
     if (gameSession.secondaryHighlightTiles != NULL && gameSession.secondaryHighlightTileCount > 0) {
@@ -209,6 +226,7 @@ static void game_drawOverlay() {  // ships, special tiles, etc.
 
     game_drawHighlightTiles();
     game_drawPawns();
+    game_drawAttackAnimation();
     game_drawDebugTrajectoryMovement();
 }
 

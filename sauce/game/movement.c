@@ -53,7 +53,7 @@ static UInt8 movement_orientationBetween(Coordinate coordA, Coordinate coordB) {
     return direction;
 }
 
-static Coordinate movement_coordinateAtPercentageOfLine(Line line, float percentage) {
+Coordinate movement_coordinateAtPercentageOfLine(Line line, float percentage) {
     Coordinate coordinate;
     coordinate.x = line.startpoint.x + percentage * (line.endpoint.x - line.startpoint.x);
     coordinate.y = line.startpoint.y + percentage * (line.endpoint.y - line.startpoint.y);

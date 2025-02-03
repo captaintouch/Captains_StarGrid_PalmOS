@@ -14,7 +14,7 @@ typedef struct Line {
 
 typedef struct Trajectory {
     Coordinate* tileCoordinates;
-    int tileCount;
+    UInt8 tileCount;
 } Trajectory;
 
 typedef struct Pawn {
@@ -23,6 +23,13 @@ typedef struct Pawn {
     Boolean cloaked;
     UInt8 faction;
 } Pawn;
+
+typedef struct AttackAnimation {
+    Coordinate target;
+    Int32 launchTimestamp;
+    Line *lines;
+    UInt8 lineCount;
+} AttackAnimation;
 
 typedef struct Movement {
     Pawn *pawn;
