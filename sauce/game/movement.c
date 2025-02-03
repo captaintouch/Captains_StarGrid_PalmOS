@@ -31,25 +31,32 @@ static int movement_distance(Coordinate axialA, Coordinate axialB) {
     return (abs(vec.q) + abs(vec.r) + abs(vec.s)) / 2;
 }
 
-static UInt8 movement_orientationBetween(Coordinate coordA, Coordinate coordB) {
+UInt8 movement_orientationBetween(Coordinate coordA, Coordinate coordB) {
     int dx = coordB.x - coordA.x;
     int dy = coordB.y - coordA.y;
 
     int direction = 0;
     if (dx < 0 && dy == 0) direction = 0;  // WEST
     if (dx == 0 && dy < 0) {
-        direction = (coordA.y % 2 == 0) ? 1 : 3;  // NORTHWEST : NORTHEAST
+        if (coordA.y % 2 == coordB.y % 2) {
+            direction = 2;  // NORTH
+        } else {
+            direction = (coordA.y % 2 == 0) ? 1 : 3;  // NORTHWEST : NORTHEAST
+        }
     }
     if (dx > 0 && dy == 0) direction = 4;  // EAST
     if (dx == 0 && dy > 0) {
-        direction = (coordA.y % 2 == 0) ? 7 : 5;  // SOUTHWEST : SOUTHEAST
+        if (coordA.y % 2 == coordB.y % 2) {
+            direction = 6;  // SOUTH
+        } else {
+            direction = (coordA.y % 2 == 0) ? 7 : 5;  // SOUTHWEST : SOUTHEAST
+        }
     }
     if (dx < 0 && dy < 0) direction = 1;  // NORTHWEST
     if (dx > 0 && dy < 0) direction = 3;  // NORTHEAST
     if (dx < 0 && dy > 0) direction = 7;  // SOUTHWEST
     if (dx > 0 && dy > 0) direction = 5;  // SOUTHEAST
 
-    // TODO: offset direction to take into account even/uneven rows which are not aligned
     return direction;
 }
 

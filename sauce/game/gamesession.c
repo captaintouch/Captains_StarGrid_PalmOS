@@ -228,6 +228,7 @@ static void gameSession_handleTargetSelection() {
                 MemSet(gameSession.attackAnimation, sizeof(AttackAnimation), 0);
                 gameSession.attackAnimation->launchTimestamp = TimGetTicks();
                 gameSession.attackAnimation->target = selectedTile;
+                gameSession.activePawn->orientation = movement_orientationBetween(gameSession.activePawn->position, selectedTile);
             } else {
                 gameSession.state = GAMESTATE_DEFAULT;
             }
