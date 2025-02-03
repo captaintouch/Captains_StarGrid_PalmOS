@@ -61,9 +61,9 @@ void colors_setupReferenceColors(Boolean colorSupport, UInt32 depth) {
         int i;
         colors_reference[ALIZARIN] = 15;
         colors_reference[BELIZEHOLE] = 6;
-        colors_reference[DRACULAORCHID] = 12;
+        colors_reference[DRACULAORCHID] = 0;
         colors_reference[EMERALD] = 9;
-        colors_reference[CLOUDS] = 0;
+        colors_reference[CLOUDS] = 13;
         colors_reference[ASBESTOS] = 13;
         colors_reference[SUNFLOWER] = 7;
 
