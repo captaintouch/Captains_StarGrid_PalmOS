@@ -3,6 +3,7 @@
 #include "models.h"
 #include <PalmOS.h>
 
+int movement_distance(Coordinate axialA, Coordinate axialB);
 Coordinate movement_coordinateAtPercentageOfLine(Line line, float percentage);
 Coordinate movement_coordinateAtPercentageOfTrajectory(Trajectory trajectory, float percentage, UInt8 *orientation);
 Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate endCoordinate);

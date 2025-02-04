@@ -24,7 +24,7 @@ static Cube movement_cubeSubtract(Cube a, Cube b) {
     return (Cube){a.q - b.q, a.r - b.r, a.s - b.s};
 }
 
-static int movement_distance(Coordinate axialA, Coordinate axialB) {
+int movement_distance(Coordinate axialA, Coordinate axialB) {
     Cube a = movement_cubeFromCoordinates(axialA);
     Cube b = movement_cubeFromCoordinates(axialB);
     Cube vec = movement_cubeSubtract(a, b);

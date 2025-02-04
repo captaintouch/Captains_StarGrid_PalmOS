@@ -100,19 +100,22 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
     int coordinatesCount = 0;
     switch (targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
-            //maxTileRange = ;
-            coordinatesCount = gameSession.pawnCount;
-            coordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * coordinatesCount);
+            coordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.pawnCount);
             for (i = 0; i < gameSession.pawnCount; i++) {
-                coordinates[i] = gameSession.pawns[i].position;
+                if (gameSession.pawns[i].type != PAWNTYPE_SHIP) {
+                    continue;
+                }
+                coordinates[coordinatesCount] = gameSession.pawns[i].position;
+                coordinatesCount++;
             }
+            MemPtrResize(coordinates, sizeof(Coordinate) * coordinatesCount);
             movement_findTilesInRange(currentPosition, maxTileRange, coordinates, coordinatesCount, &gameSession.highlightTiles, &gameSession.highlightTileCount);
             break;
         case TARGETSELECTIONTYPE_PHASER:
         case TARGETSELECTIONTYPE_TORPEDO:
             gameSession.highlightTiles = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.pawnCount);
             for (i = 0; i < gameSession.pawnCount; i++) {
-                if (gameSession.pawns[i].faction == gameSession.activePawn->faction) {
+                if (gameSession.pawns[i].faction == gameSession.activePawn->faction || movement_distance(gameSession.pawns[i].position, currentPosition) > maxTileRange) {
                     continue;
                 }
                 gameSession.highlightTiles[coordinatesCount] = gameSession.pawns[i].position;
