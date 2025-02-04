@@ -27,6 +27,7 @@ do
         echo "	BITMAP \"$assetsPath$name$fileHiResSuffix\" BPP 8 TRANSPARENTINDEX 4 DENSITY 144 COMPRESS"  >> $rcpOutputFile
     else
         echo "	BITMAP \"$assetsPath$name$fileSuffix\" BPP 8 TRANSPARENTINDEX 4 COMPRESS"  >> $rcpOutputFile
+        echo "	BITMAP \"$assetsPath$name$fileSuffix\" BPP 4 TRANSPARENTINDEX 4 COMPRESS"  >> $rcpOutputFile
     fi
     echo "END"  >> $rcpOutputFile
 
