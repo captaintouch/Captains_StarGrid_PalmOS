@@ -3,6 +3,6 @@
 #include <PalmOS.h>
 #include "models.h"
 
-AppColor pawn_factionColor(UInt8 faction);
+AppColor pawn_factionColor(int faction);
 
 #endif

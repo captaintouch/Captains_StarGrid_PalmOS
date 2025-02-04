@@ -9,26 +9,26 @@
 #include "movement.h"
 #include "viewport.h"
 #include "pawnActionMenuViewModel.h"
+#include "models.h"
 
 void gameSession_initialize() {
+    gameSession.state = GAMESTATE_DEFAULT;
+    gameSession.lastPenInput.moving = false;
+    gameSession.lastPenInput.touchCoordinate = (Coordinate){-1, -1};
+    gameSession.lastPenInput.wasUpdatedFlag = false;
+
     gameSession.diaSupport = deviceinfo_diaSupported();
     gameSession.colorSupport = deviceinfo_colorSupported();
 
-    gameSession.state = GAMESTATE_DEFAULT;
-    gameSession.lastPenInput = (InputPen){0};
-
-    gameSession.pawns = NULL;
-    gameSession.activePawn = NULL;
-
-    gameSession.pawns = MemPtrNew(sizeof(Pawn) * 5);
-    MemSet(gameSession.pawns, sizeof(Pawn) * 5, 0);
+    // set PAWNS
     gameSession.pawnCount = 5;
-    gameSession.pawns[0] = (Pawn){(Coordinate){2, 3}, 0, false, 0, PAWNTYPE_SHIP};
-    gameSession.pawns[1] = (Pawn){(Coordinate){5, 4}, 0, false, 0, PAWNTYPE_SHIP};
-    gameSession.pawns[2] = (Pawn){(Coordinate){1, 4}, 0, false, 1, PAWNTYPE_SHIP};
-
-    gameSession.pawns[3] = (Pawn){(Coordinate){8, 8}, 0, false, 0, PAWNTYPE_FLAG};
-    gameSession.pawns[4] = (Pawn){(Coordinate){1, 1}, 0, false, 1, PAWNTYPE_FLAG};
+    gameSession.pawns = MemPtrNew(sizeof(Pawn) * gameSession.pawnCount) ;
+    MemSet(gameSession.pawns, (sizeof(Pawn) * gameSession.pawnCount), 0);
+    gameSession.pawns[0] = (Pawn){(Coordinate){2, 3}, 0, false, PAWNTYPE_SHIP, 0};
+    gameSession.pawns[1] = (Pawn){(Coordinate){5, 4}, 0, false, PAWNTYPE_SHIP, 0};
+    gameSession.pawns[2] = (Pawn){(Coordinate){1, 4}, 0, false, PAWNTYPE_SHIP, 1};
+    gameSession.pawns[3] = (Pawn){(Coordinate){8, 8}, 0, false, PAWNTYPE_FLAG, 0};
+    gameSession.pawns[4] = (Pawn){(Coordinate){1, 1}, 0, false, PAWNTYPE_FLAG, 1};
 
     gameSession.activePawn = &gameSession.pawns[0];
 
@@ -82,7 +82,7 @@ static Pawn *gameSession_pawnAtTile(Coordinate tile) {
     return NULL;
 }
 
-static UInt8 gameSession_maxRange(TargetSelectionType targetSelectionType) {
+static int gameSession_maxRange(TargetSelectionType targetSelectionType) {
     switch (targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
             return GAMEMECHANICS_MAXTILEMOVERANGE;
@@ -102,7 +102,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
         case TARGETSELECTIONTYPE_MOVE:
             coordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.pawnCount);
             for (i = 0; i < gameSession.pawnCount; i++) {
-                if (gameSession.pawns[i].type != PAWNTYPE_SHIP) {
+                if (gameSession.pawns[i].pawnType != PAWNTYPE_SHIP) {
                     continue;
                 }
                 coordinates[coordinatesCount] = gameSession.pawns[i].position;

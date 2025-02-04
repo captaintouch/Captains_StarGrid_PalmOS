@@ -11,6 +11,6 @@ typedef enum {
     MenuActionTypeCancel
 } MenuActionType;
 
-void pawnActionMenuViewModel_setupMenuForPawn(Pawn *pawn, Button **displayButtons, UInt8 *displayButtonCount);
-MenuActionType pawnActionMenuViewModel_actionAtIndex(UInt8 index, Pawn *pawn);
+void pawnActionMenuViewModel_setupMenuForPawn(Pawn *pawn, Button **displayButtons, int *displayButtonCount);
+MenuActionType pawnActionMenuViewModel_actionAtIndex(int index, Pawn *pawn);
 #endif

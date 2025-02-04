@@ -1,7 +1,7 @@
 #include "colors.h"
 #include "pawn.h"
 
-AppColor pawn_factionColor(UInt8 faction) {
+AppColor pawn_factionColor(int faction) {
     switch (faction % 5) {
         case 0:
             return EMERALD;
