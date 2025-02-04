@@ -23,12 +23,12 @@ void gameSession_initialize() {
     gameSession.pawns = MemPtrNew(sizeof(Pawn) * 5);
     MemSet(gameSession.pawns, sizeof(Pawn) * 5, 0);
     gameSession.pawnCount = 5;
-    gameSession.pawns[0] = (Pawn){(Coordinate){2, 3}, 0, false, 0, PAWNTYPE_SHIP};
-    gameSession.pawns[1] = (Pawn){(Coordinate){5, 4}, 0, false, 0, PAWNTYPE_SHIP};
-    gameSession.pawns[2] = (Pawn){(Coordinate){1, 4}, 0, false, 1, PAWNTYPE_SHIP};
+    gameSession.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){2, 3}, 0, 0, false};
+    gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){5, 4}, 0, 0, false};
+    gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 4}, 0, 1, false};
 
-    gameSession.pawns[3] = (Pawn){(Coordinate){8, 8}, 0, false, 0, PAWNTYPE_FLAG};
-    gameSession.pawns[4] = (Pawn){(Coordinate){1, 1}, 0, false, 1, PAWNTYPE_FLAG};
+    gameSession.pawns[3] = (Pawn){PAWNTYPE_FLAG, (Coordinate){8, 8}, 0, 0, false};
+    gameSession.pawns[4] = (Pawn){PAWNTYPE_FLAG, (Coordinate){1, 1}, 0, 1, false};
 
     gameSession.activePawn = &gameSession.pawns[0];
 

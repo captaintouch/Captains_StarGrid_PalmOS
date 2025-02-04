@@ -23,11 +23,11 @@ typedef enum {
 } PawnType;
 
 typedef struct Pawn {
+    PawnType type;
     Coordinate position;
     UInt8 orientation;
-    Boolean cloaked;
     UInt8 faction;
-    PawnType type;
+    Boolean cloaked;
 } Pawn;
 
 typedef struct AttackAnimation {
