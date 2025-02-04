@@ -26,7 +26,7 @@ static char *pawnActionMenuViewModel_textForActionType(MenuActionType actionType
     }
 }
 
-void pawnActionMenuViewModel_setupMenuForPawn(Pawn *pawn, Button **displayButtons, int *displayButtonCount) {
+void pawnActionMenuViewModel_setupMenuForPawn(Pawn *pawn, Button **displayButtons, UInt8 *displayButtonCount) {
     int i;
     MenuActionType *actions = pawn->cloaked ? cloakedActions : allActions;
     int actionCount = pawn->cloaked ? sizeof(cloakedActions) / sizeof(cloakedActions[0]) : sizeof(allActions) / sizeof(allActions[0]);
@@ -42,7 +42,7 @@ void pawnActionMenuViewModel_setupMenuForPawn(Pawn *pawn, Button **displayButton
     *displayButtonCount = actionCount;
 }
 
-MenuActionType pawnActionMenuViewModel_actionAtIndex(int index, Pawn *pawn) {
+MenuActionType pawnActionMenuViewModel_actionAtIndex(UInt8 index, Pawn *pawn) {
     if (pawn->cloaked) {
         return cloakedActions[index];
     }

@@ -48,7 +48,7 @@ typedef struct GameSession {
     Boolean colorSupport; // Support for color screens
 
     Button *displayButtons;
-    int displayButtonCount;
+    UInt8 displayButtonCount;
 
     Movement *movement;
     AttackAnimation *attackAnimation;

@@ -112,7 +112,7 @@ static void game_drawPawns() {
         Coordinate pawnPosition;
         RectangleType flagRect;
         ImageSprite *shipSprite;
-        if (pawn->pawnType != PAWNTYPE_SHIP) {
+        if (pawn->type != PAWNTYPE_SHIP) {
             continue;
         }
         pawnPosition = hexgrid_tileCenterPosition(pawn->position);
@@ -143,7 +143,7 @@ static void game_drawPawns() {
         Pawn *pawn = &gameSession.pawns[i];
         Coordinate pawnPosition;
         RectangleType flagRect;
-        if (pawn->pawnType != PAWNTYPE_FLAG) {
+        if (pawn->type != PAWNTYPE_FLAG) {
             continue;
         }
         pawnPosition = hexgrid_tileCenterPosition(pawn->position);

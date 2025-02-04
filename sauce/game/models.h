@@ -14,27 +14,27 @@ typedef struct Line {
 
 typedef struct Trajectory {
     Coordinate* tileCoordinates;
-    int tileCount;
+    UInt8 tileCount;
 } Trajectory;
 
-typedef enum PawnType {
+typedef enum {
     PAWNTYPE_SHIP,
     PAWNTYPE_FLAG
 } PawnType;
 
 typedef struct Pawn {
     Coordinate position;
-    int orientation;
+    UInt8 orientation;
     Boolean cloaked;
-    PawnType pawnType;
-    int faction;
+    UInt8 faction;
+    PawnType type;
 } Pawn;
 
 typedef struct AttackAnimation {
     Coordinate target;
     Int32 launchTimestamp;
     Line *lines;
-    int lineCount;
+    UInt8 lineCount;
 } AttackAnimation;
 
 typedef struct Movement {

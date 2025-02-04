@@ -31,7 +31,7 @@ int movement_distance(Coordinate axialA, Coordinate axialB) {
     return (abs(vec.q) + abs(vec.r) + abs(vec.s)) / 2;
 }
 
-int movement_orientationBetween(Coordinate coordA, Coordinate coordB) {
+UInt8 movement_orientationBetween(Coordinate coordA, Coordinate coordB) {
     int dx = coordB.x - coordA.x;
     int dy = coordB.y - coordA.y;
 
@@ -67,7 +67,7 @@ Coordinate movement_coordinateAtPercentageOfLine(Line line, float percentage) {
     return coordinate;
 }
 
-Coordinate movement_coordinateAtPercentageOfTrajectory(Trajectory trajectory, float percentage, int *orientation) {
+Coordinate movement_coordinateAtPercentageOfTrajectory(Trajectory trajectory, float percentage, UInt8 *orientation) {
     float easingPercentage = 1.0 - (1.0 - percentage) * (1.0 - percentage);  // Use easing to make progress faster at the start and slower at the end
     float totalDistance = trajectory.tileCount - 1;
     float targetDistance = totalDistance * easingPercentage;
