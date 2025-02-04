@@ -32,6 +32,11 @@ for image in ./resources/ships/*.png; do
     done
 done
 
+# Add other images (flags, etc)
+for image in ./resources/others/*.png; do
+    cp $image ./resources/hiresTMP/
+done
+
 # LOW RES
 for image in ./resources/hiresTMP/*.png; do
     filename=$(basename "$image")

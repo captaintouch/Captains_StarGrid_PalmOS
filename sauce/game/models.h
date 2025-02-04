@@ -17,11 +17,17 @@ typedef struct Trajectory {
     UInt8 tileCount;
 } Trajectory;
 
+typedef enum {
+    PAWNTYPE_SHIP,
+    PAWNTYPE_FLAG
+} PawnType;
+
 typedef struct Pawn {
     Coordinate position;
     UInt8 orientation;
     Boolean cloaked;
     UInt8 faction;
+    PawnType type;
 } Pawn;
 
 typedef struct AttackAnimation {

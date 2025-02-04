@@ -104,11 +104,17 @@ static void game_drawPawns() {
         drawhelper_applyForeColor(EMERALD);
         hexgrid_drawTileAtPosition(gameSession.activePawn->position);
     }
+
+    // DRAW SHIPS
     for (i = 0; i < gameSession.pawnCount; i++) {
         Pawn *pawn = &gameSession.pawns[i];
-        Coordinate pawnPosition = hexgrid_tileCenterPosition(pawn->position);
+        Coordinate pawnPosition;
         RectangleType flagRect;
         ImageSprite *shipSprite;
+        if (pawn->type != PAWNTYPE_SHIP) {
+            continue;
+        }
+        pawnPosition = hexgrid_tileCenterPosition(pawn->position);
         if (pawn->cloaked) {
             shipSprite = &spriteLibrary.shipCloakedSprite[pawn->orientation];
         } else {
@@ -129,6 +135,21 @@ static void game_drawPawns() {
                 drawhelper_drawTextWithValue("", pawn->faction + 1, (Coordinate){pawnPosition.x + 10, pawnPosition.y - 10});
             }
         }
+    }
+
+    // DRAW FLAGS
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        Pawn *pawn = &gameSession.pawns[i];
+        Coordinate pawnPosition;
+        RectangleType flagRect;
+        if (pawn->type != PAWNTYPE_FLAG) {
+            continue;
+        }
+        pawnPosition = hexgrid_tileCenterPosition(pawn->position);
+        RctSetRectangle(&flagRect, pawnPosition.x - 6, pawnPosition.y - 6, 12, 12);
+        drawhelper_applyForeColor(gameSession_factionColor(pawn->faction));
+        drawhelper_fillRectangle(&flagRect, 0);
+        hexgrid_drawSpriteAtTile(&spriteLibrary.flagSprite, pawn->position);
     }
 }
 

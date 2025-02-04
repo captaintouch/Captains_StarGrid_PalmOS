@@ -23,7 +23,8 @@
         "mathisfun.h": "c",
         "movement.h": "c",
         "cstdlib": "c",
-        "pawnactionmenuviewmodel.h": "c"
+        "pawnactionmenuviewmodel.h": "c",
+        "minimap.h": "c"
     },
     "C_Cpp.default.includePath": [
         "/opt/palmdev/sdk-5r3/include"

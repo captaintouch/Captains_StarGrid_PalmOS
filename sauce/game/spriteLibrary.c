@@ -39,6 +39,12 @@ void spriteLibrary_initialize() {
         };
         spriteLibrary.shipCloakedSprite[i].imageData = drawhelper_loadImage(spriteLibrary.shipCloakedSprite[i].resourceId);
     }
+    
+    spriteLibrary.flagSprite = (ImageSprite){
+            GFX_RES_FLAG,
+            (Coordinate){HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE},
+        };
+        spriteLibrary.flagSprite.imageData = drawhelper_loadImage(spriteLibrary.flagSprite.resourceId);
 
     spriteLibrary.initialized = true;
 }
