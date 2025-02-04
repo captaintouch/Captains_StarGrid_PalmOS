@@ -60,6 +60,5 @@ void gameSession_initialize();
 void gameSession_registerPenInput(EventPtr eventptr);
 void gameSession_progressLogic();
 AppColor gameSession_hightlightTilesColor();
-AppColor gameSession_factionColor(UInt8 faction);
 
 #endif

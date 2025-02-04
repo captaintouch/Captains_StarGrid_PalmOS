@@ -9,6 +9,7 @@
 #include "hexgrid.h"
 #include "minimap.h"
 #include "spriteLibrary.h"
+#include "pawn.h"
 
 WinHandle backgroundBuffer = NULL;
 WinHandle overlayBuffer = NULL;
@@ -128,7 +129,7 @@ static void game_drawPawns() {
             // Draw faction flag
             if (gameSession.colorSupport) {
                 RctSetRectangle(&flagRect, pawnPosition.x + 5, pawnPosition.y - 10, 5, 5);
-                drawhelper_applyForeColor(gameSession_factionColor(pawn->faction));
+                drawhelper_applyForeColor(pawn_factionColor(pawn->faction));
                 drawhelper_fillRectangle(&flagRect, 0);
             } else {
                 drawhelper_applyForeColor(CLOUDS);
@@ -147,7 +148,7 @@ static void game_drawPawns() {
         }
         pawnPosition = hexgrid_tileCenterPosition(pawn->position);
         RctSetRectangle(&flagRect, pawnPosition.x - 6, pawnPosition.y - 6, 12, 12);
-        drawhelper_applyForeColor(gameSession_factionColor(pawn->faction));
+        drawhelper_applyForeColor(pawn_factionColor(pawn->faction));
         drawhelper_fillRectangle(&flagRect, 0);
         hexgrid_drawSpriteAtTile(&spriteLibrary.flagSprite, pawn->position);
     }

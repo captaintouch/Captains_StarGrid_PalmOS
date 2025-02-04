@@ -3,6 +3,7 @@
 #include "drawhelper.h"
 #include "../deviceinfo.h"
 #include "../constants.h"
+#include "pawn.h"
 
 static Coordinate minimap_positionOnMap(Coordinate coordinate, Coordinate mapSize, Coordinate gridSize) {
     return (Coordinate){(float)coordinate.x / (float)gridSize.x * (float)mapSize.x, (float)coordinate.y / (float)gridSize.y * (float)mapSize.y};
@@ -35,7 +36,7 @@ void minimap_draw(Pawn *pawns, int pawnCount, Coordinate drawPosition, Coordinat
         }
         convertedPoint.x += drawPosition.x;
         convertedPoint.y += drawPosition.y;
-        drawhelper_applyForeColor(EMERALD);  // TODO: get color for faction
+        drawhelper_applyForeColor(pawn_factionColor(pawns[i].faction));
 
         for (j = -1; j <= 1; j++) {
             for (k = -1; k <= 1; k++) {
