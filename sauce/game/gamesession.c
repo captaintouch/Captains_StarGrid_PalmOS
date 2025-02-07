@@ -27,8 +27,8 @@ void gameSession_initialize() {
     gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){5, 4}, 0, 0, false};
     gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 4}, 0, 1, false};
 
-    gameSession.pawns[3] = (Pawn){PAWNTYPE_FLAG, (Coordinate){8, 8}, 0, 0, false};
-    gameSession.pawns[4] = (Pawn){PAWNTYPE_FLAG, (Coordinate){1, 1}, 0, 1, false};
+    gameSession.pawns[3] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, 0, 0, false};
+    gameSession.pawns[4] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, 0, 1, false};
 
     gameSession.activePawn = &gameSession.pawns[0];
 

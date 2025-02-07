@@ -19,7 +19,7 @@ typedef struct Trajectory {
 
 typedef enum {
     PAWNTYPE_SHIP,
-    PAWNTYPE_FLAG
+    PAWNTYPE_BASE
 } PawnType;
 
 typedef struct Pawn {

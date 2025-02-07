@@ -138,19 +138,19 @@ static void game_drawPawns() {
         }
     }
 
-    // DRAW FLAGS
+    // DRAW BASES
     for (i = 0; i < gameSession.pawnCount; i++) {
         Pawn *pawn = &gameSession.pawns[i];
         Coordinate pawnPosition;
-        RectangleType flagRect;
-        if (pawn->type != PAWNTYPE_FLAG) {
+        RectangleType rect;
+        if (pawn->type != PAWNTYPE_BASE) {
             continue;
         }
         pawnPosition = hexgrid_tileCenterPosition(pawn->position);
-        RctSetRectangle(&flagRect, pawnPosition.x - 6, pawnPosition.y - 6, 12, 12);
+        RctSetRectangle(&rect, pawnPosition.x - 6, pawnPosition.y - 6, 12, 12);
         drawhelper_applyForeColor(pawn_factionColor(pawn->faction));
-        drawhelper_fillRectangle(&flagRect, 0);
-        hexgrid_drawSpriteAtTile(&spriteLibrary.flagSprite, pawn->position);
+        drawhelper_fillRectangle(&rect, 0);
+        hexgrid_drawSpriteAtTile(&spriteLibrary.baseSprite, pawn->position);
     }
 }
 
