@@ -22,9 +22,15 @@ typedef enum {
     PAWNTYPE_BASE
 } PawnType;
 
+typedef struct Inventory {
+    UInt8 flagOfFaction;
+    Boolean carryingFlag;
+} Inventory;
+
 typedef struct Pawn {
     PawnType type;
     Coordinate position;
+    Inventory inventory;
     UInt8 orientation;
     UInt8 faction;
     Boolean cloaked;

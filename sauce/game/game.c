@@ -8,8 +8,8 @@
 #include "gamesession.h"
 #include "hexgrid.h"
 #include "minimap.h"
-#include "spriteLibrary.h"
 #include "pawn.h"
+#include "spriteLibrary.h"
 
 WinHandle backgroundBuffer = NULL;
 WinHandle overlayBuffer = NULL;
@@ -67,7 +67,7 @@ static void game_drawAttackAnimation() {
     if (gameSession.attackAnimation == NULL) {
         return;
     }
-    
+
     drawhelper_applyForeColor(ALIZARIN);
     for (i = 0; i < gameSession.attackAnimation->lineCount; i++) {
         if (i % 2 == 0) {
@@ -99,43 +99,26 @@ static void game_drawHighlightTiles() {  // Tiles that need to be highlighted (f
     }
 }
 
+static void game_drawFlag(Coordinate position, AppColor color) {
+    RectangleType rectFlag, rectPole;
+    RctSetRectangle(&rectFlag, position.x - 10, position.y - 2, 7, 5);
+    RctSetRectangle(&rectPole, position.x - 10, position.y + 2, 3, 6);
+    drawhelper_applyForeColor(DRACULAORCHID);
+    drawhelper_fillRectangle(&rectFlag, 0);
+    drawhelper_fillRectangle(&rectPole, 0);
+
+    RctSetRectangle(&rectFlag, position.x - 9, position.y - 1, 5, 3);
+    RctSetRectangle(&rectPole, position.x - 9, position.y + 1, 1, 5);
+    drawhelper_applyForeColor(color);
+    drawhelper_fillRectangle(&rectFlag, 0);
+    drawhelper_fillRectangle(&rectPole, 0);
+}
+
 static void game_drawPawns() {
     int i;
     if (gameSession.activePawn != NULL) {
         drawhelper_applyForeColor(EMERALD);
         hexgrid_drawTileAtPosition(gameSession.activePawn->position);
-    }
-
-    // DRAW SHIPS
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        Pawn *pawn = &gameSession.pawns[i];
-        Coordinate pawnPosition;
-        RectangleType flagRect;
-        ImageSprite *shipSprite;
-        if (pawn->type != PAWNTYPE_SHIP) {
-            continue;
-        }
-        pawnPosition = hexgrid_tileCenterPosition(pawn->position);
-        if (pawn->cloaked) {
-            shipSprite = &spriteLibrary.shipCloakedSprite[pawn->orientation];
-        } else {
-            shipSprite = &spriteLibrary.shipSprite[pawn->orientation];
-        }
-
-        if (gameSession.movement->pawn == pawn) {
-            drawhelper_drawSprite(shipSprite, gameSession.movement->pawnPosition);
-        } else {
-            hexgrid_drawSpriteAtTile(shipSprite, pawn->position);
-            // Draw faction flag
-            if (gameSession.colorSupport) {
-                RctSetRectangle(&flagRect, pawnPosition.x + 5, pawnPosition.y - 10, 5, 5);
-                drawhelper_applyForeColor(pawn_factionColor(pawn->faction));
-                drawhelper_fillRectangle(&flagRect, 0);
-            } else {
-                drawhelper_applyForeColor(CLOUDS);
-                drawhelper_drawTextWithValue("", pawn->faction + 1, (Coordinate){pawnPosition.x + 10, pawnPosition.y - 10});
-            }
-        }
     }
 
     // DRAW BASES
@@ -151,6 +134,48 @@ static void game_drawPawns() {
         drawhelper_applyForeColor(pawn_factionColor(pawn->faction));
         drawhelper_fillRectangle(&rect, 0);
         hexgrid_drawSpriteAtTile(&spriteLibrary.baseSprite, pawn->position);
+    }
+
+    // DRAW SHIPS
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        Pawn *pawn = &gameSession.pawns[i];
+        Coordinate pawnPosition;
+        ImageSprite *shipSprite;
+        if (pawn->type != PAWNTYPE_SHIP) {
+            continue;
+        }
+        pawnPosition = hexgrid_tileCenterPosition(pawn->position);
+        if (pawn->cloaked) {
+            shipSprite = &spriteLibrary.shipCloakedSprite[pawn->orientation];
+        } else {
+            shipSprite = &spriteLibrary.shipSprite[pawn->orientation];
+        }
+
+        if (gameSession.movement->pawn == pawn) {
+            drawhelper_drawSprite(shipSprite, gameSession.movement->pawnPosition);
+        } else {
+            hexgrid_drawSpriteAtTile(shipSprite, pawn->position);
+        }
+    }
+
+    // DRAW ACCESSORIES (FLAGS, FACTION INDICATORS)
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        Pawn *pawn = &gameSession.pawns[i];
+        Coordinate pawnPosition = hexgrid_tileCenterPosition(pawn->position);
+        if (pawn->inventory.carryingFlag) {
+            game_drawFlag(pawnPosition, pawn_factionColor(pawn->inventory.flagOfFaction));
+        }
+
+        // Draw faction flag
+        if (gameSession.colorSupport) {
+            RectangleType flagRect;
+            RctSetRectangle(&flagRect, pawnPosition.x + 5, pawnPosition.y - 10, 5, 5);
+            drawhelper_applyForeColor(pawn_factionColor(pawn->faction));
+            drawhelper_fillRectangle(&flagRect, 0);
+        } else {
+            drawhelper_applyForeColor(CLOUDS);
+            drawhelper_drawTextWithValue("", pawn->faction + 1, (Coordinate){pawnPosition.x + 10, pawnPosition.y - 10});
+        }
     }
 }
 
