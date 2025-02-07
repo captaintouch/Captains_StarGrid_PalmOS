@@ -166,7 +166,7 @@ static void game_drawPawns() {
             game_drawFlag(pawnPosition, pawn_factionColor(pawn->inventory.flagOfFaction));
         }
 
-        // Draw faction flag
+        // Draw faction indicator
         if (gameSession.colorSupport) {
             RectangleType flagRect;
             RctSetRectangle(&flagRect, pawnPosition.x + 5, pawnPosition.y - 10, 5, 5);

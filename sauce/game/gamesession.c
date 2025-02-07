@@ -210,6 +210,7 @@ static void gameSession_resetHighlightTiles() {
 static void gameSession_handleTargetSelection() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
+    Pawn *selectedPawn = gameSession_pawnAtTile(selectedTile);
     if (!gameSession_highlightTilesContains(selectedTile)) {
         gameSession_resetHighlightTiles();
         gameSession.state = GAMESTATE_DEFAULT;
@@ -220,6 +221,12 @@ static void gameSession_handleTargetSelection() {
     switch (gameSession.targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
             gameSession_clearMovement();
+
+            if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->inventory.carryingFlag && selectedPawn->inventory.flagOfFaction != gameSession.activePawn->faction) {
+                gameSession.activePawn->inventory.carryingFlag = true;
+                gameSession.activePawn->inventory.flagOfFaction = selectedPawn->inventory.flagOfFaction;
+                selectedPawn->inventory.carryingFlag = false;
+            }
             gameSession.movement = (Movement *)MemPtrNew(sizeof(Movement));
             MemSet(gameSession.movement, sizeof(Movement), 0);
             gameSession.movement->launchTimestamp = TimGetTicks();
@@ -230,7 +237,7 @@ static void gameSession_handleTargetSelection() {
         case TARGETSELECTIONTYPE_PHASER:
         case TARGETSELECTIONTYPE_TORPEDO:
             gameSession_clearAttack();
-            if (gameSession_pawnAtTile(selectedTile) != NULL) {
+            if (selectedPawn != NULL) {
                 gameSession.attackAnimation = (AttackAnimation *)MemPtrNew(sizeof(AttackAnimation));
                 MemSet(gameSession.attackAnimation, sizeof(AttackAnimation), 0);
                 gameSession.attackAnimation->launchTimestamp = TimGetTicks();
