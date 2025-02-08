@@ -145,6 +145,9 @@ static void game_drawPawns() {
             continue;
         }
         pawnPosition = hexgrid_tileCenterPosition(pawn->position);
+        if (isInvalidCoordinate(pawnPosition)) {
+            continue;
+        }
         if (pawn->cloaked) {
             shipSprite = &spriteLibrary.shipCloakedSprite[pawn->orientation];
         } else {
@@ -162,6 +165,9 @@ static void game_drawPawns() {
     for (i = 0; i < gameSession.pawnCount; i++) {
         Pawn *pawn = &gameSession.pawns[i];
         Coordinate pawnPosition = hexgrid_tileCenterPosition(pawn->position);
+        if (isInvalidCoordinate(pawnPosition)) {
+            continue;
+        }
         if (pawn->inventory.carryingFlag) {
             game_drawFlag(pawnPosition, pawn_factionColor(pawn->inventory.flagOfFaction));
         }
@@ -174,8 +180,15 @@ static void game_drawPawns() {
             drawhelper_fillRectangle(&flagRect, 0);
         } else {
             drawhelper_applyForeColor(CLOUDS);
-            drawhelper_drawTextWithValue("", pawn->faction + 1, (Coordinate){pawnPosition.x + 10, pawnPosition.y - 10});
+            drawhelper_drawTextWithValue("", pawn->faction + 1, (Coordinate){pawnPosition.x, pawnPosition.y - 10});
         }
+
+       #ifdef DEBUG 
+        // TEMP HEALTH
+        drawhelper_applyBackgroundColor(DRACULAORCHID);
+        drawhelper_applyTextColor(CLOUDS);
+        drawhelper_drawTextWithValue("H", pawn->inventory.health, (Coordinate){pawnPosition.x, pawnPosition.y + 10});
+        #endif
     }
 }
 

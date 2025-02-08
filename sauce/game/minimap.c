@@ -29,6 +29,9 @@ void minimap_draw(Pawn *pawns, int pawnCount, Coordinate drawPosition, Coordinat
     drawhelper_fillRectangle(&rect, 0);
     for (i = 0; i < pawnCount; i++) {
         Coordinate convertedPoint;
+        if (isInvalidCoordinate(pawns[i].position)) {
+            continue;
+        }
         if (activeMovement != NULL && activeMovement->pawn == &pawns[i]) {
             convertedPoint = minimap_positionOnMap(activeMovement->pawnPosition, mapSize, gridSize);
         } else {

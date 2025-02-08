@@ -23,12 +23,12 @@ void gameSession_initialize() {
     gameSession.pawns = MemPtrNew(sizeof(Pawn) * 5);
     MemSet(gameSession.pawns, sizeof(Pawn) * 5, 0);
     gameSession.pawnCount = 5;
-    gameSession.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){2, 3}, (Inventory){0, false}, 0, 0, false};
-    gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){5, 4}, (Inventory){0, false}, 0, 0, false};
-    gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 4}, (Inventory){0, false}, 0, 1, false};
+    gameSession.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){2, 3}, (Inventory){100, 0, false}, 0, 0, false};
+    gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){5, 4}, (Inventory){100, 0, false}, 0, 0, false};
+    gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 4}, (Inventory){100, 0, false}, 0, 1, false};
 
-    gameSession.pawns[3] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){0, true}, 0, 0, false};
-    gameSession.pawns[4] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){1, true}, 0, 1, false};
+    gameSession.pawns[3] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){100, 0, true}, 0, 0, false};
+    gameSession.pawns[4] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){100, 1, true}, 0, 1, false};
 
     gameSession.activePawn = &gameSession.pawns[0];
 
@@ -207,6 +207,23 @@ static void gameSession_resetHighlightTiles() {
     }
 }
 
+static UInt8 gameSession_healthImpact(Coordinate source, Coordinate target, TargetSelectionType attackType) {
+    int maxRange = gameSession_maxRange(attackType);
+    int distance = (maxRange - movement_distance(source, target) + 1);
+    int maxImpact;
+    switch (attackType) {
+        case TARGETSELECTIONTYPE_MOVE: // Shouldn't be triggered
+        case TARGETSELECTIONTYPE_PHASER:
+            maxImpact = 40;
+            break;
+        case TARGETSELECTIONTYPE_TORPEDO:
+            maxImpact = 60;
+            break;
+    }
+
+    return (float)maxImpact * ((float)distance / (float)maxRange);
+}
+
 static void gameSession_handleTargetSelection() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
@@ -242,6 +259,8 @@ static void gameSession_handleTargetSelection() {
                 MemSet(gameSession.attackAnimation, sizeof(AttackAnimation), 0);
                 gameSession.attackAnimation->launchTimestamp = TimGetTicks();
                 gameSession.attackAnimation->target = selectedTile;
+                gameSession.attackAnimation->targetPawn = selectedPawn;
+                gameSession.attackAnimation->healthImpact = gameSession_healthImpact(gameSession.activePawn->position, selectedTile, gameSession.targetSelectionType);
                 gameSession.activePawn->orientation = movement_orientationBetween(gameSession.activePawn->position, selectedTile);
             } else {
                 gameSession.state = GAMESTATE_DEFAULT;
@@ -356,6 +375,12 @@ static void gameSession_progressUpdateAttack() {
     gameSession.attackAnimation->lineCount = 3;
 
     if (timePassedScale >= 1) {
+        // Update health stats
+        gameSession.attackAnimation->targetPawn->inventory.health -= gameSession.attackAnimation->healthImpact;
+        if (gameSession.attackAnimation->targetPawn->inventory.health <= 0) {
+            gameSession.attackAnimation->targetPawn->inventory.health = 0;
+            gameSession.attackAnimation->targetPawn->position = (Coordinate){-1, -1};
+        }
         gameSession_clearAttack();
         gameSession.state = GAMESTATE_DEFAULT;
     }

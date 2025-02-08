@@ -23,6 +23,7 @@ typedef enum {
 } PawnType;
 
 typedef struct Inventory {
+    int health;
     UInt8 flagOfFaction;
     Boolean carryingFlag;
 } Inventory;
@@ -40,7 +41,9 @@ typedef struct AttackAnimation {
     Coordinate target;
     Int32 launchTimestamp;
     Line *lines;
+    Pawn *targetPawn;
     UInt8 lineCount;
+    UInt8 healthImpact;
 } AttackAnimation;
 
 typedef struct Movement {
