@@ -20,6 +20,10 @@ void gameSession_initialize() {
     gameSession.pawns = NULL;
     gameSession.activePawn = NULL;
 
+    if (gameSession.pawns != NULL) {
+        gameSession.pawnCount = 0;
+        MemPtrFree(gameSession.pawns);
+    }
     gameSession.pawns = MemPtrNew(sizeof(Pawn) * 7);
     MemSet(gameSession.pawns, sizeof(Pawn) * 7, 0);
     gameSession.pawnCount = 7;
@@ -28,9 +32,9 @@ void gameSession_initialize() {
     gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 4}, (Inventory){100, 0, false}, 0, 1, false};
     gameSession.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 6}, (Inventory){100, 0, false}, 0, 2, false};
 
-    gameSession.pawns[4] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){100, 0, true}, 0, 0, false};
-    gameSession.pawns[5] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){100, 1, true}, 0, 1, false};
-    gameSession.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){100, 2, true}, 0, 2, false};
+    gameSession.pawns[4] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){250, 0, true}, 0, 0, false};
+    gameSession.pawns[5] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){250, 1, true}, 0, 1, false};
+    gameSession.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){250, 2, true}, 0, 2, false};
 
     gameSession.activePawn = &gameSession.pawns[0];
 
@@ -345,6 +349,17 @@ static Coordinate gameSession_getBoxCoordinate(Coordinate center, float t, int b
     return result;
 }
 
+static UInt8 gameSession_enemyUnitsLeft() {
+    int i;
+    UInt8 enemyUnits = 0;
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        if (gameSession.pawns[i].faction != gameSession.activePawn->faction && !isInvalidCoordinate(gameSession.pawns[i].position)) {
+            enemyUnits++;
+        }
+    }
+    return enemyUnits;
+}
+
 static void gameSession_progressUpdateAttack() {
     Int32 timeSinceLaunch;
     float timePassedScale;
@@ -376,7 +391,24 @@ static void gameSession_progressUpdateAttack() {
         if (gameSession.attackAnimation->targetPawn->inventory.health <= 0) {
             gameSession.attackAnimation->targetPawn->inventory.health = 0;
             gameSession.attackAnimation->targetPawn->position = (Coordinate){-1, -1};
+
+            if (gameSession.attackAnimation->targetPawn->type == PAWNTYPE_BASE) {
+                int i;
+                for (i = 0; i < gameSession.pawnCount; i++) {
+                    if (gameSession.pawns[i].faction == gameSession.attackAnimation->targetPawn->faction) {
+                        gameSession.pawns[i].faction = gameSession.activePawn->faction;
+                    }
+                }
+                FrmCustomAlert(GAME_ALERT_BASEDESTROYED, NULL, NULL, NULL);
+            }
         }
+
+        // Check for game over if no enemy units left
+        if (gameSession_enemyUnitsLeft() == 0) {
+            FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_TOTALDESTRUCTION, NULL, NULL, NULL);
+            gameSession_initialize();
+        }
+
         gameSession_clearAttack();
         gameSession.state = GAMESTATE_DEFAULT;
     }
@@ -430,10 +462,11 @@ static void gameSession_progressUpdateMovement() {
                 }
             }
             gameSession.activePawn->inventory.carryingFlag = false;
-            if (gameSession_nonCapturedFlagsLeft(gameSession.activePawn->faction) > 0) { // Still some flags left to capture
+            if (gameSession_nonCapturedFlagsLeft(gameSession.activePawn->faction) > 0) {  // Still some flags left to capture
                 FrmCustomAlert(GAME_ALERT_FLAGCAPTURED, NULL, NULL, NULL);
-            } else { // Game over, all flags captured
+            } else {  // Game over, all flags captured
                 FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_ALLFLAGSCAPTURED, NULL, NULL, NULL);
+                gameSession_initialize();
             }
         }
 

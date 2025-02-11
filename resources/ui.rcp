@@ -26,3 +26,10 @@ BEGIN
     MESSAGE "The remaining enemy fleet has joined your command."
     BUTTONS "Ok"
 END
+
+ALERT ID 1003
+BEGIN
+    TITLE "Enemy base destroyed!"
+    MESSAGE "The remaining enemy fleet has joined your command."
+    BUTTONS "Ok"
+END
