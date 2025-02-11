@@ -208,20 +208,21 @@ static void gameSession_resetHighlightTiles() {
 }
 
 static UInt8 gameSession_healthImpact(Coordinate source, Coordinate target, TargetSelectionType attackType) {
-    int maxRange = gameSession_maxRange(attackType);
-    int distance = (maxRange - movement_distance(source, target) + 1);
+    int maxRange;
+    int distance;
     int maxImpact;
     switch (attackType) {
         case TARGETSELECTIONTYPE_MOVE: // Shouldn't be triggered
         case TARGETSELECTIONTYPE_PHASER:
-            maxImpact = 40;
-            break;
+            maxRange = gameSession_maxRange(attackType);
+            distance = (maxRange - movement_distance(source, target) + 1);
+            maxImpact = GAMEMECHANICS_MAXIMPACTPHASER;
+            return (float)maxImpact * ((float)distance / (float)maxRange);
         case TARGETSELECTIONTYPE_TORPEDO:
-            maxImpact = 60;
-            break;
+            return GAMEMECHANICS_MAXIMPACTTORPEDO;
     }
 
-    return (float)maxImpact * ((float)distance / (float)maxRange);
+    
 }
 
 static void gameSession_handleTargetSelection() {
