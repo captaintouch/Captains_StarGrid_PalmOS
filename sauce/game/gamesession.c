@@ -27,14 +27,14 @@ void gameSession_initialize() {
     gameSession.pawns = MemPtrNew(sizeof(Pawn) * 7);
     MemSet(gameSession.pawns, sizeof(Pawn) * 7, 0);
     gameSession.pawnCount = 7;
-    gameSession.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){2, 3}, (Inventory){100, 0, false}, 0, 0, false};
-    gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){5, 4}, (Inventory){100, 0, false}, 0, 0, false};
-    gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 4}, (Inventory){100, 0, false}, 0, 1, false};
-    gameSession.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 6}, (Inventory){100, 0, false}, 0, 2, false};
+    gameSession.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){2, 3}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 0, false};
+    gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){5, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 0, false};
+    gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 1, false};
+    gameSession.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 6}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 2, false};
 
-    gameSession.pawns[4] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){250, 0, true}, 0, 0, false};
-    gameSession.pawns[5] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){250, 1, true}, 0, 1, false};
-    gameSession.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){250, 2, true}, 0, 2, false};
+    gameSession.pawns[4] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 0, true}, 0, 0, false};
+    gameSession.pawns[5] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 1, true}, 0, 1, false};
+    gameSession.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, true}, 0, 2, false};
 
     gameSession.activePawn = &gameSession.pawns[0];
 
@@ -149,7 +149,7 @@ static Boolean gameSession_handleTileTap() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
     Pawn *selectedPawn = gameSession_pawnAtTile(selectedTile);
-    if (selectedPawn != NULL) {
+    if (selectedPawn != NULL && selectedPawn->faction == 0) {
         gameSession.activePawn = selectedPawn;
         gameSession_updateViewPortOffset(true);
         gameSession_showPawnActions();

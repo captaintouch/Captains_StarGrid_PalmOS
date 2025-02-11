@@ -163,7 +163,9 @@ static void game_drawPawns() {
 
     // DRAW ACCESSORIES (FLAGS, FACTION INDICATORS)
     for (i = 0; i < gameSession.pawnCount; i++) {
+        RectangleType rect;
         Pawn *pawn = &gameSession.pawns[i];
+        int maxHealthWidth, healthWidth, maxHealth;
         Coordinate pawnPosition = hexgrid_tileCenterPosition(pawn->position);
         if (isInvalidCoordinate(pawnPosition)) {
             continue;
@@ -173,22 +175,29 @@ static void game_drawPawns() {
         }
 
         // Draw faction indicator
-        if (gameSession.colorSupport) {
-            RectangleType flagRect;
-            RctSetRectangle(&flagRect, pawnPosition.x + 5, pawnPosition.y - 10, 5, 5);
-            drawhelper_applyForeColor(pawn_factionColor(pawn->faction));
-            drawhelper_fillRectangle(&flagRect, 0);
-        } else {
-            drawhelper_applyForeColor(CLOUDS);
-            drawhelper_drawTextWithValue("", pawn->faction + 1, (Coordinate){pawnPosition.x, pawnPosition.y - 10});
+        if (pawn->type == PAWNTYPE_SHIP) {
+            if (gameSession.colorSupport) {
+                RectangleType flagRect;
+                RctSetRectangle(&flagRect, pawnPosition.x + 5, pawnPosition.y - 10, 5, 5);
+                drawhelper_applyForeColor(pawn_factionColor(pawn->faction));
+                drawhelper_fillRectangle(&flagRect, 0);
+            } else {
+                drawhelper_applyForeColor(CLOUDS);
+                drawhelper_drawTextWithValue("", pawn->faction + 1, (Coordinate){pawnPosition.x, pawnPosition.y - 10});
+            }
         }
 
-       #ifdef DEBUG 
-        // TEMP HEALTH
-        drawhelper_applyBackgroundColor(DRACULAORCHID);
-        drawhelper_applyTextColor(CLOUDS);
-        drawhelper_drawTextWithValue("H", pawn->inventory.health, (Coordinate){pawnPosition.x, pawnPosition.y + 10});
-        #endif
+        // Draw health bar
+        if (pawn->type == PAWNTYPE_SHIP) {
+            maxHealth = GAMEMECHANICS_MAXSHIPHEALTH;
+        } else {
+            maxHealth = GAMEMECHANICS_MAXBASEHEALTH;
+        }
+        maxHealthWidth = HEXTILE_PAWNSIZE;
+        healthWidth = (maxHealthWidth * pawn->inventory.health) / maxHealth;
+        drawhelper_applyForeColor(ALIZARIN);
+        RctSetRectangle(&rect, pawnPosition.x - maxHealthWidth / 2, pawnPosition.y + HEXTILE_PAWNSIZE / 2, healthWidth, 2);
+        drawhelper_fillRectangle(&rect, 0);
     }
 }
 
