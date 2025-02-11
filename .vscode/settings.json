@@ -26,7 +26,8 @@
         "pawnactionmenuviewmodel.h": "c",
         "minimap.h": "c",
         "pawn.h": "c",
-        "palmtypes.h": "c"
+        "palmtypes.h": "c",
+        "gameactionlogic.h": "c"
     },
     "C_Cpp.default.includePath": [
         "/opt/palmdev/sdk-5r3/include"
