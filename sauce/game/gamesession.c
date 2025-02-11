@@ -7,8 +7,8 @@
 #include "mathIsFun.h"
 #include "minimap.h"
 #include "movement.h"
-#include "viewport.h"
 #include "pawnActionMenuViewModel.h"
+#include "viewport.h"
 
 void gameSession_initialize() {
     gameSession.diaSupport = deviceinfo_diaSupported();
@@ -20,15 +20,17 @@ void gameSession_initialize() {
     gameSession.pawns = NULL;
     gameSession.activePawn = NULL;
 
-    gameSession.pawns = MemPtrNew(sizeof(Pawn) * 5);
-    MemSet(gameSession.pawns, sizeof(Pawn) * 5, 0);
-    gameSession.pawnCount = 5;
+    gameSession.pawns = MemPtrNew(sizeof(Pawn) * 7);
+    MemSet(gameSession.pawns, sizeof(Pawn) * 7, 0);
+    gameSession.pawnCount = 7;
     gameSession.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){2, 3}, (Inventory){100, 0, false}, 0, 0, false};
     gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){5, 4}, (Inventory){100, 0, false}, 0, 0, false};
     gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 4}, (Inventory){100, 0, false}, 0, 1, false};
+    gameSession.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 6}, (Inventory){100, 0, false}, 0, 2, false};
 
-    gameSession.pawns[3] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){100, 0, true}, 0, 0, false};
-    gameSession.pawns[4] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){100, 1, true}, 0, 1, false};
+    gameSession.pawns[4] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){100, 0, true}, 0, 0, false};
+    gameSession.pawns[5] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){100, 1, true}, 0, 1, false};
+    gameSession.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){100, 2, true}, 0, 2, false};
 
     gameSession.activePawn = &gameSession.pawns[0];
 
@@ -127,7 +129,6 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
             break;
     }
 
-    
     if (coordinates != NULL) {
         MemPtrFree(coordinates);
     }
@@ -212,7 +213,7 @@ static UInt8 gameSession_healthImpact(Coordinate source, Coordinate target, Targ
     int distance;
     int maxImpact;
     switch (attackType) {
-        case TARGETSELECTIONTYPE_MOVE: // Shouldn't be triggered
+        case TARGETSELECTIONTYPE_MOVE:  // Shouldn't be triggered
         case TARGETSELECTIONTYPE_PHASER:
             maxRange = gameSession_maxRange(attackType);
             distance = (maxRange - movement_distance(source, target) + 1);
@@ -221,8 +222,6 @@ static UInt8 gameSession_healthImpact(Coordinate source, Coordinate target, Targ
         case TARGETSELECTIONTYPE_TORPEDO:
             return GAMEMECHANICS_MAXIMPACTTORPEDO;
     }
-
-    
 }
 
 static void gameSession_handleTargetSelection() {
@@ -240,14 +239,10 @@ static void gameSession_handleTargetSelection() {
         case TARGETSELECTIONTYPE_MOVE:
             gameSession_clearMovement();
 
-            if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->inventory.carryingFlag && selectedPawn->inventory.flagOfFaction != gameSession.activePawn->faction) {
-                gameSession.activePawn->inventory.carryingFlag = true;
-                gameSession.activePawn->inventory.flagOfFaction = selectedPawn->inventory.flagOfFaction;
-                selectedPawn->inventory.carryingFlag = false;
-            }
             gameSession.movement = (Movement *)MemPtrNew(sizeof(Movement));
             MemSet(gameSession.movement, sizeof(Movement), 0);
             gameSession.movement->launchTimestamp = TimGetTicks();
+            gameSession.movement->targetPawn = selectedPawn;
             gameSession.movement->trajectory = movement_trajectoryBetween((Coordinate){gameSession.activePawn->position.x, gameSession.activePawn->position.y}, selectedTile);
             gameSession.movement->pawn = gameSession.activePawn;
             gameSession.activePawn->position = selectedTile;
@@ -330,9 +325,9 @@ static Coordinate gameSession_getBoxCoordinate(Coordinate center, float t, int b
     int halfSize = boxSize / 2;
     int perimeter = 4 * boxSize;
     int pos = (int)(t * perimeter) % perimeter;
-    
+
     Coordinate result = {center.x, center.y};
-    
+
     if (pos < boxSize) {
         result.x = center.x - halfSize + pos;
         result.y = center.y - halfSize;
@@ -346,7 +341,7 @@ static Coordinate gameSession_getBoxCoordinate(Coordinate center, float t, int b
         result.x = center.x - halfSize;
         result.y = center.y + halfSize - (pos - 3 * boxSize);
     }
-    
+
     return result;
 }
 
@@ -387,6 +382,20 @@ static void gameSession_progressUpdateAttack() {
     }
 }
 
+static UInt8 gameSession_nonCapturedFlagsLeft(UInt8 faction) {
+    int i;
+    UInt8 flagsLeft = 0;
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        // Count of enemies that are currently carrying a flag (including bases)
+        // + Count of own ships that are currently carrying a flag (excluding home base)
+        if ((gameSession.pawns[i].faction != faction && gameSession.pawns[i].inventory.carryingFlag) ||
+            (gameSession.pawns[i].faction == faction && gameSession.pawns[i].inventory.carryingFlag && gameSession.pawns[i].type != PAWNTYPE_BASE)) {
+            flagsLeft++;
+        }
+    }
+    return flagsLeft;
+}
+
 static void gameSession_progressUpdateMovement() {
     Int32 timeSinceLaunch;
     float timePassedScale;
@@ -401,6 +410,33 @@ static void gameSession_progressUpdateMovement() {
     gameSession_updateViewPortOffset(false);
 
     if (timePassedScale >= 1) {
+        Pawn *selectedPawn = gameSession.movement->targetPawn;
+        // Check if flag was captured
+        if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->inventory.carryingFlag && selectedPawn->inventory.flagOfFaction != gameSession.activePawn->faction) {
+            gameSession.activePawn->inventory.carryingFlag = true;
+            gameSession.activePawn->inventory.flagOfFaction = selectedPawn->inventory.flagOfFaction;
+            selectedPawn->inventory.carryingFlag = false;
+        }
+        // Check if flag was returned to player's base
+        if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->faction == gameSession.activePawn->faction && gameSession.activePawn->inventory.carryingFlag) {
+            // Flag dissapears, enemy base dissapears, enemy ships join the players fleet
+            int i;
+            for (i = 0; i < gameSession.pawnCount; i++) {
+                if (gameSession.pawns[i].faction == gameSession.activePawn->inventory.flagOfFaction) {
+                    gameSession.pawns[i].faction = gameSession.activePawn->faction;
+                    if (gameSession.pawns[i].type == PAWNTYPE_BASE) {
+                        gameSession.pawns[i].position = (Coordinate){-1, -1};
+                    }
+                }
+            }
+            gameSession.activePawn->inventory.carryingFlag = false;
+            if (gameSession_nonCapturedFlagsLeft(gameSession.activePawn->faction) > 0) { // Still some flags left to capture
+                FrmCustomAlert(GAME_ALERT_FLAGCAPTURED, NULL, NULL, NULL);
+            } else { // Game over, all flags captured
+                FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_ALLFLAGSCAPTURED, NULL, NULL, NULL);
+            }
+        }
+
         gameSession_clearMovement();
         gameSession_updateViewPortOffset(true);
         gameSession.state = GAMESTATE_DEFAULT;

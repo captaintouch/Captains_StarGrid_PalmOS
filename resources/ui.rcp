@@ -5,3 +5,24 @@ FORM ID 1000 AT ( 0 0 160 160 )
 NOSAVEBEHIND NOFRAME
 BEGIN
 END
+
+ALERT ID 1000
+BEGIN
+    TITLE "Victory!"
+    MESSAGE "All enemy flags captured!"
+    BUTTONS "Next level"
+END
+
+ALERT ID 1001
+BEGIN
+    TITLE "Victory!"
+    MESSAGE "All enemy ships destroyed!"
+    BUTTONS "Next level"
+END
+
+ALERT ID 1002
+BEGIN
+    TITLE "Flag captured!"
+    MESSAGE "The remaining enemy fleet has joined your command."
+    BUTTONS "Ok"
+END

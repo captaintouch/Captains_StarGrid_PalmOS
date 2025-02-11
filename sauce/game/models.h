@@ -48,6 +48,7 @@ typedef struct AttackAnimation {
 
 typedef struct Movement {
     Pawn *pawn;
+    Pawn *targetPawn;
     Trajectory trajectory;
     Int32 launchTimestamp;
     Coordinate pawnPosition;
