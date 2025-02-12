@@ -187,17 +187,18 @@ static void game_drawPawns() {
             }
         }
 
-        // Draw health bar
-        if (pawn->type == PAWNTYPE_SHIP) {
-            maxHealth = GAMEMECHANICS_MAXSHIPHEALTH;
-        } else {
-            maxHealth = GAMEMECHANICS_MAXBASEHEALTH;
+        if (gameSession_shouldShowHealthBar()) {
+            if (pawn->type == PAWNTYPE_SHIP) {
+                maxHealth = GAMEMECHANICS_MAXSHIPHEALTH;
+            } else {
+                maxHealth = GAMEMECHANICS_MAXBASEHEALTH;
+            }
+            maxHealthWidth = HEXTILE_PAWNSIZE;
+            healthWidth = (maxHealthWidth * pawn->inventory.health) / maxHealth;
+            drawhelper_applyForeColor(ALIZARIN);
+            RctSetRectangle(&rect, pawnPosition.x - maxHealthWidth / 2, pawnPosition.y + HEXTILE_PAWNSIZE / 2, healthWidth, 2);
+            drawhelper_fillRectangle(&rect, 0);
         }
-        maxHealthWidth = HEXTILE_PAWNSIZE;
-        healthWidth = (maxHealthWidth * pawn->inventory.health) / maxHealth;
-        drawhelper_applyForeColor(ALIZARIN);
-        RctSetRectangle(&rect, pawnPosition.x - maxHealthWidth / 2, pawnPosition.y + HEXTILE_PAWNSIZE / 2, healthWidth, 2);
-        drawhelper_fillRectangle(&rect, 0);
     }
 }
 

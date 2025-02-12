@@ -273,6 +273,12 @@ static void gameSession_handleTargetSelection() {
     gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
+Boolean gameSession_shouldShowHealthBar() {
+    return gameSession.state == GAMESTATE_SELECTTARGET &&
+           (gameSession.targetSelectionType == TARGETSELECTIONTYPE_PHASER || gameSession.targetSelectionType == TARGETSELECTIONTYPE_TORPEDO) &&
+           gameSession.movement == NULL;
+}
+
 static void gameSession_handlePawnActionButtonSelection() {
     int i;
     int selectedIndex = bottomMenu_selectedIndex(gameSession.lastPenInput.touchCoordinate);

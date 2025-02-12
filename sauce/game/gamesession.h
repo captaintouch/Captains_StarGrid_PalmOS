@@ -59,6 +59,7 @@ GameSession gameSession;
 void gameSession_initialize();
 void gameSession_registerPenInput(EventPtr eventptr);
 void gameSession_progressLogic();
+Boolean gameSession_shouldShowHealthBar();
 AppColor gameSession_hightlightTilesColor();
 
 #endif
