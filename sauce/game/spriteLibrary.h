@@ -19,6 +19,7 @@ typedef struct SpriteLibrary {
     ImageSprite shipSprite[8];
     ImageSprite shipCloakedSprite[8];
     ImageSprite baseSprite;
+    ImageSprite torpedoAnimation[6];
 } SpriteLibrary;
 
 SpriteLibrary spriteLibrary;

@@ -36,4 +36,12 @@ do
 
 done < "resources/graphicResources.map"
 
+# Find total number of frames for animation sets:
+results=$(awk -F';' '{print $2}' "resources/graphicResources.map" | grep _ | awk '{gsub("_", ";"); print}' | sort -u | awk -F";" '{if($2 > max[$1]) max[$1] = $2} END {for (i in max) print i ";" max[i]}')
+while IFS=';' read -r name maxCount
+do
+	((maxCount++))
+	echo "#define GFX_FRAMECOUNT_${name^^} $maxCount" >> $hOutputFile
+done <<< "$results"
+
 echo "#endif" >> $hOutputFile
