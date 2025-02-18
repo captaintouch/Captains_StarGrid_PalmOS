@@ -5,13 +5,18 @@
 #include "models.h"
 
 void inputPen_updateEventDetails(InputPen *pen, EventPtr eventPtr) {
-    if (eventPtr->eType != penDownEvent && eventPtr->eType != penMoveEvent) {
+    Boolean penUpTriggered = (pen->blockUpdatesUntilPenUp && eventPtr->eType == penUpEvent);
+    if (eventPtr->eType != penDownEvent && eventPtr->eType != penMoveEvent && !penUpTriggered) {
         return;
     }
 
-    pen->touchCoordinate.x = eventPtr->screenX;
-    pen->touchCoordinate.y = eventPtr->screenY;
-
-    pen->moving = eventPtr->eType == penMoveEvent;
-    pen->wasUpdatedFlag = true;
+    if (pen->blockUpdatesUntilPenUp) {
+        pen->blockUpdatesUntilPenUp = eventPtr->eType != penUpEvent;
+        pen->moving = false;
+    } else {
+        pen->moving = eventPtr->eType == penMoveEvent;
+        pen->touchCoordinate.x = eventPtr->screenX;
+        pen->touchCoordinate.y = eventPtr->screenY;
+        pen->wasUpdatedFlag = true;
+    }
 }

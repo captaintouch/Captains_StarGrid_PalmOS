@@ -16,7 +16,7 @@ void gameSession_initialize() {
     gameSession.colorSupport = deviceinfo_colorSupported();
 
     gameSession.state = GAMESTATE_DEFAULT;
-    gameSession.lastPenInput = (InputPen){0};
+    gameSession.lastPenInput = (InputPen){(Coordinate){-1, -1}, false, false, false};
 
     gameSession.pawns = NULL;
     gameSession.activePawn = NULL;
@@ -439,7 +439,7 @@ void gameSession_progressLogic() {
         // Handle pen input
         gameSession.lastPenInput.wasUpdatedFlag = false;
 
-        if (gameSession.lastPenInput.moving) {
+        if (gameSession.lastPenInput.moving && !gameSession.lastPenInput.blockUpdatesUntilPenUp) {
             switch (gameSession.state) {
                 case GAMESTATE_DEFAULT:
                     gameSession_handleMiniMapTap();
@@ -451,10 +451,11 @@ void gameSession_progressLogic() {
         } else {
             switch (gameSession.state) {
                 case GAMESTATE_DEFAULT:
-                    if (gameSession_handleMiniMapTap()) break;
+                    if (!gameSession.lastPenInput.blockUpdatesUntilPenUp && gameSession_handleMiniMapTap()) break;
                     if (gameSession_handleTileTap()) break;
                     break;
                 case GAMESTATE_CHOOSEPAWNACTION:
+                    gameSession.lastPenInput.blockUpdatesUntilPenUp = true;
                     gameSession_handlePawnActionButtonSelection();
                     break;
                 case GAMESTATE_SELECTTARGET:
