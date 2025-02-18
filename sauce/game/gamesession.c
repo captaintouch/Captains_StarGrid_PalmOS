@@ -271,6 +271,7 @@ static void gameSession_handleTargetSelection() {
                 gameSession.attackAnimation = (AttackAnimation *)MemPtrNew(sizeof(AttackAnimation));
                 MemSet(gameSession.attackAnimation, sizeof(AttackAnimation), 0);
                 gameSession.attackAnimation->torpedoPosition = (Coordinate){-1, -1};
+                gameSession.attackAnimation->explosionPosition = (Coordinate){-1, -1};
                 gameSession.attackAnimation->launchTimestamp = TimGetTicks();
                 gameSession.attackAnimation->target = selectedTile;
                 gameSession.attackAnimation->targetPawn = selectedPawn;
@@ -370,12 +371,28 @@ static Coordinate gameSession_getBoxCoordinate(Coordinate center, float t, int b
     return result;
 }
 
+static void gameSession_progressUpdateExplosion() {
+    Int32 timeSinceLaunch;
+    float timePassedScale;
+    gameSession.drawingState.shouldRedrawOverlay = true;
+    timeSinceLaunch = TimGetTicks() - gameSession.attackAnimation->explosionTimestamp;
+    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * gameSession.attackAnimation->explosionDurationSeconds);
+    if (timePassedScale >= 1) {
+        gameSession_clearAttack();
+        gameSession.state = GAMESTATE_DEFAULT;
+    }
+}
+
 static void gameSession_progressUpdateAttack() {
     Int32 timeSinceLaunch;
     float timePassedScale;
     Coordinate targetCenter, sourceCenter;
     Line attackLine;
     if (gameSession.attackAnimation == NULL) {
+        return;
+    }
+    if (!isInvalidCoordinate(gameSession.attackAnimation->explosionPosition)) {
+        gameSession_progressUpdateExplosion();
         return;
     }
     gameSession.drawingState.shouldRedrawOverlay = true;
@@ -408,8 +425,14 @@ static void gameSession_progressUpdateAttack() {
 
     if (timePassedScale >= 1) {
         gameActionLogic_afterAttack();
-        gameSession_clearAttack();
-        gameSession.state = GAMESTATE_DEFAULT;
+        if (gameSession.targetSelectionType == TARGETSELECTIONTYPE_TORPEDO || isInvalidCoordinate(gameSession.attackAnimation->targetPawn->position)) { // show explosion when destroyed or always when torpedo is used
+            gameSession.attackAnimation->explosionPosition = targetCenter;
+            gameSession.attackAnimation->explosionTimestamp = TimGetTicks();
+            gameSession.attackAnimation->explosionDurationSeconds = 0.5;
+        } else {
+            gameSession_clearAttack();
+            gameSession.state = GAMESTATE_DEFAULT;
+        }
     }
 }
 

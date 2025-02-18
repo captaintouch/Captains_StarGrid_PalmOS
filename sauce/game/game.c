@@ -68,6 +68,10 @@ static void game_drawAttackAnimation() {
     if (gameSession.attackAnimation == NULL) {
         return;
     }
+    if (!isInvalidCoordinate(gameSession.attackAnimation->explosionPosition)) {
+        drawhelper_drawAnimatedSprite(spriteLibrary.explosionAnimation, GFX_FRAMECOUNT_EXPLOSION, gameSession.attackAnimation->explosionPosition, gameSession.attackAnimation->explosionTimestamp, gameSession.attackAnimation->explosionDurationSeconds);
+        return;
+    }
     if (isInvalidCoordinate(gameSession.attackAnimation->torpedoPosition)) {  // Phaser animation
         drawhelper_applyForeColor(ALIZARIN);
         for (i = 0; i < gameSession.attackAnimation->lineCount; i++) {

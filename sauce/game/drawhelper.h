@@ -14,7 +14,7 @@ void drawhelper_applyBackgroundColor(AppColor color);
 void drawhelper_drawText(char *text, Coordinate position);
 void drawhelper_drawTextWithValue(char *text, int value, Coordinate position);
 void drawhelper_drawSprite(ImageSprite *imageSprite, Coordinate coordinate);
-Boolean drawhelper_drawAnimatedSprite(ImageSprite *imageSprite, UInt8 frameCount, Coordinate coordinate, Int32 launchTimestamp, float durationSeconds);
+void drawhelper_drawAnimatedSprite(ImageSprite *imageSprite, UInt8 frameCount, Coordinate coordinate, Int32 launchTimestamp, float durationSeconds);
 void drawhelper_drawPoint(Coordinate point);
 void drawhelper_drawBoxAround(Coordinate coordinate, int dimension);
 void drawhelper_borderRectangle(RectangleType *rect);

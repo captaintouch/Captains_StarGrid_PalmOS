@@ -58,5 +58,14 @@ void spriteLibrary_initialize() {
         drawhelper_loadImage(spriteLibrary.torpedoAnimation[i].resourceId);
   }
 
+  for (i = 0; i < GFX_FRAMECOUNT_EXPLOSION; i++) {
+    spriteLibrary.explosionAnimation[i] = (ImageSprite){
+        GFX_RES_EXPLOSION_0 + i,
+        (Coordinate){19, 19},
+    };
+    spriteLibrary.explosionAnimation[i].imageData =
+        drawhelper_loadImage(spriteLibrary.explosionAnimation[i].resourceId);
+  }
+
   spriteLibrary.initialized = true;
 }

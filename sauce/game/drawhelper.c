@@ -66,12 +66,14 @@ void drawhelper_drawSprite(ImageSprite *imageSprite, Coordinate coordinate) {
     drawhelper_drawImage(imageSprite->imageData, updatedPosition);
 }
 
-// Returns true when animation has been finished
-Boolean drawhelper_drawAnimatedSprite(ImageSprite *imageSprite, UInt8 frameCount, Coordinate coordinate, Int32 launchTimestamp, float durationSeconds) {
+void drawhelper_drawAnimatedSprite(ImageSprite *imageSprite, UInt8 frameCount, Coordinate coordinate, Int32 launchTimestamp, float durationSeconds) {
     float timePassedScale = (float)(TimGetTicks() - (float)launchTimestamp) / ((float)SysTicksPerSecond() * durationSeconds);
-    int selectedIndex = fmin(frameCount - 1, timePassedScale * (float)(frameCount - 1));
+    int selectedIndex;
+    if (timePassedScale >= 1) {
+        return;
+    }
+    selectedIndex = fmin(frameCount - 1, timePassedScale * (float)(frameCount - 1));
     drawhelper_drawSprite(&imageSprite[selectedIndex], coordinate);
-    return timePassedScale >= 1;
 }
 
 void drawhelper_drawBoxAround(Coordinate coordinate, int dimension) {

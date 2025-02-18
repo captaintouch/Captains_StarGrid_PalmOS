@@ -40,7 +40,10 @@ typedef struct Pawn {
 typedef struct AttackAnimation {
     Coordinate target;
     Coordinate torpedoPosition;
+    Coordinate explosionPosition;
     Int32 launchTimestamp;
+    Int32 explosionTimestamp;
+    float explosionDurationSeconds;
     float durationSeconds;
     Line *lines;
     Pawn *targetPawn;
