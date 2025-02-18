@@ -3,13 +3,13 @@
 #include "../constants.h"
 #include "../deviceinfo.h"
 #include "drawhelper.h"
+#include "gameActionLogic.h"
 #include "hexgrid.h"
 #include "mathIsFun.h"
 #include "minimap.h"
 #include "movement.h"
 #include "pawnActionMenuViewModel.h"
 #include "viewport.h"
-#include "gameActionLogic.h"
 
 void gameSession_initialize() {
     gameSession.diaSupport = deviceinfo_diaSupported();
@@ -229,6 +229,18 @@ static UInt8 gameSession_healthImpact(Coordinate source, Coordinate target, Targ
     }
 }
 
+static float gameSession_attackDuration(Coordinate source, Coordinate target, TargetSelectionType attackType) {
+    int distance;
+    switch (attackType) {
+        case TARGETSELECTIONTYPE_MOVE:  // Shouldn't be triggered
+        case TARGETSELECTIONTYPE_PHASER:
+            return 1.5;
+        case TARGETSELECTIONTYPE_TORPEDO:
+            distance = movement_distance(source, target) + 1;
+            return (float)distance * 0.35;
+    }
+}
+
 static void gameSession_handleTargetSelection() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
@@ -258,10 +270,12 @@ static void gameSession_handleTargetSelection() {
             if (selectedPawn != NULL) {
                 gameSession.attackAnimation = (AttackAnimation *)MemPtrNew(sizeof(AttackAnimation));
                 MemSet(gameSession.attackAnimation, sizeof(AttackAnimation), 0);
+                gameSession.attackAnimation->torpedoPosition = (Coordinate){-1, -1};
                 gameSession.attackAnimation->launchTimestamp = TimGetTicks();
                 gameSession.attackAnimation->target = selectedTile;
                 gameSession.attackAnimation->targetPawn = selectedPawn;
                 gameSession.attackAnimation->healthImpact = gameSession_healthImpact(gameSession.activePawn->position, selectedTile, gameSession.targetSelectionType);
+                gameSession.attackAnimation->durationSeconds = gameSession_attackDuration(gameSession.activePawn->position, selectedTile, gameSession.targetSelectionType);
                 gameSession.activePawn->orientation = movement_orientationBetween(gameSession.activePawn->position, selectedTile);
             } else {
                 gameSession.state = GAMESTATE_DEFAULT;
@@ -359,29 +373,40 @@ static Coordinate gameSession_getBoxCoordinate(Coordinate center, float t, int b
 static void gameSession_progressUpdateAttack() {
     Int32 timeSinceLaunch;
     float timePassedScale;
-    Coordinate targetCenter;
+    Coordinate targetCenter, sourceCenter;
     Line attackLine;
     if (gameSession.attackAnimation == NULL) {
         return;
     }
     gameSession.drawingState.shouldRedrawOverlay = true;
     timeSinceLaunch = TimGetTicks() - gameSession.attackAnimation->launchTimestamp;
-    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * 1.5);
+    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * gameSession.attackAnimation->durationSeconds);
 
     if (gameSession.attackAnimation->lines != NULL) {
         MemPtrFree(gameSession.attackAnimation->lines);
     }
 
     targetCenter = hexgrid_tileCenterPosition(gameSession.attackAnimation->target);
-    attackLine = (Line){hexgrid_tileCenterPosition(gameSession.activePawn->position), gameSession_getBoxCoordinate(targetCenter, timePassedScale, HEXTILE_PAWNSIZE / 3)};
-    gameSession.attackAnimation->lines = (Line *)MemPtrNew(sizeof(Line) * 3);
-    gameSession.attackAnimation->lines[0] = (Line){attackLine.startpoint, movement_coordinateAtPercentageOfLine(attackLine, remapToMax(timePassedScale * 2.4, 1))};
-    attackLine.startpoint = gameSession.attackAnimation->lines[0].endpoint;
-    gameSession.attackAnimation->lines[1] = (Line){gameSession.attackAnimation->lines[0].endpoint, movement_coordinateAtPercentageOfLine(attackLine, 0.7)};
-    gameSession.attackAnimation->lines[2] = (Line){gameSession.attackAnimation->lines[1].endpoint, attackLine.endpoint};
-    gameSession.attackAnimation->lineCount = 3;
+    switch (gameSession.targetSelectionType) {
+        case TARGETSELECTIONTYPE_MOVE:
+            break;
+        case TARGETSELECTIONTYPE_PHASER:
+            attackLine = (Line){hexgrid_tileCenterPosition(gameSession.activePawn->position), gameSession_getBoxCoordinate(targetCenter, timePassedScale, HEXTILE_PAWNSIZE / 3)};
+            gameSession.attackAnimation->lines = (Line *)MemPtrNew(sizeof(Line) * 3);
+            gameSession.attackAnimation->lines[0] = (Line){attackLine.startpoint, movement_coordinateAtPercentageOfLine(attackLine, remapToMax(timePassedScale * 2.4, 1))};
+            attackLine.startpoint = gameSession.attackAnimation->lines[0].endpoint;
+            gameSession.attackAnimation->lines[1] = (Line){gameSession.attackAnimation->lines[0].endpoint, movement_coordinateAtPercentageOfLine(attackLine, 0.7)};
+            gameSession.attackAnimation->lines[2] = (Line){gameSession.attackAnimation->lines[1].endpoint, attackLine.endpoint};
+            gameSession.attackAnimation->lineCount = 3;
+            gameSession.attackAnimation->torpedoPosition = (Coordinate){-1, -1};
+            break;
+        case TARGETSELECTIONTYPE_TORPEDO:
+            sourceCenter = hexgrid_tileCenterPosition(gameSession.activePawn->position);
+            gameSession.attackAnimation->torpedoPosition = movement_coordinateAtPercentageOfLine((Line){sourceCenter.x, sourceCenter.y, targetCenter.x, targetCenter.y}, timePassedScale);
+            break;
+    }
 
-    if (timePassedScale >= 1) {        
+    if (timePassedScale >= 1) {
         gameActionLogic_afterAttack();
         gameSession_clearAttack();
         gameSession.state = GAMESTATE_DEFAULT;

@@ -4,6 +4,7 @@
 
 #include "../constants.h"
 #include "../deviceinfo.h"
+#include "../graphicResources.h"
 #include "drawhelper.h"
 #include "gamesession.h"
 #include "hexgrid.h"
@@ -67,15 +68,18 @@ static void game_drawAttackAnimation() {
     if (gameSession.attackAnimation == NULL) {
         return;
     }
-
-    drawhelper_applyForeColor(ALIZARIN);
-    for (i = 0; i < gameSession.attackAnimation->lineCount; i++) {
-        if (i % 2 == 0) {
-            drawhelper_applyForeColor(ALIZARIN);
-        } else {
-            drawhelper_applyForeColor(SUNFLOWER);
+    if (isInvalidCoordinate(gameSession.attackAnimation->torpedoPosition)) {  // Phaser animation
+        drawhelper_applyForeColor(ALIZARIN);
+        for (i = 0; i < gameSession.attackAnimation->lineCount; i++) {
+            if (i % 2 == 0) {
+                drawhelper_applyForeColor(ALIZARIN);
+            } else {
+                drawhelper_applyForeColor(SUNFLOWER);
+            }
+            drawhelper_drawLine(&gameSession.attackAnimation->lines[i]);
         }
-        drawhelper_drawLine(&gameSession.attackAnimation->lines[i]);
+    } else {  // Torpedo animation
+        drawhelper_drawAnimatedSprite(spriteLibrary.torpedoAnimation, GFX_FRAMECOUNT_TORP, gameSession.attackAnimation->torpedoPosition, gameSession.attackAnimation->launchTimestamp, gameSession.attackAnimation->durationSeconds);
     }
 }
 

@@ -52,7 +52,7 @@ void spriteLibrary_initialize() {
   for (i = 0; i < GFX_FRAMECOUNT_TORP; i++) {
     spriteLibrary.torpedoAnimation[i] = (ImageSprite){
         GFX_RES_TORP_0 + i,
-        (Coordinate){15, 15},
+        (Coordinate){10, 10},
     };
     spriteLibrary.torpedoAnimation[i].imageData =
         drawhelper_loadImage(spriteLibrary.torpedoAnimation[i].resourceId);

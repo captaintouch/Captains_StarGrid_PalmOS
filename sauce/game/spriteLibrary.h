@@ -2,6 +2,7 @@
 #define SPRITELIBRARY_H_
 #include <PalmOS.h>
 #include "models.h"
+#include "../graphicResources.h"
 
 typedef struct ImageData {
     MemHandle resource;
@@ -16,10 +17,10 @@ typedef struct ImageSprite {
 
 typedef struct SpriteLibrary {
     Boolean initialized;
-    ImageSprite shipSprite[8];
-    ImageSprite shipCloakedSprite[8];
+    ImageSprite shipSprite[GFX_FRAMECOUNT_SHIPA];
+    ImageSprite shipCloakedSprite[GFX_FRAMECOUNT_SHIPCLOAKED];
     ImageSprite baseSprite;
-    ImageSprite torpedoAnimation[6];
+    ImageSprite torpedoAnimation[GFX_FRAMECOUNT_TORP];
 } SpriteLibrary;
 
 SpriteLibrary spriteLibrary;
