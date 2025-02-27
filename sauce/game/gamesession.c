@@ -25,17 +25,20 @@ void gameSession_initialize() {
         gameSession.pawnCount = 0;
         MemPtrFree(gameSession.pawns);
     }
-    gameSession.pawns = MemPtrNew(sizeof(Pawn) * 7);
-    MemSet(gameSession.pawns, sizeof(Pawn) * 7, 0);
-    gameSession.pawnCount = 7;
-    gameSession.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){2, 3}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 0, false};
-    gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){5, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 0, false};
-    gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 1, false};
-    gameSession.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 6}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 2, false};
+    gameSession.pawns = MemPtrNew(sizeof(Pawn) * 8);
+    MemSet(gameSession.pawns, sizeof(Pawn) * 8, 0);
+    gameSession.pawnCount = 8;
+    gameSession.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){2, 3}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 0, false, false};
+    gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){5, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 0, false, false};
+    gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 1, false, false};
+    gameSession.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){3, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 1, false, false};
+    gameSession.pawns[4] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 6}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 2, false, false};
 
-    gameSession.pawns[4] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 0, true}, 0, 0, false};
-    gameSession.pawns[5] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 1, true}, 0, 1, false};
-    gameSession.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, true}, 0, 2, false};
+    gameSession.pawns[5] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 0, true}, 0, 0, false, false};
+    gameSession.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 1, true}, 0, 1, false, false};
+    gameSession.pawns[7] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, true}, 0, 2, false, false};
+
+    gameSession.factionTurn = 1;
 
     gameSession.activePawn = &gameSession.pawns[0];
 
@@ -241,6 +244,37 @@ static float gameSession_attackDuration(Coordinate source, Coordinate target, Ta
     }
 }
 
+static void gameSession_scheduleMovement(Pawn *targetPawn, Coordinate selectedTile) {
+    gameSession_clearMovement();
+
+    gameSession.movement = (Movement *)MemPtrNew(sizeof(Movement));
+    MemSet(gameSession.movement, sizeof(Movement), 0);
+    gameSession.movement->launchTimestamp = TimGetTicks();
+    gameSession.movement->targetPawn = targetPawn;
+    gameSession.movement->trajectory = movement_trajectoryBetween((Coordinate){gameSession.activePawn->position.x, gameSession.activePawn->position.y}, selectedTile);
+    gameSession.movement->pawn = gameSession.activePawn;
+    gameSession.activePawn->position = selectedTile;
+}
+
+static void gameSession_scheduleAttack(Pawn *targetPawn, Coordinate selectedTile, TargetSelectionType attackType) {
+    gameSession_clearAttack();
+    if (targetPawn != NULL) {
+        gameSession.targetSelectionType = attackType;
+        gameSession.attackAnimation = (AttackAnimation *)MemPtrNew(sizeof(AttackAnimation));
+        MemSet(gameSession.attackAnimation, sizeof(AttackAnimation), 0);
+        gameSession.attackAnimation->torpedoPosition = (Coordinate){-1, -1};
+        gameSession.attackAnimation->explosionPosition = (Coordinate){-1, -1};
+        gameSession.attackAnimation->launchTimestamp = TimGetTicks();
+        gameSession.attackAnimation->target = selectedTile;
+        gameSession.attackAnimation->targetPawn = targetPawn;
+        gameSession.attackAnimation->healthImpact = gameSession_healthImpact(gameSession.activePawn->position, selectedTile, gameSession.targetSelectionType);
+        gameSession.attackAnimation->durationSeconds = gameSession_attackDuration(gameSession.activePawn->position, selectedTile, gameSession.targetSelectionType);
+        gameSession.activePawn->orientation = movement_orientationBetween(gameSession.activePawn->position, selectedTile);
+    } else {
+        gameSession.state = GAMESTATE_DEFAULT;
+    }
+}
+
 static void gameSession_handleTargetSelection() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
@@ -254,33 +288,11 @@ static void gameSession_handleTargetSelection() {
 
     switch (gameSession.targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
-            gameSession_clearMovement();
-
-            gameSession.movement = (Movement *)MemPtrNew(sizeof(Movement));
-            MemSet(gameSession.movement, sizeof(Movement), 0);
-            gameSession.movement->launchTimestamp = TimGetTicks();
-            gameSession.movement->targetPawn = selectedPawn;
-            gameSession.movement->trajectory = movement_trajectoryBetween((Coordinate){gameSession.activePawn->position.x, gameSession.activePawn->position.y}, selectedTile);
-            gameSession.movement->pawn = gameSession.activePawn;
-            gameSession.activePawn->position = selectedTile;
+            gameSession_scheduleMovement(selectedPawn, selectedTile);
             break;
         case TARGETSELECTIONTYPE_PHASER:
         case TARGETSELECTIONTYPE_TORPEDO:
-            gameSession_clearAttack();
-            if (selectedPawn != NULL) {
-                gameSession.attackAnimation = (AttackAnimation *)MemPtrNew(sizeof(AttackAnimation));
-                MemSet(gameSession.attackAnimation, sizeof(AttackAnimation), 0);
-                gameSession.attackAnimation->torpedoPosition = (Coordinate){-1, -1};
-                gameSession.attackAnimation->explosionPosition = (Coordinate){-1, -1};
-                gameSession.attackAnimation->launchTimestamp = TimGetTicks();
-                gameSession.attackAnimation->target = selectedTile;
-                gameSession.attackAnimation->targetPawn = selectedPawn;
-                gameSession.attackAnimation->healthImpact = gameSession_healthImpact(gameSession.activePawn->position, selectedTile, gameSession.targetSelectionType);
-                gameSession.attackAnimation->durationSeconds = gameSession_attackDuration(gameSession.activePawn->position, selectedTile, gameSession.targetSelectionType);
-                gameSession.activePawn->orientation = movement_orientationBetween(gameSession.activePawn->position, selectedTile);
-            } else {
-                gameSession.state = GAMESTATE_DEFAULT;
-            }
+            gameSession_scheduleAttack(selectedPawn, selectedTile, gameSession.targetSelectionType);
             break;
     }
 
@@ -425,7 +437,7 @@ static void gameSession_progressUpdateAttack() {
 
     if (timePassedScale >= 1) {
         gameActionLogic_afterAttack();
-        if (gameSession.targetSelectionType == TARGETSELECTIONTYPE_TORPEDO || isInvalidCoordinate(gameSession.attackAnimation->targetPawn->position)) { // show explosion when destroyed or always when torpedo is used
+        if (gameSession.targetSelectionType == TARGETSELECTIONTYPE_TORPEDO || isInvalidCoordinate(gameSession.attackAnimation->targetPawn->position)) {  // show explosion when destroyed or always when torpedo is used
             gameSession.attackAnimation->explosionPosition = targetCenter;
             gameSession.attackAnimation->explosionTimestamp = TimGetTicks();
             gameSession.attackAnimation->explosionDurationSeconds = 0.5;
@@ -454,6 +466,41 @@ static void gameSession_progressUpdateMovement() {
         gameSession_clearMovement();
         gameSession_updateViewPortOffset(true);
         gameSession.state = GAMESTATE_DEFAULT;
+    }
+}
+
+static void gameSession_cpuTurn() {
+    int i;
+    if (gameSession.attackAnimation != NULL || gameSession.movement != NULL || gameSession.state != GAMESTATE_DEFAULT) {
+        return;
+    }
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        CPUStrategyResult strategy;
+        Pawn *pawn = &gameSession.pawns[i];
+        if (pawn->faction != gameSession.factionTurn || pawn->type != PAWNTYPE_SHIP || pawn->turnComplete) {
+            continue;
+        }
+        strategy = cpuLogic_getStrategy(pawn, gameSession.pawns, gameSession.pawnCount);
+        pawn->turnComplete = true;
+        gameSession.activePawn = pawn;
+        switch (strategy.CPUAction) {
+            case CPUACTION_MOVE:
+                gameSession_updateViewPortOffset(true);
+                gameSession_scheduleMovement(strategy.target, strategy.target->position);
+                break;
+            case CPUACTION_PHASERATTACK:
+            case CPUACTION_TORPEDOATTACK:
+                gameSession_updateViewPortOffset(true);
+                gameSession_scheduleAttack(strategy.target, strategy.target->position, strategy.CPUAction == CPUACTION_PHASERATTACK ? TARGETSELECTIONTYPE_PHASER : TARGETSELECTIONTYPE_TORPEDO);
+                break;
+            case CPUACTION_NONE:
+                break;
+        }
+        return;
+    }
+    // REMOVE THIS
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        gameSession.pawns[i].turnComplete = false;
     }
 }
 
@@ -487,6 +534,7 @@ void gameSession_progressLogic() {
             }
         }
     }
+    gameSession_cpuTurn();
     gameSession_progressUpdateMovement();
     gameSession_progressUpdateAttack();
 }

@@ -15,6 +15,19 @@
             }
         },
         {
+            "label": "makeAllBuilds",
+            "command": "make",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
             "label": "CP COLOR",
             "dependsOn": [
                 "makeDebugBuild"
@@ -39,11 +52,23 @@
             "problemMatcher": []
         },
         {
-            "label": "Install to Palm",
+            "label": "Install DEBUG to Palm",
             "dependsOn": [
                 "makeDebugBuild"
             ],
             "command": "pilot-xfer -pusb: -i artifacts/StarGrid_debug.prc",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Install RELEASE to Palm",
+            "dependsOn": [
+                "makeAllBuilds"
+            ],
+            "command": "pilot-xfer -pusb: -i artifacts/StarGrid_lowres.prc",
             "type": "shell",
             "options": {
                 "cwd": "${workspaceFolder}"

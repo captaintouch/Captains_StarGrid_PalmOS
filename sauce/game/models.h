@@ -35,6 +35,7 @@ typedef struct Pawn {
     UInt8 orientation;
     UInt8 faction;
     Boolean cloaked;
+    Boolean turnComplete;
 } Pawn;
 
 typedef struct AttackAnimation {

@@ -5,6 +5,7 @@
 #include "models.h"
 #include "colors.h"
 #include "bottomMenu.h"
+#include "cpuLogic.h"
 
 typedef enum TargetSelectionType {
     TARGETSELECTIONTYPE_MOVE,
@@ -33,6 +34,9 @@ typedef struct GameSession {
     Pawn *pawns;
     int pawnCount;
     Pawn *activePawn;
+
+    int factionTurn;
+    CPUStrategyResult *cpuStrategyResult;
 
     Coordinate *highlightTiles; //Contains the tiles that should be colored to indicate where movement is possible
     int highlightTileCount;
