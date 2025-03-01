@@ -495,6 +495,8 @@ static void gameSession_cpuTurn() {
         return;
     }
     for (i = 0; i < gameSession.pawnCount; i++) {
+        Coordinate closestTile;
+        Pawn *targetPawn;
         CPUStrategyResult strategy;
         Pawn *pawn = &gameSession.pawns[i];
         if (pawn->faction != gameSession.factionTurn || pawn->type != PAWNTYPE_SHIP || pawn->turnComplete) {
@@ -506,7 +508,13 @@ static void gameSession_cpuTurn() {
         switch (strategy.CPUAction) {
             case CPUACTION_MOVE:
                 gameSession_updateViewPortOffset(true);
-                gameSession_scheduleMovement(strategy.target, strategy.target->position);
+                closestTile = movement_closestTileToTargetInRange(pawn, strategy.target, gameSession.pawns, gameSession.pawnCount);
+                if (closestTile.x == strategy.target->position.x && closestTile.y == strategy.target->position.y) {
+                    targetPawn = strategy.target;
+                } else {
+                    targetPawn = NULL;
+                }
+                gameSession_scheduleMovement(targetPawn, closestTile);
                 break;
             case CPUACTION_PHASERATTACK:
             case CPUACTION_TORPEDOATTACK:

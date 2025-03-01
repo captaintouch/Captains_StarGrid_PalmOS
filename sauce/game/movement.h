@@ -9,4 +9,5 @@ Coordinate movement_coordinateAtPercentageOfTrajectory(Trajectory trajectory, fl
 Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate endCoordinate);
 void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coordinate *invalidCoordinates, int invalidCoordinatesCount, Coordinate **results, int *numberOfPositions);
 UInt8 movement_orientationBetween(Coordinate coordA, Coordinate coordB);
+Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Pawn *target, Pawn *allPawns, int totalPawnCount);
 #endif

@@ -269,3 +269,35 @@ void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coo
     *results = positions;
     *numberOfPositions = positionCount;
 }
+
+static Boolean movement_shipAtTarget(Coordinate targetCoordinate, Pawn *allPawns, int totalPawnCount) {
+    int i;
+    for (i = 0; i < totalPawnCount; i++) {
+        if (allPawns[i].type == PAWNTYPE_SHIP && isEqualCoordinate(allPawns[i].position, targetCoordinate)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Pawn *target, Pawn *allPawns, int totalPawnCount) {
+    Coordinate closestTile = pawn->position;
+    int minDistance = movement_distance(pawn->position, target->position);
+    int maxRange = GAMEMECHANICS_MAXTILEMOVERANGE;
+    int dx, dy;
+
+    for (dx = -maxRange; dx <= maxRange; dx++) {
+        for (dy = -maxRange; dy <= maxRange; dy++) {
+            Coordinate candidateTile = {pawn->position.x + dx, pawn->position.y + dy};
+            if (!isInvalidCoordinate(candidateTile) && !movement_shipAtTarget(candidateTile, allPawns, totalPawnCount)) {
+                int distance = movement_distance(candidateTile, target->position);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestTile = candidateTile;
+                }
+            }
+        }
+    }
+
+    return closestTile;
+}
