@@ -39,6 +39,7 @@ void gameSession_initialize() {
     gameSession.pawns[7] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, true}, 0, 2, false, false};
 
     gameSession.factionTurn = 1;
+    gameSession.playerFaction = 99;
 
     gameSession.activePawn = &gameSession.pawns[0];
 
@@ -153,7 +154,7 @@ static Boolean gameSession_handleTileTap() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
     Pawn *selectedPawn = gameSession_pawnAtTile(selectedTile);
-    if (selectedPawn != NULL && selectedPawn->faction == 0) {
+    if (selectedPawn != NULL && selectedPawn->faction == gameSession.playerFaction) {
         gameSession.activePawn = selectedPawn;
         gameSession_updateViewPortOffset(true);
         gameSession_showPawnActions();
@@ -469,6 +470,25 @@ static void gameSession_progressUpdateMovement() {
     }
 }
 
+static Boolean gameSession_movesLeftForFaction(int faction) {
+    int i;
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        if (gameSession.pawns[i].faction == faction && gameSession.pawns[i].type == PAWNTYPE_SHIP && !gameSession.pawns[i].turnComplete) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static void gameSession_enableActionsForFaction(int faction) {
+    int i;
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        if (gameSession.pawns[i].faction == faction && gameSession.pawns[i].type == PAWNTYPE_SHIP) {
+            gameSession.pawns[i].turnComplete = false;
+        }
+    }
+}
+
 static void gameSession_cpuTurn() {
     int i;
     if (gameSession.attackAnimation != NULL || gameSession.movement != NULL || gameSession.state != GAMESTATE_DEFAULT) {
@@ -498,14 +518,16 @@ static void gameSession_cpuTurn() {
         }
         return;
     }
-    // REMOVE THIS
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        gameSession.pawns[i].turnComplete = false;
+    if (!gameSession_movesLeftForFaction(gameSession.factionTurn)) {
+        gameSession.factionTurn = (gameSession.factionTurn + 1) % 3;
+        gameSession_enableActionsForFaction(gameSession.factionTurn);
     }
 }
 
 void gameSession_progressLogic() {
-    if (gameSession.lastPenInput.wasUpdatedFlag) {
+    if (gameSession.playerFaction != gameSession.factionTurn) {
+        gameSession_cpuTurn();
+    } else if (gameSession.lastPenInput.wasUpdatedFlag) { // handle user actions
         // Handle pen input
         gameSession.lastPenInput.wasUpdatedFlag = false;
 
@@ -534,7 +556,7 @@ void gameSession_progressLogic() {
             }
         }
     }
-    gameSession_cpuTurn();
+    
     gameSession_progressUpdateMovement();
     gameSession_progressUpdateAttack();
 }

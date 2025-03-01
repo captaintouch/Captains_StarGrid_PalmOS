@@ -14,7 +14,7 @@ static Pawn *cpuLogic_closestOtherFactionHomeBaseWithFlag(Pawn *pawn, Pawn *allP
     Pawn *closestHomeBase = NULL;
     int closestDistance = 999;
     for (i = 0; i < totalPawnCount; i++) {
-        if (allPawns[i].type == PAWNTYPE_BASE && allPawns[i].faction != pawn->faction && allPawns[i].inventory.carryingFlag) {
+        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].type == PAWNTYPE_BASE && allPawns[i].faction != pawn->faction && allPawns[i].inventory.carryingFlag) {
             int distance = movement_distance(pawn->position, allPawns[i].position);
             if (distance < closestDistance) {
                 closestDistance = distance;
@@ -28,7 +28,7 @@ static Pawn *cpuLogic_closestOtherFactionHomeBaseWithFlag(Pawn *pawn, Pawn *allP
 static Pawn *cpuLogic_homeBase(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
     int i;
     for (i = 0; i < totalPawnCount; i++) {
-        if (allPawns[i].type == PAWNTYPE_BASE && allPawns[i].faction == pawn->faction) {
+        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].type == PAWNTYPE_BASE && allPawns[i].faction == pawn->faction) {
             return &allPawns[i];
         }
     }
@@ -43,12 +43,13 @@ static Pawn *cpuLogic_homeBase(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
     return movement_distance(pawn->position, homeBase->position) <= GAMEMECHANICS_MAXTILEMOVERANGE;
 }*/
 
-static Pawn *cpuLogic_weakestEnemyInRange(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
+static Pawn *cpuLogic_weakestEnemyInRange(Pawn *pawn, Pawn *allPawns, int totalPawnCount, Boolean includeBases, Boolean unlimitedRange) {
     int i;
     Pawn *weakestEnemy = NULL;
     for (i = 0; i < totalPawnCount; i++) {
-        if (allPawns[i].faction != pawn->faction && allPawns[i].type == PAWNTYPE_SHIP) {
-            int distance = movement_distance(pawn->position, allPawns[i].position);
+        Boolean isShip = includeBases ? true : allPawns[i].type == PAWNTYPE_SHIP;
+        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].faction != pawn->faction && isShip) {
+            int distance = unlimitedRange ? 0 : movement_distance(pawn->position, allPawns[i].position);
             if (distance <= fmax(GAMEMECHANICS_MAXTILEPHASERRANGE, GAMEMECHANICS_MAXTILETORPEDORANGE)) {
                 if (weakestEnemy == NULL) {
                     weakestEnemy = &allPawns[i];
@@ -66,7 +67,7 @@ static Pawn *cpuLogic_weakestEnemyInRange(Pawn *pawn, Pawn *allPawns, int totalP
 static Pawn *cpuLogic_enemyWithStolenFlag(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
     int i;
     for (i = 0; i < totalPawnCount; i++) {
-        if (allPawns[i].faction != pawn->faction && allPawns[i].inventory.carryingFlag && allPawns[i].inventory.flagOfFaction == pawn->faction) {
+        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].faction != pawn->faction && allPawns[i].inventory.carryingFlag && allPawns[i].inventory.flagOfFaction == pawn->faction) {
             return &allPawns[i];
         }
     }
@@ -95,7 +96,7 @@ static Boolean cpuLogic_attackIfInRange(Pawn *pawn, Pawn *target, CPUStrategyRes
 static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
     CPUStrategyResult strategyResult = {70, CPUACTION_NONE, NULL};
     Pawn *homeBase = cpuLogic_homeBase(pawn, allPawns, totalPawnCount);
-    Pawn *enemyInRangeOfHomeBase = cpuLogic_weakestEnemyInRange(pawn, allPawns, totalPawnCount);
+    Pawn *enemyInRangeOfHomeBase = cpuLogic_weakestEnemyInRange(pawn, allPawns, totalPawnCount, false, false);
 
     if (homeBase->inventory.carryingFlag == false) {  // flag was stolen! If enemy with flag is in range, attack, otherwise move to home base
         Pawn *enemyWithFlag = cpuLogic_enemyWithStolenFlag(pawn, allPawns, totalPawnCount);
@@ -116,7 +117,7 @@ static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns,
                 strategyResult.CPUAction = CPUACTION_MOVE;
                 strategyResult.target = enemyInRangeOfHomeBase;
             }
-        } else { // no enemies near base, go easy on this strategy
+        } else {  // no enemies near base, go easy on this strategy
             strategyResult.score -= 50;
         }
     }
@@ -132,13 +133,45 @@ static CPUStrategyResult cpuLogic_captureTheFlagStrategy(Pawn *pawn, Pawn *allPa
         return (CPUStrategyResult){0, CPUACTION_NONE, NULL};
     }
     distance = movement_distance(pawn->position, enemyHomeBase->position);
-    if (distance <= GAMEMECHANICS_MAXTILEMOVERANGE) { // if we can capture the flag, do it
+    if (pawn->inventory.carryingFlag) {
+        Pawn *homeBase = cpuLogic_homeBase(pawn, allPawns, totalPawnCount);
+        strategyResult.CPUAction = CPUACTION_MOVE;
+        strategyResult.target = homeBase;
+        strategyResult.score += 150;
+    } else if (distance <= GAMEMECHANICS_MAXTILEMOVERANGE) {  // if we can capture the flag, do it
         strategyResult.CPUAction = CPUACTION_MOVE;
         strategyResult.target = enemyHomeBase;
         strategyResult.score += 50;
-    } else { // if not, move towards enemy home base
+    } else {  // if not, move towards enemy home base
         strategyResult.CPUAction = CPUACTION_MOVE;
         strategyResult.target = enemyHomeBase;
+    }
+
+    return strategyResult;
+}
+
+static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
+    CPUStrategyResult strategyResult = {40, CPUACTION_NONE, NULL};
+
+    Pawn *enemyWithFlag = cpuLogic_enemyWithStolenFlag(pawn, allPawns, totalPawnCount);
+    if (enemyWithFlag != NULL) {
+        strategyResult.score += 50;
+        if (!cpuLogic_attackIfInRange(pawn, enemyWithFlag, &strategyResult)) {  // Attack if we can, if not, move to enemy home base
+            Pawn *enemyHomeBase = cpuLogic_homeBase(enemyWithFlag, allPawns, totalPawnCount);
+            if (enemyHomeBase != NULL) {
+                strategyResult.CPUAction = CPUACTION_MOVE;
+                strategyResult.target = enemyHomeBase;
+            }
+        }
+    } else {
+        Pawn *nearestEnemyShipOrBase = cpuLogic_weakestEnemyInRange(pawn, allPawns, totalPawnCount, true, true);
+        if (nearestEnemyShipOrBase != NULL) {
+            strategyResult.score += 50;
+            if (!cpuLogic_attackIfInRange(pawn, nearestEnemyShipOrBase, &strategyResult)) {  // Attack if we can, if not, move to enemy
+                strategyResult.CPUAction = CPUACTION_MOVE;
+                strategyResult.target = nearestEnemyShipOrBase;
+            }
+        }
     }
 
     return strategyResult;
@@ -154,10 +187,13 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
 
     strategyResult[CPUSTRATEGY_DEFENDBASE] = cpuLogic_defendBaseStrategy(pawn, allPawns, totalPawnCount);
     strategyResult[CPUSTRATEGY_CAPTUREFLAG] = cpuLogic_captureTheFlagStrategy(pawn, allPawns, totalPawnCount);
-    strategyResult[CPUSTRATEGY_ATTACK] = (CPUStrategyResult){CPUACTION_NONE, NULL};
+    strategyResult[CPUSTRATEGY_ATTACK] = cpuLogic_attackStrategy(pawn, allPawns, totalPawnCount);
 
     bestStrategy = strategyResult[0];
     for (i = 1; i < 3; i++) {
+        if (strategyResult[i].CPUAction == CPUACTION_NONE) {
+            strategyResult[i].score = -1;
+        }
         if (strategyResult[i].score > bestStrategy.score) {
             bestStrategy = strategyResult[i];
         }

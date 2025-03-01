@@ -332,7 +332,7 @@ static void game_drawBottomBackground() {
     int centerOffsetX = (screenSize.x - width) / 2;
     RectangleType rect;
     RctSetRectangle(&rect, 0, screenSize.y - BOTTOMMENU_HEIGHT, screenSize.x, BOTTOMMENU_HEIGHT);
-    drawhelper_applyForeColor(BELIZEHOLE);
+    drawhelper_applyForeColor(pawn_factionColor(gameSession.factionTurn));
     drawhelper_fillRectangle(&rect, 0);
     drawhelper_applyForeColor(CLOUDS);
     RctSetRectangle(&rect, centerOffsetX - 2, screenSize.y - MINIMAP_HEIGHT, width + 4, MINIMAP_HEIGHT + 10);

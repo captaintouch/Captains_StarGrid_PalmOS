@@ -35,6 +35,7 @@ typedef struct GameSession {
     int pawnCount;
     Pawn *activePawn;
 
+    int playerFaction; // Replace this in the future with a Faction array (multiple users can be human, others can be cpu)
     int factionTurn;
     CPUStrategyResult *cpuStrategyResult;
 
