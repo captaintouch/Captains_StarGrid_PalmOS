@@ -334,7 +334,7 @@ static void game_drawBottomBackground() {
     RctSetRectangle(&rect, 0, screenSize.y - BOTTOMMENU_HEIGHT, screenSize.x, BOTTOMMENU_HEIGHT);
     drawhelper_applyForeColor(pawn_factionColor(gameSession.factionTurn));
     drawhelper_fillRectangle(&rect, 0);
-    drawhelper_applyForeColor(CLOUDS);
+    drawhelper_applyForeColor(pawn_factionColor(gameSession.factionTurn));
     RctSetRectangle(&rect, centerOffsetX - 2, screenSize.y - MINIMAP_HEIGHT, width + 4, MINIMAP_HEIGHT + 10);
     drawhelper_fillRectangle(&rect, 4);
 }

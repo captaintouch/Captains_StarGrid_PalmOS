@@ -2,15 +2,15 @@
 #include "pawn.h"
 
 AppColor pawn_factionColor(UInt8 faction) {
-    switch (faction % 5) {
+    switch (faction % 4) {
         case 0:
             return EMERALD;
         case 1:
-            return CLOUDS;
+            return BELIZEHOLE;
         case 2:
             return SUNFLOWER;
         case 3:
-            return BELIZEHOLE;
+            return ALIZARIN;
         default:
             return DRACULAORCHID;  // Default case, should not be reached
     }
