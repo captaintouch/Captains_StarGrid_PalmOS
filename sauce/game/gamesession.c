@@ -246,15 +246,19 @@ static float gameSession_attackDuration(Coordinate source, Coordinate target, Ta
 }
 
 static void gameSession_scheduleMovement(Pawn *targetPawn, Coordinate selectedTile) {
+    Coordinate finalCoordinate = {-1, -1};
     gameSession_clearMovement();
 
     gameSession.movement = (Movement *)MemPtrNew(sizeof(Movement));
     MemSet(gameSession.movement, sizeof(Movement), 0);
     gameSession.movement->launchTimestamp = TimGetTicks();
     gameSession.movement->targetPawn = targetPawn;
-    gameSession.movement->trajectory = movement_trajectoryBetween((Coordinate){gameSession.activePawn->position.x, gameSession.activePawn->position.y}, selectedTile);
+    if (targetPawn != NULL && targetPawn->type == PAWNTYPE_BASE) {
+        finalCoordinate = movement_closestTileToTargetInRange(gameSession.activePawn, targetPawn, gameSession.pawns, gameSession.pawnCount, false);
+    }
+    gameSession.movement->trajectory = movement_trajectoryBetween((Coordinate){gameSession.activePawn->position.x, gameSession.activePawn->position.y}, selectedTile, finalCoordinate);
     gameSession.movement->pawn = gameSession.activePawn;
-    gameSession.activePawn->position = selectedTile;
+    gameSession.activePawn->position = isInvalidCoordinate(finalCoordinate) ? selectedTile : finalCoordinate;
 }
 
 static void gameSession_scheduleAttack(Pawn *targetPawn, Coordinate selectedTile, TargetSelectionType attackType) {
@@ -508,7 +512,7 @@ static void gameSession_cpuTurn() {
         switch (strategy.CPUAction) {
             case CPUACTION_MOVE:
                 gameSession_updateViewPortOffset(true);
-                closestTile = movement_closestTileToTargetInRange(pawn, strategy.target, gameSession.pawns, gameSession.pawnCount);
+                closestTile = movement_closestTileToTargetInRange(pawn, strategy.target, gameSession.pawns, gameSession.pawnCount, true);
                 if (closestTile.x == strategy.target->position.x && closestTile.y == strategy.target->position.y) {
                     targetPawn = strategy.target;
                 } else {

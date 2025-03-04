@@ -161,7 +161,7 @@ static Coordinate movement_nextManualCoordinate(Coordinate originCoordinate, Coo
     return closestCoordinate;
 }
 
-Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate endCoordinate) {
+Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate endCoordinate, Coordinate appendFinalCoordinate) {
     Trajectory trajectory;
     int i, j;
     int distance = movement_distance(startCoordinate, endCoordinate);
@@ -226,6 +226,11 @@ Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate end
         }
     }
 
+    if (!isInvalidCoordinate(appendFinalCoordinate) && !isEqualCoordinate(trajectory.tileCoordinates[trajectory.tileCount -1], appendFinalCoordinate)) {
+        trajectory.tileCoordinates[trajectory.tileCount] = appendFinalCoordinate;
+        trajectory.tileCount++;
+    }
+
     MemPtrResize(trajectory.tileCoordinates, trajectory.tileCount * sizeof(Coordinate));
     return trajectory;
 }
@@ -280,7 +285,17 @@ static Boolean movement_shipAtTarget(Coordinate targetCoordinate, Pawn *allPawns
     return false;
 }
 
-Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Pawn *target, Pawn *allPawns, int totalPawnCount) {
+static Boolean movement_shipOrBaseAtTarget(Coordinate targetCoordinate, Pawn *allPawns, int totalPawnCount) {
+    int i;
+    for (i = 0; i < totalPawnCount; i++) {
+        if (isEqualCoordinate(allPawns[i].position, targetCoordinate)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Pawn *target, Pawn *allPawns, int totalPawnCount, Boolean allowBase) {
     Coordinate closestTile = pawn->position;
     int minDistance = movement_distance(pawn->position, target->position);
     int maxRange = GAMEMECHANICS_MAXTILEMOVERANGE;
@@ -289,7 +304,8 @@ Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Pawn *target, Pawn *a
     for (dx = -maxRange; dx <= maxRange; dx++) {
         for (dy = -maxRange; dy <= maxRange; dy++) {
             Coordinate candidateTile = {pawn->position.x + dx, pawn->position.y + dy};
-            if (!isInvalidCoordinate(candidateTile) && !movement_shipAtTarget(candidateTile, allPawns, totalPawnCount)) {
+            Boolean targetOccupied = allowBase ? movement_shipAtTarget(candidateTile, allPawns, totalPawnCount) : movement_shipOrBaseAtTarget(candidateTile, allPawns, totalPawnCount);
+            if (!isInvalidCoordinate(candidateTile) && !targetOccupied) {
                 int distance = movement_distance(candidateTile, target->position);
                 if (distance < minDistance) {
                     minDistance = distance;
