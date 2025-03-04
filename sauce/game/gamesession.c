@@ -131,7 +131,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
                 if (pawnAtPosition == NULL || pawnAtPosition->faction == gameSession.activePawn->faction) {
                     continue;
                 }
-                gameSession.highlightTiles[coordinatesCount] = gameSession.pawns[i].position;
+                gameSession.highlightTiles[coordinatesCount] = pawnAtPosition->position;
                 coordinatesCount++;
             }
             coordinatesCount++;
@@ -491,6 +491,7 @@ static void gameSession_enableActionsForFaction(int faction) {
     for (i = 0; i < gameSession.pawnCount; i++) {
         if (gameSession.pawns[i].faction == faction && gameSession.pawns[i].type == PAWNTYPE_SHIP) {
             gameSession.pawns[i].turnComplete = false;
+            gameSession.activePawn = &gameSession.pawns[i];
         }
     }
 }
@@ -535,6 +536,8 @@ static void gameSession_cpuTurn() {
     if (!gameSession_movesLeftForFaction(gameSession.factionTurn)) {
         gameSession.factionTurn = (gameSession.factionTurn + 1) % 3;
         gameSession_enableActionsForFaction(gameSession.factionTurn);
+        gameSession_updateViewPortOffset(true);
+        gameSession.drawingState.shouldRedrawOverlay = true;
     }
 }
 
