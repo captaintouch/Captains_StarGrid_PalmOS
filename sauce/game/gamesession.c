@@ -39,7 +39,7 @@ void gameSession_initialize() {
     gameSession.pawns[7] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, true}, 0, 2, false, false};
 
     gameSession.factionTurn = 1;
-    gameSession.playerFaction = 99;
+    gameSession.playerFaction = 0;
 
     gameSession.activePawn = &gameSession.pawns[0];
 
@@ -124,9 +124,11 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
             break;
         case TARGETSELECTIONTYPE_PHASER:
         case TARGETSELECTIONTYPE_TORPEDO:
-            gameSession.highlightTiles = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.pawnCount);
-            for (i = 0; i < gameSession.pawnCount; i++) {
-                if (gameSession.pawns[i].faction == gameSession.activePawn->faction || movement_distance(gameSession.pawns[i].position, currentPosition) > maxTileRange) {
+            movement_findTilesInRange(currentPosition, maxTileRange, NULL, 0, &gameSession.secondaryHighlightTiles, &gameSession.secondaryHighlightTileCount);
+            gameSession.highlightTiles = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.secondaryHighlightTileCount);
+            for (i = 0; i < gameSession.secondaryHighlightTileCount; i++) {
+                Pawn *pawnAtPosition = gameSession_pawnAtTile(gameSession.secondaryHighlightTiles[i]);
+                if (pawnAtPosition == NULL || pawnAtPosition->faction == gameSession.activePawn->faction) {
                     continue;
                 }
                 gameSession.highlightTiles[coordinatesCount] = gameSession.pawns[i].position;
@@ -134,7 +136,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
             }
             coordinatesCount++;
             gameSession.highlightTileCount = coordinatesCount;
-            movement_findTilesInRange(currentPosition, maxTileRange, NULL, 0, &gameSession.secondaryHighlightTiles, &gameSession.secondaryHighlightTileCount);
+            MemPtrResize(gameSession.highlightTiles, sizeof(Coordinate) * coordinatesCount);
             break;
     }
 
