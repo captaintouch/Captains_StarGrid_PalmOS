@@ -39,7 +39,7 @@ void gameSession_initialize() {
     gameSession.pawns[7] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, true}, 0, 2, false, false};
 
     gameSession.factionTurn = 0;
-    gameSession.playerFaction = 0;
+    gameSession.playerFaction = 999;
 
     gameSession.activePawn = &gameSession.pawns[0];
 
@@ -473,7 +473,7 @@ static void gameSession_enableActionsForFaction(int faction) {
     int i;
     for (i = 0; i < gameSession.pawnCount; i++) {
         if (gameSession.pawns[i].faction == faction && gameSession.pawns[i].type == PAWNTYPE_SHIP) {
-            gameSession.pawns[i].turnComplete = (gameSession_pawnCount(gameSession.pawns[i].position) > 1);
+            gameSession.pawns[i].turnComplete = (gameSession.pawns[i].cloaked && gameSession_pawnCount(gameSession.pawns[i].position) > 1);
             gameSession.activePawn = &gameSession.pawns[i];
         }
     }
@@ -499,17 +499,27 @@ static void gameSession_cpuTurn() {
             case CPUACTION_MOVE:
                 gameSession_updateViewPortOffset(true);
                 closestTile = movement_closestTileToTargetInRange(pawn, strategy.target, gameSession.pawns, gameSession.pawnCount, true);
-                if (closestTile.x == strategy.target->position.x && closestTile.y == strategy.target->position.y) {
+                if (isEqualCoordinate(closestTile, strategy.target->position)) {
                     targetPawn = strategy.target;
                 } else {
                     targetPawn = NULL;
                 }
+                /*
+                #ifdef DEBUG
+                drawhelper_drawTextWithValue("MOVE ADJ X: ", closestTile.x, (Coordinate){0, 40});
+                drawhelper_drawTextWithValue("Y: ", closestTile.y, (Coordinate){60, 40});
+                sleep(1000);
+                #endif
+                */
                 gameActionLogic_scheduleMovement(targetPawn, closestTile);
                 break;
             case CPUACTION_PHASERATTACK:
             case CPUACTION_TORPEDOATTACK:
                 gameSession_updateViewPortOffset(true);
                 gameSession_scheduleAttack(strategy.target, strategy.target->position, strategy.CPUAction == CPUACTION_PHASERATTACK ? TARGETSELECTIONTYPE_PHASER : TARGETSELECTIONTYPE_TORPEDO);
+                break;
+            case CPUACTION_CLOAK:
+                pawn->cloaked = !pawn->cloaked;
                 break;
             case CPUACTION_NONE:
                 break;

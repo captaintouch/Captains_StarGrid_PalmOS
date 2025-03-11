@@ -1,7 +1,9 @@
 #include "cpuLogic.h"
 
 #include "../constants.h"
+#include "drawhelper.h"
 #include "movement.h"
+#include "../deviceinfo.h"
 
 typedef enum CPUStrategy {
     CPUSTRATEGY_DEFENDBASE,
@@ -140,7 +142,13 @@ static CPUStrategyResult cpuLogic_captureTheFlagStrategy(Pawn *pawn, Pawn *allPa
             return strategyResult;
         }
         distance = movement_distance(pawn->position, enemyHomeBase->position);
-        if (distance <= GAMEMECHANICS_MAXTILEMOVERANGE) {  // if we can capture the flag, do it
+        if (pawn->cloaked) {
+            strategyResult.score += 50;
+            strategyResult.CPUAction = CPUACTION_CLOAK;               // Decloak so we are go for capture on the next turn
+        } else if (distance >= GAMEMECHANICS_MAXTILEMOVERANGE * 3) {  // if we are not cloaked, and far away from the target, activate cloak
+            strategyResult.score += 50;
+            strategyResult.CPUAction = CPUACTION_CLOAK;
+        } else if (distance <= GAMEMECHANICS_MAXTILEMOVERANGE) {  // if we can capture the flag, do it
             strategyResult.CPUAction = CPUACTION_MOVE;
             strategyResult.target = enemyHomeBase;
             strategyResult.score += 50;
@@ -154,7 +162,7 @@ static CPUStrategyResult cpuLogic_captureTheFlagStrategy(Pawn *pawn, Pawn *allPa
 }
 
 static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
-    CPUStrategyResult strategyResult = {20, CPUACTION_NONE, NULL};
+    CPUStrategyResult strategyResult = {40, CPUACTION_NONE, NULL};
 
     Pawn *enemyWithFlag = cpuLogic_enemyWithStolenFlag(pawn, allPawns, totalPawnCount);
     if (enemyWithFlag != NULL) {
@@ -192,6 +200,12 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
     strategyResult[CPUSTRATEGY_CAPTUREFLAG] = cpuLogic_captureTheFlagStrategy(pawn, allPawns, totalPawnCount);
     strategyResult[CPUSTRATEGY_ATTACK] = cpuLogic_attackStrategy(pawn, allPawns, totalPawnCount);
 
+#ifdef DEBUG
+    drawhelper_drawTextWithValue("DEFBASE:", strategyResult[CPUSTRATEGY_DEFENDBASE].score, (Coordinate){0, 0});
+    drawhelper_drawTextWithValue("CTF:", strategyResult[CPUSTRATEGY_CAPTUREFLAG].score, (Coordinate){0, 10});
+    drawhelper_drawTextWithValue("ATTACK:", strategyResult[CPUSTRATEGY_ATTACK].score, (Coordinate){0, 20});
+#endif
+
     bestStrategy = strategyResult[0];
     for (i = 1; i < 3; i++) {
         if (strategyResult[i].CPUAction == CPUACTION_NONE) {
@@ -201,5 +215,25 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
             bestStrategy = strategyResult[i];
         }
     }
+
+#ifdef DEBUG
+    switch (bestStrategy.CPUAction) {
+        case CPUACTION_MOVE:
+            drawhelper_drawTextWithValue("MOVE X:", bestStrategy.target->position.x, (Coordinate){0, 30});
+            drawhelper_drawTextWithValue("Y:", bestStrategy.target->position.y, (Coordinate){45, 30});
+            break;
+        case CPUACTION_PHASERATTACK:
+        case CPUACTION_TORPEDOATTACK:
+            drawhelper_drawText("ATTACK", (Coordinate){0, 30});
+            break;
+        case CPUACTION_CLOAK:
+            drawhelper_drawText("CLOAK", (Coordinate){0, 30});
+            break;
+        case CPUACTION_NONE:
+            drawhelper_drawText("NONE", (Coordinate){0, 30});
+            break;
+    }
+    sleep(1000);
+#endif
     return bestStrategy;
 }

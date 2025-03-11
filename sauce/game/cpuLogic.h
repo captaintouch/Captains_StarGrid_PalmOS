@@ -7,6 +7,7 @@ typedef enum CPUAction {
     CPUACTION_MOVE,
     CPUACTION_TORPEDOATTACK,
     CPUACTION_PHASERATTACK,
+    CPUACTION_CLOAK
 } CPUAction;
 
 typedef struct CPUStrategyResult {

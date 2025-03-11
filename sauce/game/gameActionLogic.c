@@ -1,11 +1,11 @@
 #include "gameActionLogic.h"
 
 #include "../constants.h"
+#include "../deviceinfo.h"
+#include "drawhelper.h"
 #include "gamesession.h"
 #include "models.h"
 #include "movement.h"
-
-#include "drawhelper.h"
 
 static UInt8 gameActionLogic_nonCapturedFlagsLeft(UInt8 faction) {
     int i;

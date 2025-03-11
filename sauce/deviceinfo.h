@@ -8,5 +8,6 @@ Int32 deviceinfo_maxDepth();
 Int32 deviceinfo_currentDepth();
 Coordinate deviceinfo_screenSize();
 Boolean deviceinfo_diaSupported();
+void sleep(UInt32 milliseconds);
 
 #endif

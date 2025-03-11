@@ -292,7 +292,7 @@ static Boolean movement_shipOrBaseAtTarget(Coordinate targetCoordinate, Pawn *al
 
 Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Pawn *target, Pawn *allPawns, int totalPawnCount, Boolean allowBase) {
     Coordinate closestTile = pawn->position;
-    int minDistance = GAMEMECHANICS_MAXTILEMOVERANGE;
+    int minDistance = 9999;
     int maxRange = GAMEMECHANICS_MAXTILEMOVERANGE;
     int dx, dy;
 

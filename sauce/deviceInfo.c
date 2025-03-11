@@ -42,3 +42,16 @@ Boolean deviceinfo_diaSupported() {
     Err err = FtrGet(pinCreator, pinFtrAPIVersion, &version);
     return (!err && version);
 }
+
+void sleep(UInt32 milliseconds) {
+    UInt32 startTicks = TimGetTicks();
+    UInt32 delayTicks = (milliseconds * SysTicksPerSecond()) / 1000;
+
+    EventType event;
+    while ((TimGetTicks() - startTicks) < delayTicks) {
+        EvtGetEvent(&event, delayTicks);
+        if (event.eType != nilEvent) {
+            EvtAddEventToQueue(&event);  // Put it back if needed
+        }
+    }
+}
