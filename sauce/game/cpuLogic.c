@@ -94,7 +94,7 @@ static Boolean cpuLogic_attackIfInRange(Pawn *pawn, Pawn *target, CPUStrategyRes
 }
 
 static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
-    CPUStrategyResult strategyResult = {70, CPUACTION_NONE, NULL};
+    CPUStrategyResult strategyResult = {10, CPUACTION_NONE, NULL};
     Pawn *homeBase = cpuLogic_homeBase(pawn, allPawns, totalPawnCount);
     Pawn *enemyInRangeOfHomeBase = cpuLogic_weakestEnemyInRange(pawn, allPawns, totalPawnCount, false, false);
 
@@ -126,32 +126,35 @@ static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns,
 }
 
 static CPUStrategyResult cpuLogic_captureTheFlagStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
-    CPUStrategyResult strategyResult = {60, CPUACTION_NONE, NULL};
-    Pawn *enemyHomeBase = cpuLogic_closestOtherFactionHomeBaseWithFlag(pawn, allPawns, totalPawnCount);
-    int distance;
-    if (enemyHomeBase == NULL) {
-        return (CPUStrategyResult){0, CPUACTION_NONE, NULL};
-    }
-    distance = movement_distance(pawn->position, enemyHomeBase->position);
+    CPUStrategyResult strategyResult = {80, CPUACTION_NONE, NULL};
+
     if (pawn->inventory.carryingFlag) {
         Pawn *homeBase = cpuLogic_homeBase(pawn, allPawns, totalPawnCount);
         strategyResult.CPUAction = CPUACTION_MOVE;
         strategyResult.target = homeBase;
         strategyResult.score += 150;
-    } else if (distance <= GAMEMECHANICS_MAXTILEMOVERANGE) {  // if we can capture the flag, do it
-        strategyResult.CPUAction = CPUACTION_MOVE;
-        strategyResult.target = enemyHomeBase;
-        strategyResult.score += 50;
-    } else {  // if not, move towards enemy home base
-        strategyResult.CPUAction = CPUACTION_MOVE;
-        strategyResult.target = enemyHomeBase;
+    } else {
+        int distance;
+        Pawn *enemyHomeBase = cpuLogic_closestOtherFactionHomeBaseWithFlag(pawn, allPawns, totalPawnCount);
+        if (enemyHomeBase == NULL) {
+            return strategyResult;
+        }
+        distance = movement_distance(pawn->position, enemyHomeBase->position);
+        if (distance <= GAMEMECHANICS_MAXTILEMOVERANGE) {  // if we can capture the flag, do it
+            strategyResult.CPUAction = CPUACTION_MOVE;
+            strategyResult.target = enemyHomeBase;
+            strategyResult.score += 50;
+        } else if (enemyHomeBase != NULL) {  // if not, move towards enemy home base
+            strategyResult.CPUAction = CPUACTION_MOVE;
+            strategyResult.target = enemyHomeBase;
+        }
     }
 
     return strategyResult;
 }
 
 static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
-    CPUStrategyResult strategyResult = {40, CPUACTION_NONE, NULL};
+    CPUStrategyResult strategyResult = {20, CPUACTION_NONE, NULL};
 
     Pawn *enemyWithFlag = cpuLogic_enemyWithStolenFlag(pawn, allPawns, totalPawnCount);
     if (enemyWithFlag != NULL) {

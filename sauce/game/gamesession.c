@@ -28,17 +28,17 @@ void gameSession_initialize() {
     gameSession.pawns = MemPtrNew(sizeof(Pawn) * 8);
     MemSet(gameSession.pawns, sizeof(Pawn) * 8, 0);
     gameSession.pawnCount = 8;
-    gameSession.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){2, 3}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 0, false, false};
-    gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){5, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 0, false, false};
-    gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 1, false, false};
-    gameSession.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){3, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 1, false, false};
+    gameSession.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 0, false, false};
+    gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 0, false, false};
+    gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){7, 8}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 1, true, false};
+    gameSession.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){8, 7}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 1, false, false};
     gameSession.pawns[4] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 6}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, false}, 0, 2, false, false};
 
-    gameSession.pawns[5] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 0, true}, 0, 0, false, false};
-    gameSession.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 1, true}, 0, 1, false, false};
+    gameSession.pawns[5] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 0, true}, 0, 0, false, false};
+    gameSession.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 1, true}, 0, 1, false, false};
     gameSession.pawns[7] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, true}, 0, 2, false, false};
 
-    gameSession.factionTurn = 1;
+    gameSession.factionTurn = 0;
     gameSession.playerFaction = 0;
 
     gameSession.activePawn = &gameSession.pawns[0];
@@ -113,11 +113,11 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
         case TARGETSELECTIONTYPE_MOVE:
             coordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.pawnCount);
             for (i = 0; i < gameSession.pawnCount; i++) {
-                if (gameSession.pawns[i].type != PAWNTYPE_SHIP) {
-                    continue;
+                Boolean isCloakedShipFromOtherFaction = gameSession.pawns[i].type == PAWNTYPE_SHIP && gameSession.pawns[i].faction != gameSession.activePawn->faction && gameSession.pawns[i].cloaked;
+                if (!isCloakedShipFromOtherFaction && gameSession.pawns[i].type != PAWNTYPE_BASE) {
+                    coordinates[coordinatesCount] = gameSession.pawns[i].position;
+                    coordinatesCount++;
                 }
-                coordinates[coordinatesCount] = gameSession.pawns[i].position;
-                coordinatesCount++;
             }
             MemPtrResize(coordinates, sizeof(Coordinate) * coordinatesCount);
             movement_findTilesInRange(currentPosition, maxTileRange, coordinates, coordinatesCount, &gameSession.highlightTiles, &gameSession.highlightTileCount);
@@ -195,17 +195,6 @@ static void gameSession_clearAttack() {
     }
 }
 
-static void gameSession_clearMovement() {
-    if (gameSession.movement != NULL) {
-        if (gameSession.movement->trajectory.tileCoordinates != NULL) {
-            MemPtrFree(gameSession.movement->trajectory.tileCoordinates);
-            gameSession.movement->trajectory.tileCoordinates = NULL;
-        }
-        MemPtrFree(gameSession.movement);
-        gameSession.movement = NULL;
-    }
-}
-
 static void gameSession_resetHighlightTiles() {
     if (gameSession.highlightTiles != NULL) {
         MemPtrFree(gameSession.highlightTiles);
@@ -247,22 +236,6 @@ static float gameSession_attackDuration(Coordinate source, Coordinate target, Ta
     }
 }
 
-static void gameSession_scheduleMovement(Pawn *targetPawn, Coordinate selectedTile) {
-    Coordinate finalCoordinate = {-1, -1};
-    gameSession_clearMovement();
-
-    gameSession.movement = (Movement *)MemPtrNew(sizeof(Movement));
-    MemSet(gameSession.movement, sizeof(Movement), 0);
-    gameSession.movement->launchTimestamp = TimGetTicks();
-    gameSession.movement->targetPawn = targetPawn;
-    if (targetPawn != NULL && targetPawn->type == PAWNTYPE_BASE) {
-        finalCoordinate = movement_closestTileToTargetInRange(gameSession.activePawn, targetPawn, gameSession.pawns, gameSession.pawnCount, false);
-    }
-    gameSession.movement->trajectory = movement_trajectoryBetween((Coordinate){gameSession.activePawn->position.x, gameSession.activePawn->position.y}, selectedTile, finalCoordinate);
-    gameSession.movement->pawn = gameSession.activePawn;
-    gameSession.activePawn->position = isInvalidCoordinate(finalCoordinate) ? selectedTile : finalCoordinate;
-}
-
 static void gameSession_scheduleAttack(Pawn *targetPawn, Coordinate selectedTile, TargetSelectionType attackType) {
     gameSession_clearAttack();
     if (targetPawn != NULL) {
@@ -295,7 +268,7 @@ static void gameSession_handleTargetSelection() {
 
     switch (gameSession.targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
-            gameSession_scheduleMovement(selectedPawn, selectedTile);
+            gameActionLogic_scheduleMovement(selectedPawn, selectedTile);
             break;
         case TARGETSELECTIONTYPE_PHASER:
         case TARGETSELECTIONTYPE_TORPEDO:
@@ -469,10 +442,9 @@ static void gameSession_progressUpdateMovement() {
     gameSession_updateViewPortOffset(false);
 
     if (timePassedScale >= 1) {
-        gameActionLogic_afterMove();
-        gameSession_clearMovement();
-        gameSession_updateViewPortOffset(true);
-        gameSession.state = GAMESTATE_DEFAULT;
+        if (!gameActionLogic_afterMove()) {
+            gameSession_updateViewPortOffset(true);
+        }
     }
 }
 
@@ -486,11 +458,22 @@ static Boolean gameSession_movesLeftForFaction(int faction) {
     return false;
 }
 
+static int gameSession_pawnCount(Coordinate location) {
+    int i;
+    int count = 0;
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        if (isEqualCoordinate(gameSession.pawns[i].position, location)) {
+            count++;
+        }
+    }
+    return count;
+}
+
 static void gameSession_enableActionsForFaction(int faction) {
     int i;
     for (i = 0; i < gameSession.pawnCount; i++) {
         if (gameSession.pawns[i].faction == faction && gameSession.pawns[i].type == PAWNTYPE_SHIP) {
-            gameSession.pawns[i].turnComplete = false;
+            gameSession.pawns[i].turnComplete = (gameSession_pawnCount(gameSession.pawns[i].position) > 1);
             gameSession.activePawn = &gameSession.pawns[i];
         }
     }
@@ -521,7 +504,7 @@ static void gameSession_cpuTurn() {
                 } else {
                     targetPawn = NULL;
                 }
-                gameSession_scheduleMovement(targetPawn, closestTile);
+                gameActionLogic_scheduleMovement(targetPawn, closestTile);
                 break;
             case CPUACTION_PHASERATTACK:
             case CPUACTION_TORPEDOATTACK:
@@ -544,7 +527,7 @@ static void gameSession_cpuTurn() {
 void gameSession_progressLogic() {
     if (gameSession.playerFaction != gameSession.factionTurn) {
         gameSession_cpuTurn();
-    } else if (gameSession.lastPenInput.wasUpdatedFlag) { // handle user actions
+    } else if (gameSession.lastPenInput.wasUpdatedFlag) {  // handle user actions
         // Handle pen input
         gameSession.lastPenInput.wasUpdatedFlag = false;
 
@@ -573,7 +556,7 @@ void gameSession_progressLogic() {
             }
         }
     }
-    
+
     gameSession_progressUpdateMovement();
     gameSession_progressUpdateAttack();
 }

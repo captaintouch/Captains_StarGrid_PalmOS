@@ -3,6 +3,9 @@
 #include "../constants.h"
 #include "gamesession.h"
 #include "models.h"
+#include "movement.h"
+
+#include "drawhelper.h"
 
 static UInt8 gameActionLogic_nonCapturedFlagsLeft(UInt8 faction) {
     int i;
@@ -29,7 +32,32 @@ static UInt8 gameActionLogic_enemyUnitsLeft() {
     return enemyUnits;
 }
 
-void gameActionLogic_afterMove() {
+static void gameActionLogic_clearMovement() {
+    if (gameSession.movement != NULL) {
+        if (gameSession.movement->trajectory.tileCoordinates != NULL) {
+            MemPtrFree(gameSession.movement->trajectory.tileCoordinates);
+            gameSession.movement->trajectory.tileCoordinates = NULL;
+        }
+        MemPtrFree(gameSession.movement);
+        gameSession.movement = NULL;
+    }
+}
+
+void gameActionLogic_scheduleMovement(Pawn *targetPawn, Coordinate selectedTile) {
+    gameActionLogic_clearMovement();
+
+    gameSession.movement = (Movement *)MemPtrNew(sizeof(Movement));
+    MemSet(gameSession.movement, sizeof(Movement), 0);
+    gameSession.movement->launchTimestamp = TimGetTicks();
+    gameSession.movement->targetPawn = targetPawn;
+    gameSession.movement->trajectory = movement_trajectoryBetween((Coordinate){gameSession.activePawn->position.x, gameSession.activePawn->position.y}, selectedTile);
+    gameSession.movement->pawn = gameSession.activePawn;
+    gameSession.activePawn->position = selectedTile;
+}
+
+// returns true when another movement has been scheduled
+Boolean gameActionLogic_afterMove() {
+    Boolean didScheduleMovement = false;
     Pawn *selectedPawn = gameSession.movement->targetPawn;
     // Check if flag was captured
     if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->inventory.carryingFlag && selectedPawn->inventory.flagOfFaction != gameSession.activePawn->faction) {
@@ -57,6 +85,17 @@ void gameActionLogic_afterMove() {
             gameSession_initialize();
         }
     }
+
+    // if currentposition is on a base, move away from it
+    if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE) {
+        Coordinate finalCoordinate = movement_closestTileToTargetInRange(gameSession.activePawn, selectedPawn, gameSession.pawns, gameSession.pawnCount, false);
+        gameActionLogic_scheduleMovement(NULL, finalCoordinate);
+        didScheduleMovement = true;
+    } else {
+        gameActionLogic_clearMovement();
+        gameSession.state = GAMESTATE_DEFAULT;
+    }
+    return didScheduleMovement;
 }
 
 void gameActionLogic_afterAttack() {

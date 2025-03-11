@@ -161,7 +161,7 @@ static Coordinate movement_nextManualCoordinate(Coordinate originCoordinate, Coo
     return closestCoordinate;
 }
 
-Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate endCoordinate, Coordinate appendFinalCoordinate) {
+Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate endCoordinate) {
     Trajectory trajectory;
     int i, j;
     int distance = movement_distance(startCoordinate, endCoordinate);
@@ -224,11 +224,6 @@ Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate end
             trajectory.tileCount--;
             i = 0;
         }
-    }
-
-    if (!isInvalidCoordinate(appendFinalCoordinate) && !isEqualCoordinate(trajectory.tileCoordinates[trajectory.tileCount -1], appendFinalCoordinate)) {
-        trajectory.tileCoordinates[trajectory.tileCount] = appendFinalCoordinate;
-        trajectory.tileCount++;
     }
 
     MemPtrResize(trajectory.tileCoordinates, trajectory.tileCount * sizeof(Coordinate));
@@ -297,7 +292,7 @@ static Boolean movement_shipOrBaseAtTarget(Coordinate targetCoordinate, Pawn *al
 
 Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Pawn *target, Pawn *allPawns, int totalPawnCount, Boolean allowBase) {
     Coordinate closestTile = pawn->position;
-    int minDistance = movement_distance(pawn->position, target->position);
+    int minDistance = GAMEMECHANICS_MAXTILEMOVERANGE;
     int maxRange = GAMEMECHANICS_MAXTILEMOVERANGE;
     int dx, dy;
 
