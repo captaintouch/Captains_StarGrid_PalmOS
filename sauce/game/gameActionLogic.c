@@ -6,6 +6,7 @@
 #include "gamesession.h"
 #include "models.h"
 #include "movement.h"
+#include "hexgrid.h"
 
 static UInt8 gameActionLogic_nonCapturedFlagsLeft(UInt8 faction) {
     int i;
@@ -51,6 +52,7 @@ void gameActionLogic_scheduleMovement(Pawn *targetPawn, Coordinate selectedTile)
     gameSession.movement->launchTimestamp = TimGetTicks();
     gameSession.movement->targetPawn = targetPawn;
     gameSession.movement->trajectory = movement_trajectoryBetween((Coordinate){gameSession.activePawn->position.x, gameSession.activePawn->position.y}, selectedTile);
+    gameSession.movement->pawnPosition = hexgrid_tileCenterPosition(gameSession.activePawn->position);
     gameSession.movement->pawn = gameSession.activePawn;
     gameSession.activePawn->position = selectedTile;
 }
