@@ -1,4 +1,5 @@
 #include "mathIsFun.h"
+#include <PalmOS.h>
 
 float fmin(float a, float b) {
     if (a < b) {
@@ -59,3 +60,8 @@ float remapToMax(float a, float maxValue) {
     return result;
 }
 
+int random(int min, int max) {
+    int seed = TimGetTicks();
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    return min + (seed % (max - min + 1));
+}

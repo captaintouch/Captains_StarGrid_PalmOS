@@ -8,4 +8,5 @@ int floor(float a);
 double fabs(double a);
 int round(float a);
 float remapToMax(float a, float maxValue);
+int random(int min, int max);
 #endif

@@ -4,6 +4,7 @@
 #include "drawhelper.h"
 #include "movement.h"
 #include "../deviceinfo.h"
+#include "mathIsFun.h"
 
 typedef enum CPUStrategy {
     CPUSTRATEGY_DEFENDBASE,
@@ -96,7 +97,7 @@ static Boolean cpuLogic_attackIfInRange(Pawn *pawn, Pawn *target, CPUStrategyRes
 }
 
 static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
-    CPUStrategyResult strategyResult = {10, CPUACTION_NONE, NULL};
+    CPUStrategyResult strategyResult = {10 + random(-30, 30), CPUACTION_NONE, NULL};
     Pawn *homeBase = cpuLogic_homeBase(pawn, allPawns, totalPawnCount);
     Pawn *enemyInRangeOfHomeBase = cpuLogic_weakestEnemyInRange(pawn, allPawns, totalPawnCount, false, false);
 
@@ -128,7 +129,7 @@ static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns,
 }
 
 static CPUStrategyResult cpuLogic_captureTheFlagStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
-    CPUStrategyResult strategyResult = {80, CPUACTION_NONE, NULL};
+    CPUStrategyResult strategyResult = {80 + random(-30, 30), CPUACTION_NONE, NULL};
 
     if (pawn->inventory.carryingFlag) {
         Pawn *homeBase = cpuLogic_homeBase(pawn, allPawns, totalPawnCount);
@@ -162,7 +163,7 @@ static CPUStrategyResult cpuLogic_captureTheFlagStrategy(Pawn *pawn, Pawn *allPa
 }
 
 static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
-    CPUStrategyResult strategyResult = {40, CPUACTION_NONE, NULL};
+    CPUStrategyResult strategyResult = {40 + random(-40, 40), CPUACTION_NONE, NULL};
 
     Pawn *enemyWithFlag = cpuLogic_enemyWithStolenFlag(pawn, allPawns, totalPawnCount);
     if (enemyWithFlag != NULL) {
