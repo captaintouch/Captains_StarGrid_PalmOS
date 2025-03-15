@@ -17,7 +17,10 @@ typedef struct ImageSprite {
 
 typedef struct SpriteLibrary {
     Boolean initialized;
-    ImageSprite shipSprite[GFX_FRAMECOUNT_SHIPA];
+    ImageSprite shipOneSprite[GFX_FRAMECOUNT_SHIPA];
+    ImageSprite shipTwoSprite[GFX_FRAMECOUNT_SHIPB];
+    ImageSprite shipThreeSprite[GFX_FRAMECOUNT_SHIPC];
+    ImageSprite shipFourSprite[GFX_FRAMECOUNT_SHIPD];
     ImageSprite shipCloakedSprite[GFX_FRAMECOUNT_SHIPCLOAKED];
     ImageSprite baseSprite;
     ImageSprite torpedoAnimation[GFX_FRAMECOUNT_TORP];
@@ -28,5 +31,6 @@ SpriteLibrary spriteLibrary;
 
 void spriteLibrary_initialize();
 ImageSprite imageSprite(int resourceId, Coordinate size);
+ImageSprite *spriteLibrary_factionShipSprite(int faction);
 
 #endif

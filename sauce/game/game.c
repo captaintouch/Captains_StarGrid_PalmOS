@@ -159,7 +159,7 @@ static void game_drawPawns() {
         if (pawn->cloaked) {
             shipSprite = &spriteLibrary.shipCloakedSprite[pawn->orientation];
         } else {
-            shipSprite = &spriteLibrary.shipSprite[pawn->orientation];
+            shipSprite = &spriteLibrary_factionShipSprite(pawn->faction)[pawn->orientation];
         }
 
         if (gameSession.movement->pawn == pawn) {

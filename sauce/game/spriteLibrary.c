@@ -25,12 +25,39 @@ void spriteLibrary_initialize() {
     return;
   }
   for (i = 0; i < GFX_FRAMECOUNT_SHIPA; i++) {
-    spriteLibrary.shipSprite[i] = (ImageSprite){
+    spriteLibrary.shipOneSprite[i] = (ImageSprite){
         GFX_RES_SHIPA_0 + i,
         (Coordinate){HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE},
     };
-    spriteLibrary.shipSprite[i].imageData =
-        drawhelper_loadImage(spriteLibrary.shipSprite[i].resourceId);
+    spriteLibrary.shipOneSprite[i].imageData =
+        drawhelper_loadImage(spriteLibrary.shipOneSprite[i].resourceId);
+  }
+
+  for (i = 0; i < GFX_FRAMECOUNT_SHIPB; i++) {
+    spriteLibrary.shipTwoSprite[i] = (ImageSprite){
+        GFX_RES_SHIPB_0 + i,
+        (Coordinate){HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE},
+    };
+    spriteLibrary.shipTwoSprite[i].imageData =
+        drawhelper_loadImage(spriteLibrary.shipTwoSprite[i].resourceId);
+  }
+
+  for (i = 0; i < GFX_FRAMECOUNT_SHIPC; i++) {
+    spriteLibrary.shipThreeSprite[i] = (ImageSprite){
+        GFX_RES_SHIPC_0 + i,
+        (Coordinate){HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE},
+    };
+    spriteLibrary.shipThreeSprite[i].imageData =
+        drawhelper_loadImage(spriteLibrary.shipThreeSprite[i].resourceId);
+  }
+
+  for (i = 0; i < GFX_FRAMECOUNT_SHIPD; i++) {
+    spriteLibrary.shipFourSprite[i] = (ImageSprite){
+        GFX_RES_SHIPD_0 + i,
+        (Coordinate){HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE},
+    };
+    spriteLibrary.shipFourSprite[i].imageData =
+        drawhelper_loadImage(spriteLibrary.shipFourSprite[i].resourceId);
   }
 
   for (i = 0; i < GFX_FRAMECOUNT_SHIPCLOAKED; i++) {
@@ -68,4 +95,18 @@ void spriteLibrary_initialize() {
   }
 
   spriteLibrary.initialized = true;
+}
+
+ImageSprite *spriteLibrary_factionShipSprite(int faction) {
+  switch (faction % 4) {
+  case 0:
+    return spriteLibrary.shipOneSprite;
+  case 1:
+    return spriteLibrary.shipTwoSprite;
+  case 2:
+    return spriteLibrary.shipThreeSprite;
+  case 3:
+    return spriteLibrary.shipFourSprite;
+  }
+  return spriteLibrary.shipOneSprite;
 }
