@@ -83,7 +83,7 @@ static Boolean cpuLogic_attackIfInRange(Pawn *pawn, Pawn *target, CPUStrategyRes
         return false;
     }
     distanceToEnemy = movement_distance(pawn->position, target->position);
-    if (distanceToEnemy <= GAMEMECHANICS_MAXTILETORPEDORANGE) {  // When in range, attack with torpedoes
+    if (distanceToEnemy <= GAMEMECHANICS_MAXTILETORPEDORANGE && pawn->inventory.torpedoCount > 0) {  // When in range, attack with torpedoes
         updateStrategy->CPUAction = CPUACTION_TORPEDOATTACK;
         updateStrategy->target = target;
         return true;
@@ -146,7 +146,7 @@ static CPUStrategyResult cpuLogic_captureTheFlagStrategy(Pawn *pawn, Pawn *allPa
         if (pawn->cloaked) {
             strategyResult.score += 50;
             strategyResult.CPUAction = CPUACTION_CLOAK;               // Decloak so we are go for capture on the next turn
-        } else if (distance >= GAMEMECHANICS_MAXTILEMOVERANGE * 3) {  // if we are not cloaked, and far away from the target, activate cloak
+        } else if (distance >= GAMEMECHANICS_MAXTILEMOVERANGE * 2) {  // if we are not cloaked, and far away from the target, activate cloak
             strategyResult.score += 50;
             strategyResult.CPUAction = CPUACTION_CLOAK;
         } else if (distance <= GAMEMECHANICS_MAXTILEMOVERANGE) {  // if we can capture the flag, do it

@@ -6,6 +6,7 @@
 typedef struct Button {
     char *text;
     Int8 length;
+    Boolean disabled;
 } Button;
 
 void bottomMenu_display(Button *buttons, Int8 buttonCount);

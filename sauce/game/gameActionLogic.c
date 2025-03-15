@@ -101,8 +101,12 @@ Boolean gameActionLogic_afterMove() {
 }
 
 void gameActionLogic_afterAttack() {
-    // Update health stats
+    // Update inventory stats
     gameSession.attackAnimation->targetPawn->inventory.health -= gameSession.attackAnimation->healthImpact;
+    if (gameSession.targetSelectionType == TARGETSELECTIONTYPE_TORPEDO) {
+        gameSession.activePawn->inventory.torpedoCount--;
+    }
+
     if (gameSession.attackAnimation->targetPawn->inventory.health <= 0) {
         gameSession.attackAnimation->targetPawn->inventory.health = 0;
         gameSession.attackAnimation->targetPawn->position = (Coordinate){-1, -1};

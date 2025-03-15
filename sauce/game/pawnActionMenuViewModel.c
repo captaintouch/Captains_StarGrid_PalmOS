@@ -26,6 +26,19 @@ static char *pawnActionMenuViewModel_textForActionType(MenuActionType actionType
     }
 }
 
+static Boolean pawnActionMenuViewModel_isDisabled(MenuActionType actionType, Pawn *pawn) {
+    switch (actionType) {
+        case MenuActionTypeMove:
+        case MenuActionTypePhaser:
+        case MenuActionTypeCancel:
+            return false;
+        case MenuActionTypeTorpedo:
+            return pawn->inventory.torpedoCount == 0;
+        case MenuActionTypeCloak:
+            return pawn->inventory.carryingFlag;
+    }
+}
+
 void pawnActionMenuViewModel_setupMenuForPawn(Pawn *pawn, Button **displayButtons, UInt8 *displayButtonCount) {
     int i;
     MenuActionType *actions = pawn->cloaked ? cloakedActions : allActions;
@@ -37,6 +50,7 @@ void pawnActionMenuViewModel_setupMenuForPawn(Pawn *pawn, Button **displayButton
         buttons[i].text = (char *)MemPtrNew(StrLen(text) + 1);
         StrCopy(buttons[i].text, text);
         buttons[i].length = StrLen(text);
+        buttons[i].disabled = pawnActionMenuViewModel_isDisabled(actions[i], pawn);
     }
     *displayButtons = buttons;
     *displayButtonCount = actionCount;

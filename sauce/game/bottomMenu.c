@@ -18,7 +18,7 @@ void bottomMenu_display(Button *buttons, Int8 buttonCount) {
     FontID oldFont = FntSetFont(largeBoldFont);
     for (i = 0; i < buttonCount; i++) {
         Coordinate position = bottomMenu_positionForButton(i);
-        AppColor bgColor = ASBESTOS;
+        AppColor bgColor = buttons[i].disabled ? DRACULAORCHID : ASBESTOS;
         if (i == 0) {
             bgColor = ALIZARIN;
         }

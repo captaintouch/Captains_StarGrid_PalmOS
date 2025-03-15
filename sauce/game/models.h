@@ -25,6 +25,7 @@ typedef enum {
 typedef struct Inventory {
     int health;
     UInt8 flagOfFaction;
+    UInt8 torpedoCount;
     Boolean carryingFlag;
 } Inventory;
 
