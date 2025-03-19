@@ -348,16 +348,17 @@ static void game_drawBottomButtons() {
     int startOffsetY = screenSize.y - BOTTOMMENU_HEIGHT + 2;
     int buttonWidth = screenSize.x - startOffsetX - 4;
     int buttonHeight = ((screenSize.y - startOffsetY) / 2) - 2;
+    AppColor buttonColor = pawn_factionColor(gameSession.factionTurn) == BELIZEHOLE ? EMERALD : BELIZEHOLE;
     
     RctSetRectangle(&rect, startOffsetX, startOffsetY, buttonWidth, buttonHeight);
-    drawhelper_fillRectangleWithShadow(&rect, 4, BELIZEHOLE, ASBESTOS);
+    drawhelper_fillRectangleWithShadow(&rect, 4, buttonColor, ASBESTOS);
     FntSetFont(stdFont);
     drawhelper_applyTextColor(CLOUDS);
-    drawhelper_applyBackgroundColor(BELIZEHOLE);
+    drawhelper_applyBackgroundColor(buttonColor);
     drawhelper_drawText(nextText, (Coordinate){startOffsetX + (buttonWidth / 2) - (FntCharsWidth(nextText, StrLen(nextText)) / 2), startOffsetY});
 
     RctSetRectangle(&rect, startOffsetX, startOffsetY + buttonHeight + 2, buttonWidth, buttonHeight);
-    drawhelper_fillRectangleWithShadow(&rect, 4, BELIZEHOLE, ASBESTOS);
+    drawhelper_fillRectangleWithShadow(&rect, 4, buttonColor, ASBESTOS);
     drawhelper_drawText(endText, (Coordinate){startOffsetX + (buttonWidth / 2) - (FntCharsWidth(endText, StrLen(endText)) / 2), startOffsetY + buttonHeight + 2});
 }
 

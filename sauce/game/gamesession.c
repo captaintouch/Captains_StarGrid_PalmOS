@@ -39,7 +39,7 @@ void gameSession_initialize() {
     gameSession.pawns[7] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, true}, 0, 2, false, false};
 
     gameSession.factionTurn = 0;
-    gameSession.playerFaction = 0;
+    gameSession.playerFaction = 9999;
 
     gameSession.activePawn = &gameSession.pawns[0];
 
