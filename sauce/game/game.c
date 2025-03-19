@@ -310,7 +310,7 @@ static void game_drawOverlay() {  // ships, special tiles, etc.
 
 static void game_updateMiniMapDrawPosition() {
     Coordinate screenSize = deviceinfo_screenSize();
-    int width = (float)screenSize.x * 0.5;
+    int width = (float)screenSize.x * 0.4;
     int centerOffsetX = (screenSize.x - width) / 2;
     gameSession.drawingState.miniMapDrawPosition = (Coordinate){centerOffsetX, screenSize.y - MINIMAP_HEIGHT + 2};
     gameSession.drawingState.miniMapSize = (Coordinate){width, MINIMAP_HEIGHT - 2};
@@ -328,7 +328,7 @@ static void game_drawMiniMap() {
 
 static void game_drawBottomBackground() {
     Coordinate screenSize = deviceinfo_screenSize();
-    int width = (float)screenSize.x * 0.5;
+    int width = (float)screenSize.x * 0.4;
     int centerOffsetX = (screenSize.x - width) / 2;
     RectangleType rect;
     RctSetRectangle(&rect, 0, screenSize.y - BOTTOMMENU_HEIGHT, screenSize.x, BOTTOMMENU_HEIGHT);
@@ -339,10 +339,33 @@ static void game_drawBottomBackground() {
     drawhelper_fillRectangle(&rect, 4);
 }
 
+static void game_drawBottomButtons() {
+    Coordinate screenSize = deviceinfo_screenSize();
+    RectangleType rect;
+    char nextText[] = "next";
+    char endText[] = "end turn";
+    int startOffsetX = gameSession.drawingState.miniMapDrawPosition.x + gameSession.drawingState.miniMapSize.x + 4;
+    int startOffsetY = screenSize.y - BOTTOMMENU_HEIGHT + 2;
+    int buttonWidth = screenSize.x - startOffsetX - 4;
+    int buttonHeight = ((screenSize.y - startOffsetY) / 2) - 2;
+    
+    RctSetRectangle(&rect, startOffsetX, startOffsetY, buttonWidth, buttonHeight);
+    drawhelper_fillRectangleWithShadow(&rect, 4, BELIZEHOLE, ASBESTOS);
+    FntSetFont(stdFont);
+    drawhelper_applyTextColor(CLOUDS);
+    drawhelper_applyBackgroundColor(BELIZEHOLE);
+    drawhelper_drawText(nextText, (Coordinate){startOffsetX + (buttonWidth / 2) - (FntCharsWidth(nextText, StrLen(nextText)) / 2), startOffsetY});
+
+    RctSetRectangle(&rect, startOffsetX, startOffsetY + buttonHeight + 2, buttonWidth, buttonHeight);
+    drawhelper_fillRectangleWithShadow(&rect, 4, BELIZEHOLE, ASBESTOS);
+    drawhelper_drawText(endText, (Coordinate){startOffsetX + (buttonWidth / 2) - (FntCharsWidth(endText, StrLen(endText)) / 2), startOffsetY + buttonHeight + 2});
+}
+
 static void game_drawUserInterfaceElements() {
     game_updateMiniMapDrawPosition();
     game_drawBottomBackground();
     game_drawMiniMap();
+    game_drawBottomButtons();
     game_drawBottomMenu();
 }
 

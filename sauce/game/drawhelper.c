@@ -8,6 +8,15 @@ void drawhelper_fillRectangle(RectangleType *rect, UInt16 cornerDiam) {
     WinPaintRectangle(rect, cornerDiam);
 }
 
+void drawhelper_fillRectangleWithShadow(RectangleType *rect, UInt16 cornerDiam, AppColor color, AppColor shadowColor) {
+    RectangleType shadowRect;
+    RctSetRectangle(&shadowRect, rect->topLeft.x, rect->topLeft.y, rect->extent.x + 1, rect->extent.y + 1);
+    drawhelper_applyForeColor(shadowColor);
+    WinPaintRectangle(&shadowRect, cornerDiam);
+    drawhelper_applyForeColor(color);
+    WinPaintRectangle(rect, cornerDiam);
+}
+
 void drawhelper_borderRectangle(RectangleType *rect) {
     WinDrawRectangleFrame(roundFrame, rect);
 }
