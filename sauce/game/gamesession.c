@@ -21,6 +21,8 @@ void gameSession_initialize() {
     gameSession.pawns = NULL;
     gameSession.activePawn = NULL;
 
+    gameSession.drawingState = (DrawingState){true, true, false, (Coordinate){0, 0}, (Coordinate){0, 0}};
+
     if (gameSession.pawns != NULL) {
         gameSession.pawnCount = 0;
         MemPtrFree(gameSession.pawns);
@@ -34,16 +36,17 @@ void gameSession_initialize() {
     gameSession.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){8, 7}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, 4, false}, 0, 1, false, false};
     gameSession.pawns[4] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 6}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, 4, false}, 0, 2, false, false};
 
-    gameSession.pawns[5] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 0, true}, 0, 0, false, false};
-    gameSession.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 1, true}, 0, 1, false, false};
-    gameSession.pawns[7] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, true}, 0, 2, false, false};
+    gameSession.pawns[5] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 0, 0, true}, 0, 0, false, false};
+    gameSession.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 1, 0, true}, 0, 1, false, false};
+    gameSession.pawns[7] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, 0, true}, 0, 2, false, false};
 
     gameSession.factionTurn = 0;
-    gameSession.playerFaction = 9999;
+    gameSession.playerFaction = 0;
+    gameSession.drawingState.shouldDrawButtons = gameSession.factionTurn == gameSession.playerFaction;
 
     gameSession.activePawn = &gameSession.pawns[0];
 
-    gameSession.drawingState = (DrawingState){true, true, (Coordinate){0, 0}};
+    
     gameSession.highlightTiles = NULL;
     gameSession.highlightTileCount = 0;
     gameSession.secondaryHighlightTiles = NULL;
@@ -532,6 +535,7 @@ static void gameSession_cpuTurn() {
     }
     if (!gameSession_movesLeftForFaction(gameSession.factionTurn)) {
         gameSession.factionTurn = (gameSession.factionTurn + 1) % 3;
+        gameSession.drawingState.shouldDrawButtons = gameSession.factionTurn == gameSession.playerFaction;
         gameSession_enableActionsForFaction(gameSession.factionTurn);
         gameSession_updateViewPortOffset(true);
         gameSession.drawingState.shouldRedrawOverlay = true;

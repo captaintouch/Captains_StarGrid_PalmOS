@@ -22,6 +22,7 @@ typedef enum GameState {
 typedef struct DrawingState {
     Boolean shouldRedrawBackground;
     Boolean shouldRedrawOverlay;
+    Boolean shouldDrawButtons;
 
     Coordinate miniMapDrawPosition;
     Coordinate miniMapSize;

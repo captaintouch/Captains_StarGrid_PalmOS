@@ -366,7 +366,9 @@ static void game_drawUserInterfaceElements() {
     game_updateMiniMapDrawPosition();
     game_drawBottomBackground();
     game_drawMiniMap();
-    game_drawBottomButtons();
+    if (gameSession.drawingState.shouldDrawButtons) {
+        game_drawBottomButtons();
+    }
     game_drawBottomMenu();
 }
 
