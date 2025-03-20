@@ -1,6 +1,20 @@
 APPLICATION         ID 1 "CSTG"
 VERSION             ID 1 "1.0"
 
+ICON
+BEGIN
+	BITMAP "resources/assets/icon_bw.bmp" BPP 1
+	BITMAP "resources/assets/icon.bmp" BPP 8 TRANSPARENTINDEX 4
+	BITMAP "resources/assets/icon-144.bmp" BPP 8 DENSITY 144 TRANSPARENTINDEX 4
+END
+
+SMALLICONFAMILYEX
+BEGIN
+	BITMAP "resources/assets/icon_small_bw.bmp" BPP 1
+	BITMAP "resources/assets/icon_small.bmp" BPP 8 TRANSPARENTINDEX 4
+	BITMAP "resources/assets/icon_small-144.bmp" BPP 8 DENSITY 144 TRANSPARENTINDEX 4
+END
+
 FORM ID 1000 AT ( 0 0 160 160 )
 NOSAVEBEHIND NOFRAME
 BEGIN

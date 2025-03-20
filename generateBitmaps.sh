@@ -32,6 +32,14 @@ for image in ./resources/ships/*.png; do
     done
 done
 
+# Add presized images (some icons)
+for image in ./resources/others_noresize/*.png; do
+    filename=$(basename "$image")
+    name="${filename%.*}"
+    outputFile="./resources/assets/$name.bmp"
+    convert "$image" -channel alpha -threshold 20% +channel -background '#ff33ff' -alpha remove "BMP3:$outputFile"
+done
+
 # Add other images (flags, etc)
 for image in ./resources/others/*.png; do
     cp $image ./resources/hiresTMP/
