@@ -122,6 +122,16 @@ static void game_drawFlag(Coordinate position, AppColor color) {
     drawhelper_fillRectangle(&rectPole, 0);
 }
 
+static ImageSprite *game_spriteForPawn(Pawn *pawn) {
+    if (pawn->type == PAWNTYPE_BASE) {
+        return &spriteLibrary.baseSprite;
+    }
+    if (pawn->cloaked) {
+        return &spriteLibrary.shipCloakedSprite[pawn->orientation];
+    }
+    return &spriteLibrary_factionShipSprite(pawn->faction)[pawn->orientation];
+}
+
 static void game_drawPawns() {
     int i;
     if (gameSession.activePawn != NULL) {
@@ -152,14 +162,10 @@ static void game_drawPawns() {
         if (pawn->type != PAWNTYPE_SHIP) {
             continue;
         }
+        shipSprite = game_spriteForPawn(pawn);
         pawnPosition = hexgrid_tileCenterPosition(pawn->position);
         if (isInvalidCoordinate(pawnPosition)) {
             continue;
-        }
-        if (pawn->cloaked) {
-            shipSprite = &spriteLibrary.shipCloakedSprite[pawn->orientation];
-        } else {
-            shipSprite = &spriteLibrary_factionShipSprite(pawn->faction)[pawn->orientation];
         }
 
         if (gameSession.movement->pawn == pawn) {
@@ -339,6 +345,30 @@ static void game_drawBottomBackground() {
     drawhelper_fillRectangle(&rect, 4);
 }
 
+static void game_drawBottomActivePawn() {
+    Coordinate screenSize = deviceinfo_screenSize();
+    int offsetX = gameSession.drawingState.miniMapDrawPosition.x + gameSession.drawingState.miniMapSize.x;
+    int offsetY = screenSize.y - BOTTOMMENU_HEIGHT;
+    Coordinate targetCenterPosition = (Coordinate){(offsetX + (screenSize.x - offsetX) / 2) - (HEXTILE_PAWNSIZE / 2), offsetY + (BOTTOMMENU_HEIGHT / 2) - (HEXTILE_PAWNSIZE / 2)};
+    RectangleType rect;
+    Coordinate pawnCenterPosition;
+    if (gameSession.activePawn == NULL) {
+        return;
+    }
+    if (gameSession.movement == NULL) {
+        pawnCenterPosition = hexgrid_tileCenterPosition(gameSession.activePawn->position);
+    } else {
+        pawnCenterPosition = gameSession.movement->pawnPosition;
+    }
+    
+    RctSetRectangle(&rect,  targetCenterPosition.x - 2, targetCenterPosition.y - 2, HEXTILE_PAWNSIZE + 4, HEXTILE_PAWNSIZE + 4);
+    drawhelper_applyForeColor(DRACULAORCHID);
+    drawhelper_fillRectangle(&rect, 4);
+    
+    RctSetRectangle(&rect, pawnCenterPosition.x - HEXTILE_PAWNSIZE / 2, pawnCenterPosition.y - HEXTILE_PAWNSIZE / 2, HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE);
+    WinCopyRectangle(overlayBuffer, screenBuffer, &rect, targetCenterPosition.x, targetCenterPosition.y, winPaint);
+}
+
 static void game_drawBottomButtons() {
     Coordinate screenSize = deviceinfo_screenSize();
     RectangleType rect;
@@ -349,7 +379,7 @@ static void game_drawBottomButtons() {
     int buttonWidth = screenSize.x - startOffsetX - 4;
     int buttonHeight = ((screenSize.y - startOffsetY) / 2) - 2;
     AppColor buttonColor = pawn_factionColor(gameSession.factionTurn) == BELIZEHOLE ? EMERALD : BELIZEHOLE;
-    
+
     RctSetRectangle(&rect, startOffsetX, startOffsetY, buttonWidth, buttonHeight);
     drawhelper_fillRectangleWithShadow(&rect, 4, buttonColor, ASBESTOS);
     FntSetFont(stdFont);
@@ -368,6 +398,8 @@ static void game_drawUserInterfaceElements() {
     game_drawMiniMap();
     if (gameSession.drawingState.shouldDrawButtons) {
         game_drawBottomButtons();
+    } else {
+        game_drawBottomActivePawn();
     }
     game_drawBottomMenu();
 }
