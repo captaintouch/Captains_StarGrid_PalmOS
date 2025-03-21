@@ -369,6 +369,22 @@ static void game_drawBottomActivePawn() {
     WinCopyRectangle(overlayBuffer, screenBuffer, &rect, targetCenterPosition.x, targetCenterPosition.y, winPaint);
 }
 
+static void game_drawBottomActivePawnStats() {
+    Coordinate screenSize = deviceinfo_screenSize();
+    char healthText[10] = "";
+    char valueText[5];
+    if (gameSession.activePawn == NULL) {
+        return;
+    }
+    StrIToA(valueText, gameSession.activePawn->inventory.health);
+    StrCat(healthText, valueText);
+    StrCat(healthText, "%");
+    drawhelper_drawSprite(&spriteLibrary.healthSprite, (Coordinate){10, screenSize.y - BOTTOMMENU_HEIGHT + 8});
+    drawhelper_applyBackgroundColor(pawn_factionColor(gameSession.activePawn->faction));
+    drawhelper_applyTextColor(DRACULAORCHID);
+    drawhelper_drawText(healthText, (Coordinate){18, screenSize.y - BOTTOMMENU_HEIGHT + 2});
+}
+
 static void game_drawBottomButtons() {
     Coordinate screenSize = deviceinfo_screenSize();
     RectangleType rect;
@@ -401,6 +417,7 @@ static void game_drawUserInterfaceElements() {
     } else {
         game_drawBottomActivePawn();
     }
+    game_drawBottomActivePawnStats();
     game_drawBottomMenu();
 }
 

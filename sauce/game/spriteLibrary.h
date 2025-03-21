@@ -25,6 +25,7 @@ typedef struct SpriteLibrary {
     ImageSprite baseSprite;
     ImageSprite torpedoAnimation[GFX_FRAMECOUNT_TORP];
     ImageSprite explosionAnimation[GFX_FRAMECOUNT_EXPLOSION];
+    ImageSprite healthSprite;
 } SpriteLibrary;
 
 SpriteLibrary spriteLibrary;
