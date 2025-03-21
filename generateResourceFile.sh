@@ -8,6 +8,7 @@ fileHiResSuffix="-144.bmp"
 hires=0
 if [ "$1" == "--hires" ]; then
     hires=1
+    echo "Hires resources enabled"
 fi
 
 if [ -f $rcpOutputFile ]; then

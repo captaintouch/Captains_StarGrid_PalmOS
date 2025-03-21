@@ -371,18 +371,28 @@ static void game_drawBottomActivePawn() {
 
 static void game_drawBottomActivePawnStats() {
     Coordinate screenSize = deviceinfo_screenSize();
-    char healthText[10] = "";
+    char finalText[10] = "";
     char valueText[5];
     if (gameSession.activePawn == NULL) {
         return;
     }
+    FntSetFont(boldFont);
     StrIToA(valueText, gameSession.activePawn->inventory.health);
-    StrCat(healthText, valueText);
-    StrCat(healthText, "%");
-    drawhelper_drawSprite(&spriteLibrary.healthSprite, (Coordinate){10, screenSize.y - BOTTOMMENU_HEIGHT + 8});
+    StrCat(finalText, valueText);
+    StrCat(finalText, "%");
+    drawhelper_drawSprite(&spriteLibrary.healthSprite, (Coordinate){8, screenSize.y - BOTTOMMENU_HEIGHT + 8});
     drawhelper_applyBackgroundColor(pawn_factionColor(gameSession.activePawn->faction));
     drawhelper_applyTextColor(DRACULAORCHID);
-    drawhelper_drawText(healthText, (Coordinate){18, screenSize.y - BOTTOMMENU_HEIGHT + 2});
+    drawhelper_drawText(finalText, (Coordinate){16, screenSize.y - BOTTOMMENU_HEIGHT + 2});
+
+    StrIToA(valueText, gameSession.activePawn->inventory.torpedoCount);
+    StrCopy(finalText, valueText);
+    StrCat(finalText, "/");
+    StrIToA(valueText, GAMEMECHANICS_MAXTORPEDOCOUNT);
+    StrCat(finalText, valueText);
+    drawhelper_drawSprite(&spriteLibrary.torpedoAnimation[2], (Coordinate){8, screenSize.y - BOTTOMMENU_HEIGHT + 20});
+    drawhelper_drawText(finalText, (Coordinate){16, screenSize.y - BOTTOMMENU_HEIGHT + 14});
+    FntSetFont(stdFont);
 }
 
 static void game_drawBottomButtons() {
