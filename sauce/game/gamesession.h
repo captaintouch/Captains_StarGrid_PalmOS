@@ -26,6 +26,9 @@ typedef struct DrawingState {
 
     Coordinate miniMapDrawPosition;
     Coordinate miniMapSize;
+
+    Coordinate barButtonPositions[2];
+    int barButtonHeight;
 } DrawingState;
 
 typedef struct GameSession {

@@ -46,7 +46,6 @@ void gameSession_initialize() {
 
     gameSession.activePawn = &gameSession.pawns[0];
 
-    
     gameSession.highlightTiles = NULL;
     gameSession.highlightTileCount = 0;
     gameSession.secondaryHighlightTiles = NULL;
@@ -153,6 +152,99 @@ static void gameSession_showPawnActions() {
     pawnActionMenuViewModel_setupMenuForPawn(gameSession.activePawn, &gameSession.displayButtons, &gameSession.displayButtonCount);
     gameSession.drawingState.shouldRedrawOverlay = true;
     gameSession.state = GAMESTATE_CHOOSEPAWNACTION;
+}
+
+static int gameSession_pawnCount(Coordinate location) {
+    int i;
+    int count = 0;
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        if (isEqualCoordinate(gameSession.pawns[i].position, location)) {
+            count++;
+        }
+    }
+    return count;
+}
+
+static void gameSession_enableActionsForFaction(int faction) {
+    int i;
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        if (gameSession.pawns[i].faction == faction && gameSession.pawns[i].type == PAWNTYPE_SHIP) {
+            gameSession.pawns[i].turnComplete = (gameSession.pawns[i].cloaked && gameSession_pawnCount(gameSession.pawns[i].position) > 1);
+            gameSession.activePawn = &gameSession.pawns[i];
+        }
+    }
+}
+
+static Boolean gameSession_movesLeftForFaction(int faction) {
+    int i;
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        if (gameSession.pawns[i].faction == faction && gameSession.pawns[i].type == PAWNTYPE_SHIP && !gameSession.pawns[i].turnComplete && !isInvalidCoordinate(gameSession.pawns[i].position)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static int gameSession_nextAvailableFaction(int currentFaction) {
+    int i;
+    int nextFaction;
+    int factionCount = 0;
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        if (gameSession.pawns[i].faction > factionCount) {
+            factionCount = gameSession.pawns[i].faction;
+        }
+    }
+    factionCount++;
+    
+    nextFaction = (currentFaction + 1) % factionCount;
+    while (!gameSession_movesLeftForFaction(nextFaction)) {
+        nextFaction = (nextFaction + 1) % factionCount;
+    }
+    return nextFaction;
+}
+
+static Pawn *gameSession_nextPawn() {
+    Pawn *firstPawn = NULL;
+    Pawn *currentPawn = gameSession.activePawn->faction == gameSession.factionTurn ? gameSession.activePawn : NULL;
+    int i;
+    int startMatching = false;
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        if (gameSession.pawns[i].faction == gameSession.factionTurn && gameSession.pawns[i].type == PAWNTYPE_SHIP && !gameSession.pawns[i].turnComplete && !isInvalidCoordinate(gameSession.pawns[i].position)) {
+            if (startMatching) {
+                return &gameSession.pawns[i];
+            }
+            if (firstPawn == NULL) {
+                firstPawn = &gameSession.pawns[i];
+            }
+            if (currentPawn == &gameSession.pawns[i]) {
+                startMatching = true;
+            }
+        }
+    }
+    return firstPawn;
+}
+
+static void gameSession_startTurnForNextFaction() {
+    gameSession_enableActionsForFaction(gameSession.factionTurn);
+    gameSession.factionTurn = gameSession_nextAvailableFaction(gameSession.factionTurn);
+    gameSession.drawingState.shouldDrawButtons = gameSession.factionTurn == gameSession.playerFaction;
+    gameSession.activePawn = gameSession_nextPawn();
+    gameSession_updateViewPortOffset(true);
+    gameSession.drawingState.shouldRedrawOverlay = true;
+    
+}
+
+static Boolean gameSession_handleBarButtonsTap() {
+    if (gameSession.lastPenInput.touchCoordinate.x > gameSession.drawingState.barButtonPositions[0].x && gameSession.lastPenInput.touchCoordinate.y > gameSession.drawingState.barButtonPositions[0].y && gameSession.lastPenInput.touchCoordinate.y < gameSession.drawingState.barButtonPositions[0].y + gameSession.drawingState.barButtonHeight) {  // Next button
+        gameSession.activePawn = gameSession_nextPawn();
+        gameSession_updateViewPortOffset(true);
+        gameSession.drawingState.shouldRedrawOverlay = true;
+        return true;
+    } else if (gameSession.lastPenInput.touchCoordinate.x > gameSession.drawingState.barButtonPositions[1].x && gameSession.lastPenInput.touchCoordinate.y > gameSession.drawingState.barButtonPositions[1].y && gameSession.lastPenInput.touchCoordinate.y < gameSession.drawingState.barButtonPositions[1].y + gameSession.drawingState.barButtonHeight) {  // end turn button
+        gameSession_startTurnForNextFaction();
+        return true;
+    }
+    return false;
 }
 
 static Boolean gameSession_handleTileTap() {
@@ -455,37 +547,6 @@ static void gameSession_progressUpdateMovement() {
     }
 }
 
-static Boolean gameSession_movesLeftForFaction(int faction) {
-    int i;
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        if (gameSession.pawns[i].faction == faction && gameSession.pawns[i].type == PAWNTYPE_SHIP && !gameSession.pawns[i].turnComplete) {
-            return true;
-        }
-    }
-    return false;
-}
-
-static int gameSession_pawnCount(Coordinate location) {
-    int i;
-    int count = 0;
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        if (isEqualCoordinate(gameSession.pawns[i].position, location)) {
-            count++;
-        }
-    }
-    return count;
-}
-
-static void gameSession_enableActionsForFaction(int faction) {
-    int i;
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        if (gameSession.pawns[i].faction == faction && gameSession.pawns[i].type == PAWNTYPE_SHIP) {
-            gameSession.pawns[i].turnComplete = (gameSession.pawns[i].cloaked && gameSession_pawnCount(gameSession.pawns[i].position) > 1);
-            gameSession.activePawn = &gameSession.pawns[i];
-        }
-    }
-}
-
 static void gameSession_cpuTurn() {
     int i;
     if (gameSession.attackAnimation != NULL || gameSession.movement != NULL || gameSession.state != GAMESTATE_DEFAULT) {
@@ -534,11 +595,7 @@ static void gameSession_cpuTurn() {
         return;
     }
     if (!gameSession_movesLeftForFaction(gameSession.factionTurn)) {
-        gameSession.factionTurn = (gameSession.factionTurn + 1) % 3;
-        gameSession.drawingState.shouldDrawButtons = gameSession.factionTurn == gameSession.playerFaction;
-        gameSession_enableActionsForFaction(gameSession.factionTurn);
-        gameSession_updateViewPortOffset(true);
-        gameSession.drawingState.shouldRedrawOverlay = true;
+        gameSession_startTurnForNextFaction();
     }
 }
 
@@ -563,6 +620,7 @@ void gameSession_progressLogic() {
                 case GAMESTATE_DEFAULT:
                     if (!gameSession.lastPenInput.blockUpdatesUntilPenUp && gameSession_handleMiniMapTap()) break;
                     if (gameSession_handleTileTap()) break;
+                    if (gameSession_handleBarButtonsTap()) break;
                     break;
                 case GAMESTATE_CHOOSEPAWNACTION:
                     gameSession.lastPenInput.blockUpdatesUntilPenUp = true;

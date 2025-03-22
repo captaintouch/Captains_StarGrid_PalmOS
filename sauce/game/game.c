@@ -412,10 +412,13 @@ static void game_drawBottomButtons() {
     drawhelper_applyTextColor(CLOUDS);
     drawhelper_applyBackgroundColor(buttonColor);
     drawhelper_drawText(nextText, (Coordinate){startOffsetX + (buttonWidth / 2) - (FntCharsWidth(nextText, StrLen(nextText)) / 2), startOffsetY});
+    gameSession.drawingState.barButtonPositions[0] = (Coordinate){startOffsetX, startOffsetY};
+    gameSession.drawingState.barButtonHeight = buttonHeight;
 
     RctSetRectangle(&rect, startOffsetX, startOffsetY + buttonHeight + 2, buttonWidth, buttonHeight);
     drawhelper_fillRectangleWithShadow(&rect, 4, buttonColor, ASBESTOS);
     drawhelper_drawText(endText, (Coordinate){startOffsetX + (buttonWidth / 2) - (FntCharsWidth(endText, StrLen(endText)) / 2), startOffsetY + buttonHeight + 2});
+    gameSession.drawingState.barButtonPositions[1] = (Coordinate){rect.topLeft.x, rect.topLeft.y};
 }
 
 static void game_drawUserInterfaceElements() {
