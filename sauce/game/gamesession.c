@@ -41,7 +41,7 @@ void gameSession_initialize() {
     gameSession.pawns[7] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, 0, true}, 0, 2, false, false};
 
     gameSession.factionTurn = 0;
-    gameSession.playerFaction = 999;
+    gameSession.playerFaction = 0;
     gameSession.drawingState.shouldDrawButtons = gameSession.factionTurn == gameSession.playerFaction;
 
     gameSession.activePawn = &gameSession.pawns[0];

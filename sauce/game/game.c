@@ -422,7 +422,7 @@ static void game_drawUserInterfaceElements() {
     game_updateMiniMapDrawPosition();
     game_drawBottomBackground();
     game_drawMiniMap();
-    if (gameSession.drawingState.shouldDrawButtons) {
+    if (gameSession.drawingState.shouldDrawButtons && gameSession.movement == NULL && gameSession.attackAnimation == NULL) {
         game_drawBottomButtons();
     } else {
         game_drawBottomActivePawn();
