@@ -47,3 +47,10 @@ BEGIN
     MESSAGE "The remaining enemy fleet has joined your command."
     BUTTONS "Ok"
 END
+
+ALERT ID 1004
+BEGIN
+    TITLE "Uh-oh"
+    MESSAGE "This ship cannot take any more actions this turn."
+    BUTTONS "Ok"
+END

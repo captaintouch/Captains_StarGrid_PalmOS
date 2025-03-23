@@ -138,6 +138,10 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
 }
 
 static void gameSession_showPawnActions() {
+    if (gameSession.activePawn->turnComplete) {
+        FrmCustomAlert(GAME_ALERT_NOMOREACTIONS, NULL, NULL, NULL);
+        return;
+    }
     pawnActionMenuViewModel_setupMenuForPawn(gameSession.activePawn, &gameSession.displayButtons, &gameSession.displayButtonCount);
     gameSession.drawingState.shouldRedrawOverlay = true;
     gameSession.state = GAMESTATE_CHOOSEPAWNACTION;
@@ -184,7 +188,7 @@ static int gameSession_nextAvailableFaction(int currentFaction) {
         }
     }
     factionCount++;
-    
+
     nextFaction = (currentFaction + 1) % factionCount;
     while (!gameSession_movesLeftForFaction(nextFaction)) {
         nextFaction = (nextFaction + 1) % factionCount;
@@ -198,7 +202,7 @@ static Pawn *gameSession_nextPawn() {
     int i;
     int startMatching = false;
     for (i = 0; i < gameSession.pawnCount; i++) {
-        if (gameSession.pawns[i].faction == gameSession.factionTurn && gameSession.pawns[i].type == PAWNTYPE_SHIP && !gameSession.pawns[i].turnComplete && !isInvalidCoordinate(gameSession.pawns[i].position)) {
+        if (gameSession.pawns[i].faction == gameSession.factionTurn && gameSession.pawns[i].type == PAWNTYPE_SHIP && !isInvalidCoordinate(gameSession.pawns[i].position)) {
             if (startMatching) {
                 return &gameSession.pawns[i];
             }
@@ -220,7 +224,6 @@ static void gameSession_startTurnForNextFaction() {
     gameSession.activePawn = gameSession_nextPawn();
     gameSession_updateViewPortOffset(true);
     gameSession.drawingState.shouldRedrawOverlay = true;
-    
 }
 
 static Boolean gameSession_handleBarButtonsTap() {
@@ -292,6 +295,7 @@ static void gameSession_handleTargetSelection() {
         return;
     }
 
+    gameSession.activePawn->turnComplete = true;
     switch (gameSession.targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
             gameActionLogic_scheduleMovement(selectedPawn, selectedTile);
@@ -329,6 +333,7 @@ static void gameSession_handlePawnActionButtonSelection() {
             gameSession.state = GAMESTATE_DEFAULT;
             break;
         case MenuActionTypeCloak:
+            gameSession.activePawn->turnComplete = true;
             gameSession.activePawn->cloaked = !gameSession.activePawn->cloaked;
             gameSession.state = GAMESTATE_DEFAULT;
             break;
@@ -536,22 +541,31 @@ void gameSession_progressLogic() {
     } else if (gameSession.lastPenInput.wasUpdatedFlag) {  // handle user actions
         // Handle pen input
         gameSession.lastPenInput.wasUpdatedFlag = false;
-
-        
+        if (gameSession.lastPenInput.moving && !gameSession.lastPenInput.blockUpdatesUntilPenUp) {
             switch (gameSession.state) {
                 case GAMESTATE_DEFAULT:
-                    if (gameSession_handleMiniMapTap()) break;
+                    gameSession_handleMiniMapTap();
+                    break;
+                case GAMESTATE_CHOOSEPAWNACTION:
+                case GAMESTATE_SELECTTARGET:
+                    break;
+            }
+        } else {
+            switch (gameSession.state) {
+                case GAMESTATE_DEFAULT:
+                    if (!gameSession.lastPenInput.blockUpdatesUntilPenUp && gameSession_handleMiniMapTap()) break;
                     if (gameSession_handleTileTap()) break;
                     if (gameSession_handleBarButtonsTap()) break;
                     break;
                 case GAMESTATE_CHOOSEPAWNACTION:
-                    //gameSession.lastPenInput.blockUpdatesUntilPenUp = true;
+                    gameSession.lastPenInput.blockUpdatesUntilPenUp = true;
                     gameSession_handlePawnActionButtonSelection();
                     break;
                 case GAMESTATE_SELECTTARGET:
                     gameSession_handleTargetSelection();
                     break;
             }
+        }
     }
 
     gameSession_progressUpdateMovement();
