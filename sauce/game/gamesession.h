@@ -61,6 +61,9 @@ typedef struct GameSession {
 
     Movement *movement;
     AttackAnimation *attackAnimation;
+
+    Int32 nextGameLogicProgressionTime;
+    UInt32 timeBetweenLogicProgressions;
 } GameSession;
 
 GameSession gameSession;

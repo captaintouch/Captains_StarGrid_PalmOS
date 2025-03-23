@@ -316,6 +316,10 @@ Boolean gameSession_shouldShowHealthBar() {
            gameSession.movement == NULL;
 }
 
+void gameSession_scheduleNextGameLogicProgression() {
+    gameSession.nextGameLogicProgressionTime = TimGetTicks() + gameSession.timeBetweenLogicProgressions;
+}
+
 static void gameSession_handlePawnActionButtonSelection() {
     int i;
     int selectedIndex = bottomMenu_selectedIndex(gameSession.lastPenInput.touchCoordinate);

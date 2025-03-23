@@ -12,6 +12,7 @@
 #include "pawn.h"
 #include "spriteLibrary.h"
 
+#define GAME_LOGIC_TICK 100
 WinHandle backgroundBuffer = NULL;
 WinHandle overlayBuffer = NULL;
 WinHandle screenBuffer = NULL;
@@ -483,6 +484,15 @@ static void game_drawLayout() {
     WinSetDrawWindow(mainWindow);
 }
 
+static Int32 game_timeUntilNextEvent() {
+    Int32 timeleft = evtWaitForever;
+
+    if (gameSession.nextGameLogicProgressionTime != evtWaitForever) {
+        timeleft = gameSession.nextGameLogicProgressionTime - TimGetTicks();
+    }
+    return timeleft;
+}
+
 Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu) {
     gameSession_registerPenInput(eventptr);
     if (eventptr->eType == winDisplayChangedEvent) {
@@ -493,6 +503,10 @@ Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu)
         return false;
 
     game_drawLayout();
-    gameSession_progressLogic();
+
+    if (game_timeUntilNextEvent() <= 0) {
+        gameSession_scheduleNextGameLogicProgression();
+        gameSession_progressLogic();
+    }
     return true;
 }
