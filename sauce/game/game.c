@@ -383,17 +383,22 @@ static void game_drawBottomActivePawn() {
 
 static void game_drawBottomActivePawnStats() {
     Coordinate screenSize = deviceinfo_screenSize();
-    char finalText[10] = "";
-    char valueText[5];
+    int i;
+    /*char finalText[10] = "";
+    char valueText[5];*/
     if (gameSession.activePawn == NULL) {
         return;
     }
-    FntSetFont(boldFont);
     
     drawhelper_drawSprite(&spriteLibrary.healthSprite, (Coordinate){8, screenSize.y - BOTTOMMENU_HEIGHT + 8});
+    game_drawHealthBar(gameSession.activePawn, 28, 6, (Coordinate){16, screenSize.y - BOTTOMMENU_HEIGHT + 5});
+    for (i = 0; i < gameSession.activePawn->inventory.torpedoCount; i++) {
+        drawhelper_drawSprite(&spriteLibrary.torpedoAnimation[2], (Coordinate){8 + (i * (spriteLibrary.torpedoAnimation->size.x + 1)), screenSize.y - BOTTOMMENU_HEIGHT + 20});
+    }
 
     /*
     // Draw health in text
+    FntSetFont(boldFont);
     StrIToA(valueText, gameSession.activePawn->inventory.health);
     StrCat(finalText, valueText);
     StrCat(finalText, "%");
@@ -402,9 +407,8 @@ static void game_drawBottomActivePawnStats() {
     drawhelper_drawText(finalText, (Coordinate){16, screenSize.y - BOTTOMMENU_HEIGHT + 2});
     */
 
-    // Draw health in bar
-    game_drawHealthBar(gameSession.activePawn, 28, 6, (Coordinate){16, screenSize.y - BOTTOMMENU_HEIGHT + 5});
-
+    /*
+    // Draw torpedo count in text
     StrIToA(valueText, gameSession.activePawn->inventory.torpedoCount);
     StrCopy(finalText, valueText);
     StrCat(finalText, "/");
@@ -413,6 +417,7 @@ static void game_drawBottomActivePawnStats() {
     drawhelper_drawSprite(&spriteLibrary.torpedoAnimation[2], (Coordinate){8, screenSize.y - BOTTOMMENU_HEIGHT + 20});
     drawhelper_drawText(finalText, (Coordinate){16, screenSize.y - BOTTOMMENU_HEIGHT + 14});
     FntSetFont(stdFont);
+    */
 }
 
 static void game_drawBottomButtons() {
