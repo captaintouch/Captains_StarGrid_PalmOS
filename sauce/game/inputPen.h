@@ -5,10 +5,10 @@
 #include "models.h"
 
 typedef struct InputPen {
-    Coordinate touchCoordinate;
     Boolean moving;
     Boolean wasUpdatedFlag;
     Boolean blockUpdatesUntilPenUp;
+    Coordinate touchCoordinate;
 } InputPen;
 
 void inputPen_updateEventDetails(InputPen *pen, EventPtr eventPtr);

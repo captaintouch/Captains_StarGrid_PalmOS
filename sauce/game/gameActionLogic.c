@@ -128,3 +128,73 @@ void gameActionLogic_afterAttack() {
         gameSession_initialize();
     }
 }
+
+UInt8 gameActionLogic_maxRange(TargetSelectionType targetSelectionType) {
+    switch (targetSelectionType) {
+        case TARGETSELECTIONTYPE_MOVE:
+            return GAMEMECHANICS_MAXTILEMOVERANGE;
+        case TARGETSELECTIONTYPE_PHASER:
+            return GAMEMECHANICS_MAXTILEPHASERRANGE;
+        case TARGETSELECTIONTYPE_TORPEDO:
+            return GAMEMECHANICS_MAXTILETORPEDORANGE;
+    }
+}
+
+static UInt8 gameActionLogic_healthImpact(Coordinate source, Coordinate target, TargetSelectionType attackType) {
+    int maxRange;
+    int distance;
+    int maxImpact;
+    switch (attackType) {
+        case TARGETSELECTIONTYPE_MOVE:  // Shouldn't be triggered
+        case TARGETSELECTIONTYPE_PHASER:
+            maxRange = gameActionLogic_maxRange(attackType);
+            distance = (maxRange - movement_distance(source, target) + 1);
+            maxImpact = GAMEMECHANICS_MAXIMPACTPHASER;
+            return (float)maxImpact * ((float)distance / (float)maxRange);
+        case TARGETSELECTIONTYPE_TORPEDO:
+            return GAMEMECHANICS_MAXIMPACTTORPEDO;
+    }
+}
+
+static float gameActionLogic_attackDuration(Coordinate source, Coordinate target, TargetSelectionType attackType) {
+    int distance;
+    switch (attackType) {
+        case TARGETSELECTIONTYPE_MOVE:  // Shouldn't be triggered
+        case TARGETSELECTIONTYPE_PHASER:
+            return 1.5;
+        case TARGETSELECTIONTYPE_TORPEDO:
+            distance = movement_distance(source, target) + 1;
+            return (float)distance * 0.35;
+    }
+}
+
+void gameActionLogic_clearAttack() {
+    if (gameSession.attackAnimation != NULL) {
+        if (gameSession.attackAnimation->lines != NULL) {
+            MemPtrFree(gameSession.attackAnimation->lines);
+            gameSession.attackAnimation->lines = NULL;
+        }
+        MemPtrFree(gameSession.attackAnimation);
+        gameSession.attackAnimation = NULL;
+    }
+}
+
+
+void gameActionLogic_scheduleAttack(Pawn *targetPawn, Coordinate selectedTile, TargetSelectionType attackType) {
+    gameActionLogic_clearAttack();
+    if (targetPawn != NULL) {
+        gameSession.targetSelectionType = attackType;
+        gameSession.attackAnimation = (AttackAnimation *)MemPtrNew(sizeof(AttackAnimation));
+        MemSet(gameSession.attackAnimation, sizeof(AttackAnimation), 0);
+        gameSession.attackAnimation->torpedoPosition = (Coordinate){-1, -1};
+        gameSession.attackAnimation->explosionPosition = (Coordinate){-1, -1};
+        gameSession.attackAnimation->launchTimestamp = TimGetTicks();
+        gameSession.attackAnimation->target = selectedTile;
+        gameSession.attackAnimation->targetPawn = targetPawn;
+        gameSession.attackAnimation->healthImpact = gameActionLogic_healthImpact(gameSession.activePawn->position, selectedTile, gameSession.targetSelectionType);
+        gameSession.attackAnimation->durationSeconds = gameActionLogic_attackDuration(gameSession.activePawn->position, selectedTile, gameSession.targetSelectionType);
+        gameSession.activePawn->orientation = movement_orientationBetween(gameSession.activePawn->position, selectedTile);
+    } else {
+        gameSession.state = GAMESTATE_DEFAULT;
+    }
+}

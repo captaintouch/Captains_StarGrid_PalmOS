@@ -16,7 +16,7 @@ void gameSession_initialize() {
     gameSession.colorSupport = deviceinfo_colorSupported();
 
     gameSession.state = GAMESTATE_DEFAULT;
-    gameSession.lastPenInput = (InputPen){(Coordinate){-1, -1}, false, false, false};
+    gameSession.lastPenInput = (InputPen){false, false, false, (Coordinate){-1, -1}};
 
     gameSession.pawns = NULL;
     gameSession.activePawn = NULL;
@@ -95,20 +95,9 @@ static Pawn *gameSession_pawnAtTile(Coordinate tile) {
     return NULL;
 }
 
-static UInt8 gameSession_maxRange(TargetSelectionType targetSelectionType) {
-    switch (targetSelectionType) {
-        case TARGETSELECTIONTYPE_MOVE:
-            return GAMEMECHANICS_MAXTILEMOVERANGE;
-        case TARGETSELECTIONTYPE_PHASER:
-            return GAMEMECHANICS_MAXTILEPHASERRANGE;
-        case TARGETSELECTIONTYPE_TORPEDO:
-            return GAMEMECHANICS_MAXTILETORPEDORANGE;
-    }
-}
-
 static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPosition, TargetSelectionType targetSelectionType) {
     int i;
-    int maxTileRange = gameSession_maxRange(targetSelectionType);
+    int maxTileRange = gameActionLogic_maxRange(targetSelectionType);
     Coordinate *coordinates = NULL;
     int coordinatesCount = 0;
     switch (targetSelectionType) {
@@ -279,17 +268,6 @@ static Boolean gameSession_highlightTilesContains(Coordinate coordinate) {
     return false;
 }
 
-static void gameSession_clearAttack() {
-    if (gameSession.attackAnimation != NULL) {
-        if (gameSession.attackAnimation->lines != NULL) {
-            MemPtrFree(gameSession.attackAnimation->lines);
-            gameSession.attackAnimation->lines = NULL;
-        }
-        MemPtrFree(gameSession.attackAnimation);
-        gameSession.attackAnimation = NULL;
-    }
-}
-
 static void gameSession_resetHighlightTiles() {
     if (gameSession.highlightTiles != NULL) {
         MemPtrFree(gameSession.highlightTiles);
@@ -300,53 +278,6 @@ static void gameSession_resetHighlightTiles() {
         MemPtrFree(gameSession.secondaryHighlightTiles);
         gameSession.secondaryHighlightTiles = NULL;
         gameSession.secondaryHighlightTileCount = 0;
-    }
-}
-
-static UInt8 gameSession_healthImpact(Coordinate source, Coordinate target, TargetSelectionType attackType) {
-    int maxRange;
-    int distance;
-    int maxImpact;
-    switch (attackType) {
-        case TARGETSELECTIONTYPE_MOVE:  // Shouldn't be triggered
-        case TARGETSELECTIONTYPE_PHASER:
-            maxRange = gameSession_maxRange(attackType);
-            distance = (maxRange - movement_distance(source, target) + 1);
-            maxImpact = GAMEMECHANICS_MAXIMPACTPHASER;
-            return (float)maxImpact * ((float)distance / (float)maxRange);
-        case TARGETSELECTIONTYPE_TORPEDO:
-            return GAMEMECHANICS_MAXIMPACTTORPEDO;
-    }
-}
-
-static float gameSession_attackDuration(Coordinate source, Coordinate target, TargetSelectionType attackType) {
-    int distance;
-    switch (attackType) {
-        case TARGETSELECTIONTYPE_MOVE:  // Shouldn't be triggered
-        case TARGETSELECTIONTYPE_PHASER:
-            return 1.5;
-        case TARGETSELECTIONTYPE_TORPEDO:
-            distance = movement_distance(source, target) + 1;
-            return (float)distance * 0.35;
-    }
-}
-
-static void gameSession_scheduleAttack(Pawn *targetPawn, Coordinate selectedTile, TargetSelectionType attackType) {
-    gameSession_clearAttack();
-    if (targetPawn != NULL) {
-        gameSession.targetSelectionType = attackType;
-        gameSession.attackAnimation = (AttackAnimation *)MemPtrNew(sizeof(AttackAnimation));
-        MemSet(gameSession.attackAnimation, sizeof(AttackAnimation), 0);
-        gameSession.attackAnimation->torpedoPosition = (Coordinate){-1, -1};
-        gameSession.attackAnimation->explosionPosition = (Coordinate){-1, -1};
-        gameSession.attackAnimation->launchTimestamp = TimGetTicks();
-        gameSession.attackAnimation->target = selectedTile;
-        gameSession.attackAnimation->targetPawn = targetPawn;
-        gameSession.attackAnimation->healthImpact = gameSession_healthImpact(gameSession.activePawn->position, selectedTile, gameSession.targetSelectionType);
-        gameSession.attackAnimation->durationSeconds = gameSession_attackDuration(gameSession.activePawn->position, selectedTile, gameSession.targetSelectionType);
-        gameSession.activePawn->orientation = movement_orientationBetween(gameSession.activePawn->position, selectedTile);
-    } else {
-        gameSession.state = GAMESTATE_DEFAULT;
     }
 }
 
@@ -367,7 +298,7 @@ static void gameSession_handleTargetSelection() {
             break;
         case TARGETSELECTIONTYPE_PHASER:
         case TARGETSELECTIONTYPE_TORPEDO:
-            gameSession_scheduleAttack(selectedPawn, selectedTile, gameSession.targetSelectionType);
+            gameActionLogic_scheduleAttack(selectedPawn, selectedTile, gameSession.targetSelectionType);
             break;
     }
 
@@ -469,7 +400,7 @@ static void gameSession_progressUpdateExplosion() {
     timeSinceLaunch = TimGetTicks() - gameSession.attackAnimation->explosionTimestamp;
     timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * gameSession.attackAnimation->explosionDurationSeconds);
     if (timePassedScale >= 1) {
-        gameSession_clearAttack();
+        gameActionLogic_clearAttack();
         gameSession.state = GAMESTATE_DEFAULT;
     }
 }
@@ -521,7 +452,7 @@ static void gameSession_progressUpdateAttack() {
             gameSession.attackAnimation->explosionTimestamp = TimGetTicks();
             gameSession.attackAnimation->explosionDurationSeconds = 0.5;
         } else {
-            gameSession_clearAttack();
+            gameActionLogic_clearAttack();
             gameSession.state = GAMESTATE_DEFAULT;
         }
     }
@@ -584,7 +515,7 @@ static void gameSession_cpuTurn() {
             case CPUACTION_PHASERATTACK:
             case CPUACTION_TORPEDOATTACK:
                 gameSession_updateViewPortOffset(true);
-                gameSession_scheduleAttack(strategy.target, strategy.target->position, strategy.CPUAction == CPUACTION_PHASERATTACK ? TARGETSELECTIONTYPE_PHASER : TARGETSELECTIONTYPE_TORPEDO);
+                gameActionLogic_scheduleAttack(strategy.target, strategy.target->position, strategy.CPUAction == CPUACTION_PHASERATTACK ? TARGETSELECTIONTYPE_PHASER : TARGETSELECTIONTYPE_TORPEDO);
                 break;
             case CPUACTION_CLOAK:
                 pawn->cloaked = !pawn->cloaked;
@@ -606,31 +537,21 @@ void gameSession_progressLogic() {
         // Handle pen input
         gameSession.lastPenInput.wasUpdatedFlag = false;
 
-        if (gameSession.lastPenInput.moving && !gameSession.lastPenInput.blockUpdatesUntilPenUp) {
+        
             switch (gameSession.state) {
                 case GAMESTATE_DEFAULT:
-                    gameSession_handleMiniMapTap();
-                    break;
-                case GAMESTATE_CHOOSEPAWNACTION:
-                case GAMESTATE_SELECTTARGET:
-                    break;
-            }
-        } else {
-            switch (gameSession.state) {
-                case GAMESTATE_DEFAULT:
-                    if (!gameSession.lastPenInput.blockUpdatesUntilPenUp && gameSession_handleMiniMapTap()) break;
+                    if (gameSession_handleMiniMapTap()) break;
                     if (gameSession_handleTileTap()) break;
                     if (gameSession_handleBarButtonsTap()) break;
                     break;
                 case GAMESTATE_CHOOSEPAWNACTION:
-                    gameSession.lastPenInput.blockUpdatesUntilPenUp = true;
+                    //gameSession.lastPenInput.blockUpdatesUntilPenUp = true;
                     gameSession_handlePawnActionButtonSelection();
                     break;
                 case GAMESTATE_SELECTTARGET:
                     gameSession_handleTargetSelection();
                     break;
             }
-        }
     }
 
     gameSession_progressUpdateMovement();
