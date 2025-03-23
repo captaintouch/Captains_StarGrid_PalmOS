@@ -132,6 +132,28 @@ static ImageSprite *game_spriteForPawn(Pawn *pawn) {
     return &spriteLibrary_factionShipSprite(pawn->faction)[pawn->orientation];
 }
 
+static void game_drawHealthBar(Pawn *pawn, int maxWidth, int height, Coordinate position) {
+    int maxHealth, healthWidth;
+    RectangleType rect;
+    if (pawn->type == PAWNTYPE_SHIP) {
+        maxHealth = GAMEMECHANICS_MAXSHIPHEALTH;
+    } else {
+        maxHealth = GAMEMECHANICS_MAXBASEHEALTH;
+    }
+
+    // draw border
+    drawhelper_applyForeColor(CLOUDS);
+    RctSetRectangle(&rect, position.x - 1, position.y - 1, maxWidth + 2, height + 2);
+    drawhelper_fillRectangle(&rect, 0);
+
+    healthWidth = (maxWidth * pawn->inventory.health) / maxHealth;
+    drawhelper_applyForeColor(ALIZARIN);
+    RctSetRectangle(&rect, position.x, position.y, healthWidth, height);
+    drawhelper_fillRectangle(&rect, 0);
+
+    
+}
+
 static void game_drawPawns() {
     int i;
     if (gameSession.activePawn != NULL) {
@@ -177,9 +199,7 @@ static void game_drawPawns() {
 
     // DRAW ACCESSORIES (FLAGS, FACTION INDICATORS)
     for (i = 0; i < gameSession.pawnCount; i++) {
-        RectangleType rect;
         Pawn *pawn = &gameSession.pawns[i];
-        int maxHealthWidth, healthWidth, maxHealth;
         Coordinate pawnPosition = hexgrid_tileCenterPosition(pawn->position);
         if (isInvalidCoordinate(pawnPosition)) {
             continue;
@@ -201,17 +221,9 @@ static void game_drawPawns() {
             }
         }
 
-        if (gameSession_shouldShowHealthBar()) {
-            if (pawn->type == PAWNTYPE_SHIP) {
-                maxHealth = GAMEMECHANICS_MAXSHIPHEALTH;
-            } else {
-                maxHealth = GAMEMECHANICS_MAXBASEHEALTH;
-            }
-            maxHealthWidth = HEXTILE_PAWNSIZE;
-            healthWidth = (maxHealthWidth * pawn->inventory.health) / maxHealth;
-            drawhelper_applyForeColor(ALIZARIN);
-            RctSetRectangle(&rect, pawnPosition.x - maxHealthWidth / 2, pawnPosition.y + HEXTILE_PAWNSIZE / 2, healthWidth, 2);
-            drawhelper_fillRectangle(&rect, 0);
+        if (gameSession_shouldShowHealthBar() && gameSession.factionTurn != gameSession.pawns[i].faction) {
+            int maxHealthWidth = HEXTILE_PAWNSIZE;
+            game_drawHealthBar(&gameSession.pawns[i], maxHealthWidth, 2, (Coordinate){pawnPosition.x - maxHealthWidth / 2, pawnPosition.y + HEXTILE_PAWNSIZE / 2});
         }
     }
 }
@@ -377,13 +389,21 @@ static void game_drawBottomActivePawnStats() {
         return;
     }
     FntSetFont(boldFont);
+    
+    drawhelper_drawSprite(&spriteLibrary.healthSprite, (Coordinate){8, screenSize.y - BOTTOMMENU_HEIGHT + 8});
+
+    /*
+    // Draw health in text
     StrIToA(valueText, gameSession.activePawn->inventory.health);
     StrCat(finalText, valueText);
     StrCat(finalText, "%");
-    drawhelper_drawSprite(&spriteLibrary.healthSprite, (Coordinate){8, screenSize.y - BOTTOMMENU_HEIGHT + 8});
     drawhelper_applyBackgroundColor(pawn_factionColor(gameSession.activePawn->faction));
     drawhelper_applyTextColor(DRACULAORCHID);
     drawhelper_drawText(finalText, (Coordinate){16, screenSize.y - BOTTOMMENU_HEIGHT + 2});
+    */
+
+    // Draw health in bar
+    game_drawHealthBar(gameSession.activePawn, 28, 6, (Coordinate){16, screenSize.y - BOTTOMMENU_HEIGHT + 5});
 
     StrIToA(valueText, gameSession.activePawn->inventory.torpedoCount);
     StrCopy(finalText, valueText);
