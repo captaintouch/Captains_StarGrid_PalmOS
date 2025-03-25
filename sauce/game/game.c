@@ -11,6 +11,7 @@
 #include "minimap.h"
 #include "pawn.h"
 #include "spriteLibrary.h"
+#include "viewport.h"
 
 #define GAME_LOGIC_TICK 100
 WinHandle backgroundBuffer = NULL;
@@ -76,15 +77,16 @@ static void game_drawAttackAnimation() {
     if (isInvalidCoordinate(gameSession.attackAnimation->torpedoPosition)) {  // Phaser animation
         drawhelper_applyForeColor(ALIZARIN);
         for (i = 0; i < gameSession.attackAnimation->lineCount; i++) {
+            Line targetLine = viewport_convertedLine(gameSession.attackAnimation->lines[i]);
             if (i % 2 == 0) {
                 drawhelper_applyForeColor(ALIZARIN);
             } else {
                 drawhelper_applyForeColor(SUNFLOWER);
             }
-            drawhelper_drawLine(&gameSession.attackAnimation->lines[i]);
+            drawhelper_drawLine(&targetLine);
         }
     } else {  // Torpedo animation
-        drawhelper_drawAnimatedSprite(spriteLibrary.torpedoAnimation, GFX_FRAMECOUNT_TORP, gameSession.attackAnimation->torpedoPosition, gameSession.attackAnimation->launchTimestamp, gameSession.attackAnimation->durationSeconds);
+        drawhelper_drawAnimatedSprite(spriteLibrary.torpedoAnimation, GFX_FRAMECOUNT_TORP, viewport_convertedCoordinate(gameSession.attackAnimation->torpedoPosition), gameSession.attackAnimation->launchTimestamp, gameSession.attackAnimation->durationSeconds);
     }
 }
 
@@ -93,17 +95,17 @@ static void game_drawHighlightTiles() {  // Tiles that need to be highlighted (f
     if (gameSession.secondaryHighlightTiles != NULL && gameSession.secondaryHighlightTileCount > 0) {
         drawhelper_applyForeColor(gameSession_hightlightTilesColor());
         for (i = 0; i < gameSession.secondaryHighlightTileCount; i++) {
-            hexgrid_drawTileAtPosition(gameSession.secondaryHighlightTiles[i]);
+            hexgrid_drawTileAtPosition(gameSession.secondaryHighlightTiles[i], true);
         }
     }
     if (gameSession.highlightTiles != NULL && gameSession.highlightTileCount > 0) {
         drawhelper_applyForeColor(gameSession_hightlightTilesColor());
         for (i = 0; i < gameSession.highlightTileCount; i++) {
-            hexgrid_fillTileAtPosition(gameSession.highlightTiles[i]);
+            hexgrid_fillTileAtPosition(gameSession.highlightTiles[i], true);
         }
         drawhelper_applyForeColor(CLOUDS);
         for (i = 0; i < gameSession.highlightTileCount; i++) {
-            hexgrid_drawTileAtPosition(gameSession.highlightTiles[i]);
+            hexgrid_drawTileAtPosition(gameSession.highlightTiles[i], true);
         }
     }
 }
@@ -159,19 +161,20 @@ static void game_drawPawns() {
     int i;
     if (gameSession.activePawn != NULL) {
         drawhelper_applyForeColor(EMERALD);
-        hexgrid_drawTileAtPosition(gameSession.activePawn->position);
+        hexgrid_drawTileAtPosition(gameSession.activePawn->position, true);
     }
 
     // DRAW BASES
     for (i = 0; i < gameSession.pawnCount; i++) {
         Pawn *pawn = &gameSession.pawns[i];
-        Coordinate pawnPosition;
+        Coordinate pawnPosition, pawnPositionConverted;
         RectangleType rect;
         if (pawn->type != PAWNTYPE_BASE) {
             continue;
         }
         pawnPosition = hexgrid_tileCenterPosition(pawn->position);
-        RctSetRectangle(&rect, pawnPosition.x - 6, pawnPosition.y - 6, 12, 12);
+        pawnPositionConverted = viewport_convertedCoordinate(pawnPosition);
+        RctSetRectangle(&rect, pawnPositionConverted.x - 6, pawnPositionConverted.y - 6, 12, 12);
         drawhelper_applyForeColor(pawn_factionColor(pawn->faction));
         drawhelper_fillRectangle(&rect, 0);
         hexgrid_drawSpriteAtTile(&spriteLibrary.baseSprite, pawn->position);
@@ -192,7 +195,7 @@ static void game_drawPawns() {
         }
 
         if (gameSession.movement->pawn == pawn) {
-            drawhelper_drawSprite(shipSprite, gameSession.movement->pawnPosition);
+            drawhelper_drawSprite(shipSprite, viewport_convertedCoordinate(gameSession.movement->pawnPosition));
         } else {
             hexgrid_drawSpriteAtTile(shipSprite, pawn->position);
         }
@@ -206,14 +209,15 @@ static void game_drawPawns() {
             continue;
         }
         if (pawn->inventory.carryingFlag) {
-            game_drawFlag(pawnPosition, pawn_factionColor(pawn->inventory.flagOfFaction));
+            game_drawFlag(viewport_convertedCoordinate(pawnPosition), pawn_factionColor(pawn->inventory.flagOfFaction));
         }
 
         // Draw faction indicator
         if (pawn->type == PAWNTYPE_SHIP) {
             if (gameSession.colorSupport) {
                 RectangleType flagRect;
-                RctSetRectangle(&flagRect, pawnPosition.x + 5, pawnPosition.y - 10, 5, 5);
+                Coordinate target = viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 10});
+                RctSetRectangle(&flagRect, target.x, target.y, 5, 5);
                 drawhelper_applyForeColor(pawn_factionColor(pawn->faction));
                 drawhelper_fillRectangle(&flagRect, 0);
             } else {
@@ -224,7 +228,7 @@ static void game_drawPawns() {
 
         if (gameSession_shouldShowHealthBar() && gameSession.factionTurn != gameSession.pawns[i].faction) {
             int maxHealthWidth = HEXTILE_PAWNSIZE;
-            game_drawHealthBar(&gameSession.pawns[i], maxHealthWidth, 2, (Coordinate){pawnPosition.x - maxHealthWidth / 2, pawnPosition.y + HEXTILE_PAWNSIZE / 2});
+            game_drawHealthBar(&gameSession.pawns[i], maxHealthWidth, 2, viewport_convertedCoordinate((Coordinate){pawnPosition.x - maxHealthWidth / 2, pawnPosition.y + HEXTILE_PAWNSIZE / 2}));
         }
     }
 }
@@ -250,9 +254,9 @@ static void game_drawDebugTrajectoryMovement() {
         StrCat(finalText, ",");
         StrIToA(valueText, currentPosition.y);
         StrCat(finalText, valueText);
-        drawhelper_drawText(finalText, hexgrid_tileCenterPosition(currentPosition));
+        drawhelper_drawText(finalText, viewport_convertedCoordinate(hexgrid_tileCenterPosition(currentPosition)));
         if (i > 0) {
-            drawhelper_drawLineBetweenCoordinates(hexgrid_tileCenterPosition(gameSession.movement->trajectory.tileCoordinates[i]), hexgrid_tileCenterPosition(gameSession.movement->trajectory.tileCoordinates[i - 1]));
+            drawhelper_drawLineBetweenCoordinates(viewport_convertedCoordinate(hexgrid_tileCenterPosition(gameSession.movement->trajectory.tileCoordinates[i])), viewport_convertedCoordinate(hexgrid_tileCenterPosition(gameSession.movement->trajectory.tileCoordinates[i - 1])));
         }
     }
 #endif
@@ -304,21 +308,23 @@ static void game_drawBackground() {
     hexgrid_drawEntireGrid();
 }
 
-static void game_drawOverlay() {  // ships, special tiles, etc.
+static void game_drawDynamicViews() {  // ships, special tiles, etc.
+    // everything drawn in this function must have it's coordinates offset to the current viewport
     RectangleType lamerect;
     Err err = errNone;
     Coordinate gridSize;
+    Coordinate screenSize = deviceinfo_screenSize();
     if (!gameSession.drawingState.shouldRedrawOverlay && overlayBuffer != NULL) {
         return;
     }
     gameSession.drawingState.shouldRedrawOverlay = false;
     gridSize = hexgrid_size();
     if (overlayBuffer == NULL) {
-        overlayBuffer = WinCreateOffscreenWindow(gridSize.x, gridSize.y, screenFormat, &err);
+        overlayBuffer = WinCreateOffscreenWindow(screenSize.x, screenSize.y - BOTTOMMENU_HEIGHT, screenFormat, &err);
     }
 
     WinSetDrawWindow(overlayBuffer);
-    RctSetRectangle(&lamerect, 0, 0, gridSize.x, gridSize.y);
+    RctSetRectangle(&lamerect, gameSession.viewportOffset.x, gameSession.viewportOffset.y, screenSize.x, screenSize.y);
     WinCopyRectangle(backgroundBuffer, overlayBuffer, &lamerect, 0, 0, winPaint);
 
     game_drawHighlightTiles();
@@ -378,6 +384,7 @@ static void game_drawBottomActivePawn() {
     drawhelper_applyForeColor(DRACULAORCHID);
     drawhelper_fillRectangle(&rect, 4);
     
+    pawnCenterPosition = viewport_convertedCoordinate(pawnCenterPosition);
     RctSetRectangle(&rect, pawnCenterPosition.x - HEXTILE_PAWNSIZE / 2, pawnCenterPosition.y - HEXTILE_PAWNSIZE / 2, HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE);
     WinCopyRectangle(overlayBuffer, screenBuffer, &rect, targetCenterPosition.x, targetCenterPosition.y, winPaint);
 }
@@ -469,10 +476,10 @@ static void game_drawLayout() {
         screenBuffer = WinCreateOffscreenWindow(screenSize.x, screenSize.y, screenFormat, &err);
     }
     game_drawBackground();
-    game_drawOverlay();
+    game_drawDynamicViews();
 
     WinSetDrawWindow(screenBuffer);
-    RctSetRectangle(&lamerect, gameSession.viewportOffset.x, gameSession.viewportOffset.y, screenSize.x, screenSize.y - BOTTOMMENU_HEIGHT);
+    RctSetRectangle(&lamerect, 0, 0, screenSize.x, screenSize.y - BOTTOMMENU_HEIGHT);
     WinCopyRectangle(overlayBuffer, screenBuffer, &lamerect, 0, 0, winPaint);
 
     game_drawUserInterfaceElements();

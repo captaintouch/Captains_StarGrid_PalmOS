@@ -5,6 +5,7 @@
 #include "drawhelper.h"
 #include "mathIsFun.h"
 #include "models.h"
+#include "viewport.h"
 #define HEXTILE_POINTS 6
 
 int hexgrid_tilePattern[HEXTILE_SIZE];
@@ -88,13 +89,19 @@ Coordinate hexgrid_tileCenterPosition(Coordinate tilePosition) {
     return (Coordinate){position.x + HEXTILE_SIZE / 2, position.y + HEXTILE_SIZE / 2};
 }
 
-void hexgrid_drawTileAtPosition(Coordinate hexPosition) {
+void hexgrid_drawTileAtPosition(Coordinate hexPosition, Boolean adjustForViewport) {
     Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
+    if (adjustForViewport) {
+        startPosition = viewport_convertedCoordinate(startPosition);
+    }
     hexgrid_drawTile(startPosition.x, startPosition.y);
 }
 
-void hexgrid_fillTileAtPosition(Coordinate hexPosition) {
+void hexgrid_fillTileAtPosition(Coordinate hexPosition, Boolean adjustForViewport) {
     Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
+    if (adjustForViewport) {
+        startPosition = viewport_convertedCoordinate(startPosition);
+    }
     hexgrid_fillTile(startPosition.x, startPosition.y);
 }
 
@@ -103,7 +110,7 @@ void hexgrid_drawEntireGrid() {
     drawhelper_applyForeColor(ASBESTOS);
     for (i = 0; i < HEXGRID_COLS; i++) {
         for (j = 0; j < HEXGRID_ROWS; j++) {
-            hexgrid_drawTileAtPosition((Coordinate){i, j});
+            hexgrid_drawTileAtPosition((Coordinate){i, j}, false);
         }
     }
 }
@@ -147,5 +154,5 @@ Coordinate hexgrid_size() {
 void hexgrid_drawSpriteAtTile(ImageSprite *imageSprite, Coordinate hexPosition) {
     Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
     Coordinate centerPosition = (Coordinate){startPosition.x + HEXTILE_SIZE / 2, startPosition.y + HEXTILE_SIZE / 2};
-    drawhelper_drawSprite(imageSprite, centerPosition);
+    drawhelper_drawSprite(imageSprite, viewport_convertedCoordinate(centerPosition));
 }

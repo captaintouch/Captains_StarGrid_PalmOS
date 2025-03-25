@@ -14,3 +14,9 @@ Coordinate viewport_convertedCoordinateInverted(Coordinate coordinate) {
     coordinate.y = gameSession.viewportOffset.y + coordinate.y;
     return coordinate;
 }
+
+Line viewport_convertedLine(Line line) {
+    line.startpoint = viewport_convertedCoordinate(line.startpoint);
+    line.endpoint = viewport_convertedCoordinate(line.endpoint);
+    return line;
+}

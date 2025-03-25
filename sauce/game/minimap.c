@@ -4,6 +4,7 @@
 #include "../deviceinfo.h"
 #include "../constants.h"
 #include "pawn.h"
+#include "viewport.h"
 
 static Coordinate minimap_positionOnMap(Coordinate coordinate, Coordinate mapSize, Coordinate gridSize) {
     return (Coordinate){(float)coordinate.x / (float)gridSize.x * (float)mapSize.x, (float)coordinate.y / (float)gridSize.y * (float)mapSize.y};

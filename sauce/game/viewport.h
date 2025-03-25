@@ -5,5 +5,5 @@
 
 Coordinate viewport_convertedCoordinate(Coordinate coordinate);
 Coordinate viewport_convertedCoordinateInverted(Coordinate coordinate);
-
+Line viewport_convertedLine(Line line);
 #endif

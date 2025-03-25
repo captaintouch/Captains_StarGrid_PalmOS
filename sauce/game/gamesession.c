@@ -258,6 +258,7 @@ static Boolean gameSession_handleMiniMapTap() {
         return false;
     }
     gameSession.viewportOffset = gameSession_validViewportOffset(viewportOffset);
+    gameSession.drawingState.shouldRedrawOverlay = true;
     return true;
 }
 
