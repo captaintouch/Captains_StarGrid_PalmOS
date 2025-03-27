@@ -13,7 +13,6 @@
 #include "spriteLibrary.h"
 #include "viewport.h"
 
-#define GAME_LOGIC_TICK 100
 WinHandle backgroundBuffer = NULL;
 WinHandle overlayBuffer = NULL;
 WinHandle screenBuffer = NULL;
@@ -511,7 +510,7 @@ Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu)
 
     game_drawLayout();
 
-    if (game_timeUntilNextEvent() <= 0) {
+    if (gameSession.lastPenInput.wasUpdatedFlag || game_timeUntilNextEvent() <= 0) {
         gameSession_scheduleNextGameLogicProgression();
         gameSession_progressLogic();
     }

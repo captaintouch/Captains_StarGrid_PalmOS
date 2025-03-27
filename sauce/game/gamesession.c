@@ -11,12 +11,15 @@
 #include "pawnActionMenuViewModel.h"
 #include "viewport.h"
 
+#define GAME_LOGIC_TICK 20
+
 void gameSession_initialize() {
     gameSession.diaSupport = deviceinfo_diaSupported();
     gameSession.colorSupport = deviceinfo_colorSupported();
+    gameSession.timeBetweenLogicProgressions = SysTicksPerSecond() / GAME_LOGIC_TICK;
 
     gameSession.state = GAMESTATE_DEFAULT;
-    gameSession.lastPenInput = (InputPen){false, false, false, (Coordinate){-1, -1}};
+    gameSession.lastPenInput = (InputPen){false, false, (Coordinate){-1, -1}};
 
     gameSession.pawns = NULL;
     gameSession.activePawn = NULL;
@@ -546,7 +549,7 @@ void gameSession_progressLogic() {
     } else if (gameSession.lastPenInput.wasUpdatedFlag) {  // handle user actions
         // Handle pen input
         gameSession.lastPenInput.wasUpdatedFlag = false;
-        if (gameSession.lastPenInput.moving && !gameSession.lastPenInput.blockUpdatesUntilPenUp) {
+        if (gameSession.lastPenInput.moving) {
             switch (gameSession.state) {
                 case GAMESTATE_DEFAULT:
                     gameSession_handleMiniMapTap();
@@ -558,12 +561,12 @@ void gameSession_progressLogic() {
         } else {
             switch (gameSession.state) {
                 case GAMESTATE_DEFAULT:
-                    if (!gameSession.lastPenInput.blockUpdatesUntilPenUp && gameSession_handleMiniMapTap()) break;
+                    if (gameSession_handleMiniMapTap()) break;
                     if (gameSession_handleTileTap()) break;
                     if (gameSession_handleBarButtonsTap()) break;
                     break;
                 case GAMESTATE_CHOOSEPAWNACTION:
-                    gameSession.lastPenInput.blockUpdatesUntilPenUp = true;
+                    //gameSession.lastPenInput.blockUpdatesUntilPenUp = true;
                     gameSession_handlePawnActionButtonSelection();
                     break;
                 case GAMESTATE_SELECTTARGET:
