@@ -23,6 +23,7 @@ typedef struct DrawingState {
     Boolean shouldRedrawBackground;
     Boolean shouldRedrawOverlay;
     Boolean shouldDrawButtons;
+    Boolean requiresPauseAfterLayout;
 
     Coordinate miniMapDrawPosition;
     Coordinate miniMapSize;
@@ -38,6 +39,8 @@ typedef struct GameSession {
     Pawn *pawns;
     int pawnCount;
     Pawn *activePawn;
+
+    Char cpuActionText[10];
 
     int playerFaction; // Replace this in the future with a Faction array (multiple users can be human, others can be cpu)
     int factionTurn;

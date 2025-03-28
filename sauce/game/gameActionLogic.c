@@ -61,6 +61,7 @@ void gameActionLogic_scheduleMovement(Pawn *targetPawn, Coordinate selectedTile)
 Boolean gameActionLogic_afterMove() {
     Boolean didScheduleMovement = false;
     Pawn *selectedPawn = gameSession.movement->targetPawn;
+    StrCopy(gameSession.cpuActionText, "");
     // Check if flag was captured
     if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->inventory.carryingFlag && selectedPawn->inventory.flagOfFaction != gameSession.activePawn->faction) {
         gameSession.activePawn->inventory.carryingFlag = true;
@@ -101,6 +102,7 @@ Boolean gameActionLogic_afterMove() {
 }
 
 void gameActionLogic_afterAttack() {
+    StrCopy(gameSession.cpuActionText, "");
     // Update inventory stats
     gameSession.attackAnimation->targetPawn->inventory.health -= gameSession.attackAnimation->healthImpact;
     if (gameSession.targetSelectionType == TARGETSELECTIONTYPE_TORPEDO) {

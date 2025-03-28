@@ -386,6 +386,13 @@ static void game_drawBottomActivePawn() {
     pawnCenterPosition = viewport_convertedCoordinate(pawnCenterPosition);
     RctSetRectangle(&rect, pawnCenterPosition.x - HEXTILE_PAWNSIZE / 2, pawnCenterPosition.y - HEXTILE_PAWNSIZE / 2, HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE);
     WinCopyRectangle(overlayBuffer, screenBuffer, &rect, targetCenterPosition.x, targetCenterPosition.y, winPaint);
+
+    if (gameSession.playerFaction != gameSession.activePawn->faction) { // draw cpu action text
+        int textWidth = FntCharsWidth(gameSession.cpuActionText, StrLen(gameSession.cpuActionText));
+        drawhelper_applyTextColor(CLOUDS);
+        drawhelper_applyBackgroundColor(DRACULAORCHID);
+        drawhelper_drawText(gameSession.cpuActionText, (Coordinate){screenSize.x / 2 - textWidth / 2, screenSize.y - 12});
+    }
 }
 
 static void game_drawBottomActivePawnStats() {
@@ -488,6 +495,11 @@ static void game_drawLayout() {
                      GAMEWINDOW_Y,
                      winPaint);
     WinSetDrawWindow(mainWindow);
+
+    if (gameSession.drawingState.requiresPauseAfterLayout) {
+        gameSession.drawingState.requiresPauseAfterLayout = false;
+        sleep(1000);
+    }
 }
 
 static Int32 game_timeUntilNextEvent() {

@@ -24,7 +24,7 @@ void gameSession_initialize() {
     gameSession.pawns = NULL;
     gameSession.activePawn = NULL;
 
-    gameSession.drawingState = (DrawingState){true, true, false, (Coordinate){0, 0}, (Coordinate){0, 0}};
+    gameSession.drawingState = (DrawingState){true, true, false, false, (Coordinate){0, 0}, (Coordinate){0, 0}};
 
     if (gameSession.pawns != NULL) {
         gameSession.pawnCount = 0;
@@ -507,33 +507,35 @@ static void gameSession_cpuTurn() {
         strategy = cpuLogic_getStrategy(pawn, gameSession.pawns, gameSession.pawnCount);
         pawn->turnComplete = true;
         gameSession.activePawn = pawn;
+        gameSession_updateViewPortOffset(true);
         switch (strategy.CPUAction) {
             case CPUACTION_MOVE:
-                gameSession_updateViewPortOffset(true);
                 closestTile = movement_closestTileToTargetInRange(pawn, strategy.target, gameSession.pawns, gameSession.pawnCount, true);
                 if (isEqualCoordinate(closestTile, strategy.target->position)) {
                     targetPawn = strategy.target;
                 } else {
                     targetPawn = NULL;
                 }
-                /*
-                #ifdef DEBUG
-                drawhelper_drawTextWithValue("MOVE ADJ X: ", closestTile.x, (Coordinate){0, 40});
-                drawhelper_drawTextWithValue("Y: ", closestTile.y, (Coordinate){60, 40});
-                sleep(1000);
-                #endif
-                */
                 gameActionLogic_scheduleMovement(targetPawn, closestTile);
+                StrCopy(gameSession.cpuActionText, "Moving");
                 break;
             case CPUACTION_PHASERATTACK:
             case CPUACTION_TORPEDOATTACK:
-                gameSession_updateViewPortOffset(true);
                 gameActionLogic_scheduleAttack(strategy.target, strategy.target->position, strategy.CPUAction == CPUACTION_PHASERATTACK ? TARGETSELECTIONTYPE_PHASER : TARGETSELECTIONTYPE_TORPEDO);
+                StrCopy(gameSession.cpuActionText, "Attacking");
                 break;
             case CPUACTION_CLOAK:
                 pawn->cloaked = !pawn->cloaked;
+                if (pawn->cloaked) {
+                    StrCopy(gameSession.cpuActionText, "Cloaking");
+                } else {
+                    StrCopy(gameSession.cpuActionText, "Decloaking");
+                }
+                gameSession.drawingState.requiresPauseAfterLayout = true;
                 break;
             case CPUACTION_NONE:
+                StrCopy(gameSession.cpuActionText, "No action");
+                gameSession.drawingState.requiresPauseAfterLayout = true;
                 break;
         }
         return;
@@ -566,7 +568,6 @@ void gameSession_progressLogic() {
                     if (gameSession_handleBarButtonsTap()) break;
                     break;
                 case GAMESTATE_CHOOSEPAWNACTION:
-                    //gameSession.lastPenInput.blockUpdatesUntilPenUp = true;
                     gameSession_handlePawnActionButtonSelection();
                     break;
                 case GAMESTATE_SELECTTARGET:
