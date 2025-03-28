@@ -76,6 +76,13 @@ static Coordinate gameSession_validViewportOffset(Coordinate position) {
     return newOffset;
 }
 
+static Boolean gameSession_isViewPortOffsetToPawn(Pawn *pawn) {
+    if (pawn != NULL) {
+        return (isEqualCoordinate(gameSession.viewportOffset, gameSession_validViewportOffset(hexgrid_tileCenterPosition(pawn->position))));
+    }
+    return false;
+}
+
 static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn) {
     Coordinate position;
     if (gameSession.activePawn != NULL && forceUpdateActivePawn) {
@@ -220,12 +227,20 @@ static Pawn *gameSession_nextPawn() {
     return firstPawn;
 }
 
+static void gameSession_moveCameraToPawn(Pawn *pawn) {
+    gameSession.cameraPawn = (Pawn){PAWNTYPE_SHIP, gameSession.activePawn->position, (Inventory){1, 0, 0, false}, 0, 0, false, false};
+    gameActionLogic_scheduleMovement(&gameSession.cameraPawn, NULL, pawn->position);
+}
+
 static void gameSession_startTurnForNextFaction() {
+    Pawn *nextPawn;
     gameSession_enableActionsForFaction(gameSession.factionTurn);
     gameSession.factionTurn = gameSession_nextAvailableFaction(gameSession.factionTurn);
     gameSession.drawingState.shouldDrawButtons = gameSession.factionTurn == gameSession.playerFaction;
-    gameSession.activePawn = gameSession_nextPawn();
-    gameSession_updateViewPortOffset(true);
+    nextPawn = gameSession_nextPawn();
+    gameSession_moveCameraToPawn(nextPawn);
+    gameSession.activePawn = nextPawn;
+    
     gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
@@ -302,7 +317,7 @@ static void gameSession_handleTargetSelection() {
     gameSession.activePawn->turnComplete = true;
     switch (gameSession.targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
-            gameActionLogic_scheduleMovement(selectedPawn, selectedTile);
+            gameActionLogic_scheduleMovement(gameSession.activePawn, selectedPawn, selectedTile);
             break;
         case TARGETSELECTIONTYPE_PHASER:
         case TARGETSELECTIONTYPE_TORPEDO:
@@ -504,10 +519,15 @@ static void gameSession_cpuTurn() {
         if (pawn->faction != gameSession.factionTurn || pawn->type != PAWNTYPE_SHIP || pawn->turnComplete) {
             continue;
         }
+        // move camera to active pawn
+        if (!gameSession_isViewPortOffsetToPawn(pawn)) {
+            gameSession_moveCameraToPawn(pawn);
+            gameSession.activePawn = pawn;
+            return;
+        }
         strategy = cpuLogic_getStrategy(pawn, gameSession.pawns, gameSession.pawnCount);
         pawn->turnComplete = true;
         gameSession.activePawn = pawn;
-        gameSession_updateViewPortOffset(true);
         switch (strategy.CPUAction) {
             case CPUACTION_MOVE:
                 closestTile = movement_closestTileToTargetInRange(pawn, strategy.target, gameSession.pawns, gameSession.pawnCount, true);
@@ -516,7 +536,7 @@ static void gameSession_cpuTurn() {
                 } else {
                     targetPawn = NULL;
                 }
-                gameActionLogic_scheduleMovement(targetPawn, closestTile);
+                gameActionLogic_scheduleMovement(gameSession.activePawn, targetPawn, closestTile);
                 StrCopy(gameSession.cpuActionText, "Moving");
                 break;
             case CPUACTION_PHASERATTACK:

@@ -39,6 +39,7 @@ typedef struct GameSession {
     Pawn *pawns;
     int pawnCount;
     Pawn *activePawn;
+    Pawn cameraPawn;
 
     Char cpuActionText[10];
 

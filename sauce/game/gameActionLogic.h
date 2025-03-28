@@ -9,7 +9,7 @@ Boolean gameActionLogic_afterMove();
 
 void gameActionLogic_clearAttack();
 
-void gameActionLogic_scheduleMovement(Pawn *targetPawn, Coordinate selectedTile);
+void gameActionLogic_scheduleMovement(Pawn *sourcePawn, Pawn *targetPawn, Coordinate selectedTile);
 void gameActionLogic_scheduleAttack(Pawn *targetPawn, Coordinate selectedTile, TargetSelectionType attackType);
 UInt8 gameActionLogic_maxRange(TargetSelectionType targetSelectionType);
 

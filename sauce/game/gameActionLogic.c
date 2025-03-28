@@ -44,17 +44,25 @@ static void gameActionLogic_clearMovement() {
     }
 }
 
-void gameActionLogic_scheduleMovement(Pawn *targetPawn, Coordinate selectedTile) {
+void gameActionLogic_scheduleMovement(Pawn *sourcePawn, Pawn *targetPawn, Coordinate selectedTile) {
     gameActionLogic_clearMovement();
 
     gameSession.movement = (Movement *)MemPtrNew(sizeof(Movement));
     MemSet(gameSession.movement, sizeof(Movement), 0);
     gameSession.movement->launchTimestamp = TimGetTicks();
     gameSession.movement->targetPawn = targetPawn;
-    gameSession.movement->trajectory = movement_trajectoryBetween((Coordinate){gameSession.activePawn->position.x, gameSession.activePawn->position.y}, selectedTile);
-    gameSession.movement->pawnPosition = hexgrid_tileCenterPosition(gameSession.activePawn->position);
-    gameSession.movement->pawn = gameSession.activePawn;
-    gameSession.activePawn->position = selectedTile;
+
+    if (sourcePawn == &gameSession.cameraPawn) {
+        gameSession.movement->trajectory.tileCoordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * 2);
+        gameSession.movement->trajectory.tileCount = 2;
+        gameSession.movement->trajectory.tileCoordinates[0] = (Coordinate){gameSession.cameraPawn.position.x, gameSession.cameraPawn.position.y};
+        gameSession.movement->trajectory.tileCoordinates[1] = selectedTile;
+    } else {
+        gameSession.movement->trajectory = movement_trajectoryBetween((Coordinate){sourcePawn->position.x, sourcePawn->position.y}, selectedTile);
+    }
+    gameSession.movement->pawnPosition = hexgrid_tileCenterPosition(sourcePawn->position);
+    gameSession.movement->pawn = sourcePawn;
+    sourcePawn->position = selectedTile;
 }
 
 // returns true when another movement has been scheduled
@@ -92,7 +100,7 @@ Boolean gameActionLogic_afterMove() {
     // if currentposition is on a base, move away from it
     if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE) {
         Coordinate finalCoordinate = movement_closestTileToTargetInRange(gameSession.activePawn, selectedPawn, gameSession.pawns, gameSession.pawnCount, false);
-        gameActionLogic_scheduleMovement(NULL, finalCoordinate);
+        gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, finalCoordinate);
         didScheduleMovement = true;
     } else {
         gameActionLogic_clearMovement();
