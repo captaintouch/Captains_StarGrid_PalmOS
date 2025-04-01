@@ -5,6 +5,11 @@
 #include "models.h"
 
 void inputPen_updateEventDetails(InputPen *pen, EventPtr eventPtr) {
+    if (eventPtr->eType == penUpEvent) {
+        pen->moving = false;
+        pen->wasUpdatedFlag = true;
+        return;
+    }
     if (eventPtr->eType != penDownEvent && eventPtr->eType != penMoveEvent) {
         return;
     }

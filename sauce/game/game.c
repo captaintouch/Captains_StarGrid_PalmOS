@@ -316,7 +316,9 @@ static void game_drawLowMemBackground(Coordinate screenSize) {
     RctSetRectangle(&rect, 0, 0, screenSize.x, screenSize.y);
     drawhelper_applyForeColor(DRACULAORCHID);
     drawhelper_fillRectangle(&rect, 0);
-    hexgrid_drawEntireGrid(true);
+    if (!gameSession.lastPenInput.moving && gameSession.movement == NULL) {
+        hexgrid_drawEntireGrid(true);
+    }
 }
 
 static void game_drawDynamicViews() {  // ships, special tiles, etc.
