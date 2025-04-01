@@ -70,7 +70,7 @@ static void game_drawAttackAnimation() {
         return;
     }
     if (!isInvalidCoordinate(gameSession.attackAnimation->explosionPosition)) {
-        drawhelper_drawAnimatedSprite(spriteLibrary.explosionAnimation, GFX_FRAMECOUNT_EXPLOSION, gameSession.attackAnimation->explosionPosition, gameSession.attackAnimation->explosionTimestamp, gameSession.attackAnimation->explosionDurationSeconds);
+        drawhelper_drawAnimatedSprite(spriteLibrary.explosionAnimation, GFX_FRAMECOUNT_EXPLOSION, viewport_convertedCoordinate(gameSession.attackAnimation->explosionPosition), gameSession.attackAnimation->explosionTimestamp, gameSession.attackAnimation->explosionDurationSeconds);
         return;
     }
     if (isInvalidCoordinate(gameSession.attackAnimation->torpedoPosition)) {  // Phaser animation
