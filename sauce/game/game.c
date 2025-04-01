@@ -300,11 +300,23 @@ static void game_drawBackground() {
     gridSize = hexgrid_size();
     if (backgroundBuffer == NULL) {
         backgroundBuffer = WinCreateOffscreenWindow(gridSize.x, gridSize.y, screenFormat, &err);
+        if (err != errNone) {
+            backgroundBuffer = NULL;
+            return;
+        }
     }
 
     WinSetDrawWindow(backgroundBuffer);
     game_drawBackdrop();
-    hexgrid_drawEntireGrid();
+    hexgrid_drawEntireGrid(false);
+}
+
+static void game_drawLowMemBackground(Coordinate screenSize) {
+    RectangleType rect;
+    RctSetRectangle(&rect, 0, 0, screenSize.x, screenSize.y);
+    drawhelper_applyForeColor(DRACULAORCHID);
+    drawhelper_fillRectangle(&rect, 0);
+    hexgrid_drawEntireGrid(true);
 }
 
 static void game_drawDynamicViews() {  // ships, special tiles, etc.
@@ -312,19 +324,25 @@ static void game_drawDynamicViews() {  // ships, special tiles, etc.
     RectangleType lamerect;
     Err err = errNone;
     Coordinate gridSize;
-    Coordinate screenSize = deviceinfo_screenSize();
+    Coordinate overlaySize = deviceinfo_screenSize();
+    overlaySize.y -= BOTTOMMENU_HEIGHT;
     if (!gameSession.drawingState.shouldRedrawOverlay && overlayBuffer != NULL) {
         return;
     }
     gameSession.drawingState.shouldRedrawOverlay = false;
     gridSize = hexgrid_size();
     if (overlayBuffer == NULL) {
-        overlayBuffer = WinCreateOffscreenWindow(screenSize.x, screenSize.y - BOTTOMMENU_HEIGHT, screenFormat, &err);
+        overlayBuffer = WinCreateOffscreenWindow(overlaySize.x, overlaySize.y, screenFormat, &err);
     }
 
     WinSetDrawWindow(overlayBuffer);
-    RctSetRectangle(&lamerect, gameSession.viewportOffset.x, gameSession.viewportOffset.y, screenSize.x, screenSize.y);
-    WinCopyRectangle(backgroundBuffer, overlayBuffer, &lamerect, 0, 0, winPaint);
+    RctSetRectangle(&lamerect, gameSession.viewportOffset.x, gameSession.viewportOffset.y, overlaySize.x, overlaySize.y);
+    if (backgroundBuffer != NULL) {
+        WinCopyRectangle(backgroundBuffer, overlayBuffer, &lamerect, 0, 0, winPaint);
+    } else {
+        // we don't have enough memory for a background buffer, so draw into the overlayBuffer
+        game_drawLowMemBackground(overlaySize);
+    }
 
     game_drawHighlightTiles();
     game_drawPawns();

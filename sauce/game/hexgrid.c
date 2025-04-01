@@ -105,12 +105,12 @@ void hexgrid_fillTileAtPosition(Coordinate hexPosition, Boolean adjustForViewpor
     hexgrid_fillTile(startPosition.x, startPosition.y);
 }
 
-void hexgrid_drawEntireGrid() {
+void hexgrid_drawEntireGrid(Boolean adjustForViewport) {
     int i, j;
     drawhelper_applyForeColor(ASBESTOS);
     for (i = 0; i < HEXGRID_COLS; i++) {
         for (j = 0; j < HEXGRID_ROWS; j++) {
-            hexgrid_drawTileAtPosition((Coordinate){i, j}, false);
+            hexgrid_drawTileAtPosition((Coordinate){i, j}, adjustForViewport);
         }
     }
 }

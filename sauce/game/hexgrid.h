@@ -8,7 +8,7 @@
 void hexgrid_initialize();
 Coordinate hexgrid_tileAtPixel(int x, int y);
 Coordinate hexgrid_tileCenterPosition(Coordinate tilePosition);
-void hexgrid_drawEntireGrid();
+void hexgrid_drawEntireGrid(Boolean adjustForViewport);
 void hexgrid_drawTileAtPosition(Coordinate hexPosition, Boolean adjustForViewport);
 void hexgrid_fillTileAtPosition(Coordinate hexPosition, Boolean adjustForViewport);
 void hexgrid_drawSpriteAtTile(ImageSprite *imageSprite, Coordinate hexPosition);
