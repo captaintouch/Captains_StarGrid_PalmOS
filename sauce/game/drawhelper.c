@@ -85,6 +85,15 @@ void drawhelper_drawAnimatedSprite(ImageSprite *imageSprite, UInt8 frameCount, C
     drawhelper_drawSprite(&imageSprite[selectedIndex], coordinate);
 }
 
+void drawhelper_releaseImage(ImageData *imageData) {
+    if (imageData == NULL) {
+        return;
+    }
+    MemHandleUnlock(imageData->resource);
+    DmReleaseResource(imageData->resource);
+    MemPtrFree(imageData);
+}
+
 void drawhelper_drawBoxAround(Coordinate coordinate, int dimension) {
   Line line;
   int offset = dimension / 2 + 2;

@@ -13,6 +13,8 @@
 
 #define GAME_LOGIC_TICK 20
 
+static void gameSession_resetHighlightTiles();
+
 void gameSession_initialize() {
     gameSession.diaSupport = deviceinfo_diaSupported();
     gameSession.colorSupport = deviceinfo_colorSupported();
@@ -60,6 +62,17 @@ void gameSession_initialize() {
     gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
 
     gameSession.viewportOffset = (Coordinate){0, 0};
+}
+
+void gameSession_cleanup() {
+    if (gameSession.pawns) {
+        MemPtrFree(gameSession.pawns);
+        gameSession.pawns = NULL;
+    }
+    gameActionLogic_clearAttack();
+    gameActionLogic_clearMovement();
+    gameSession_resetHighlightTiles();
+    spriteLibrary_clean();
 }
 
 void gameSession_registerPenInput(EventPtr eventptr) {

@@ -31,6 +31,7 @@ typedef struct SpriteLibrary {
 SpriteLibrary spriteLibrary;
 
 void spriteLibrary_initialize();
+void spriteLibrary_clean();
 ImageSprite imageSprite(int resourceId, Coordinate size);
 ImageSprite *spriteLibrary_factionShipSprite(int faction);
 

@@ -18,6 +18,7 @@ void appCoordinator_cleanup() {
         
         break;
     case GAME:
+        game_cleanup();
         break;
     }
 

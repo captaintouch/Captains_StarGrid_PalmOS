@@ -33,7 +33,7 @@ static UInt8 gameActionLogic_enemyUnitsLeft() {
     return enemyUnits;
 }
 
-static void gameActionLogic_clearMovement() {
+void gameActionLogic_clearMovement() {
     if (gameSession.movement != NULL) {
         if (gameSession.movement->trajectory.tileCoordinates != NULL) {
             MemPtrFree(gameSession.movement->trajectory.tileCoordinates);

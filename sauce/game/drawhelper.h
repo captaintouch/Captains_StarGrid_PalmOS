@@ -19,5 +19,6 @@ void drawhelper_drawAnimatedSprite(ImageSprite *imageSprite, UInt8 frameCount, C
 void drawhelper_drawPoint(Coordinate point);
 void drawhelper_drawBoxAround(Coordinate coordinate, int dimension);
 void drawhelper_borderRectangle(RectangleType *rect);
+void drawhelper_releaseImage(ImageData *imageData);
 
 #endif

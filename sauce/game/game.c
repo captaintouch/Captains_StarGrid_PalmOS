@@ -36,18 +36,7 @@ static void game_resetForm() {
         if (PINGetInputTriggerState() != pinInputTriggerDisabled) {
             PINSetInputTriggerState(pinInputTriggerDisabled);
         }
-        if (backgroundBuffer != NULL) {
-            WinDeleteWindow(backgroundBuffer, false);
-            backgroundBuffer = NULL;
-        }
-        if (overlayBuffer != NULL) {
-            WinDeleteWindow(overlayBuffer, false);
-            overlayBuffer = NULL;
-        }
-        if (screenBuffer != NULL) {
-            WinDeleteWindow(screenBuffer, false);
-            screenBuffer = NULL;
-        }
+        game_cleanup();
         shouldRedrawBackground = true;
         gameSession.drawingState.shouldRedrawOverlay = true;
     }
@@ -62,6 +51,22 @@ void game_setup() {
     gameSession_initialize();
     hexgrid_initialize();
     game_resetForm();
+}
+
+void game_cleanup() {
+    if (backgroundBuffer != NULL) {
+        WinDeleteWindow(backgroundBuffer, false);
+        backgroundBuffer = NULL;
+    }
+    if (overlayBuffer != NULL) {
+        WinDeleteWindow(overlayBuffer, false);
+        overlayBuffer = NULL;
+    }
+    if (screenBuffer != NULL) {
+        WinDeleteWindow(screenBuffer, false);
+        screenBuffer = NULL;
+    }
+    gameSession_cleanup();
 }
 
 static void game_drawAttackAnimation() {
@@ -179,6 +184,7 @@ static void game_drawPawns() {
         hexgrid_drawSpriteAtTile(&spriteLibrary.baseSprite, pawn->position);
     }
 
+    
     // DRAW SHIPS
     for (i = 0; i < gameSession.pawnCount; i++) {
         Pawn *pawn = &gameSession.pawns[i];
@@ -192,14 +198,13 @@ static void game_drawPawns() {
         if (isInvalidCoordinate(pawnPosition)) {
             continue;
         }
-
-        if (gameSession.movement->pawn == pawn) {
+        if (gameSession.movement != NULL && gameSession.movement->pawn == pawn) {
             drawhelper_drawSprite(shipSprite, viewport_convertedCoordinate(gameSession.movement->pawnPosition));
         } else {
             hexgrid_drawSpriteAtTile(shipSprite, pawn->position);
         }
     }
-
+    
     // DRAW ACCESSORIES (FLAGS, FACTION INDICATORS)
     for (i = 0; i < gameSession.pawnCount; i++) {
         Pawn *pawn = &gameSession.pawns[i];

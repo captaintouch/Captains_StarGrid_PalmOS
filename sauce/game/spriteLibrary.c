@@ -104,6 +104,34 @@ void spriteLibrary_initialize() {
     spriteLibrary.initialized = true;
 }
 
+void spriteLibrary_clean() {
+    int i;
+    for (i = 0; i < GFX_FRAMECOUNT_SHIPA; i++) {
+        drawhelper_releaseImage(spriteLibrary.shipOneSprite[i].imageData);
+    }
+    for (i = 0; i < GFX_FRAMECOUNT_SHIPB; i++) {
+        drawhelper_releaseImage(spriteLibrary.shipTwoSprite[i].imageData);
+    }
+    for (i = 0; i < GFX_FRAMECOUNT_SHIPC; i++) {
+        drawhelper_releaseImage(spriteLibrary.shipThreeSprite[i].imageData);
+    }
+    for (i = 0; i < GFX_FRAMECOUNT_SHIPD; i++) {
+        drawhelper_releaseImage(spriteLibrary.shipFourSprite[i].imageData);
+    }
+    for (i = 0; i < GFX_FRAMECOUNT_SHIPCLOAKED; i++) {
+        drawhelper_releaseImage(spriteLibrary.shipCloakedSprite[i].imageData);
+    }
+    for (i = 0; i < GFX_FRAMECOUNT_TORP; i++) {
+        drawhelper_releaseImage(spriteLibrary.torpedoAnimation[i].imageData);
+    }
+    for (i = 0; i < GFX_FRAMECOUNT_EXPLOSION; i++) {
+        drawhelper_releaseImage(spriteLibrary.explosionAnimation[i].imageData);
+    }
+    drawhelper_releaseImage(spriteLibrary.baseSprite.imageData);
+    drawhelper_releaseImage(spriteLibrary.healthSprite.imageData);
+    spriteLibrary.initialized = false;
+}
+
 ImageSprite *spriteLibrary_factionShipSprite(int faction) {
     switch (faction % 4) {
         case 0:
