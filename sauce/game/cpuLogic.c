@@ -38,20 +38,12 @@ static Pawn *cpuLogic_homeBase(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
     return NULL;
 }
 
-/*static Boolean cpuLogic_closeToHomeBase(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
-    Pawn *homeBase = cpuLogic_homeBase(pawn, allPawns, totalPawnCount);
-    if (homeBase == NULL) {
-        return false;
-    }
-    return movement_distance(pawn->position, homeBase->position) <= GAMEMECHANICS_MAXTILEMOVERANGE;
-}*/
-
 static Pawn *cpuLogic_weakestEnemyInRange(Pawn *pawn, Pawn *allPawns, int totalPawnCount, Boolean includeBases, Boolean unlimitedRange) {
     int i;
     Pawn *weakestEnemy = NULL;
     for (i = 0; i < totalPawnCount; i++) {
         Boolean isShip = includeBases ? true : allPawns[i].type == PAWNTYPE_SHIP;
-        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].faction != pawn->faction && isShip) {
+        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].faction != pawn->faction && isShip && !allPawns[i].cloaked) {
             int distance = unlimitedRange ? 0 : movement_distance(pawn->position, allPawns[i].position);
             if (distance <= fmax(GAMEMECHANICS_MAXTILEPHASERRANGE, GAMEMECHANICS_MAXTILETORPEDORANGE)) {
                 if (weakestEnemy == NULL) {

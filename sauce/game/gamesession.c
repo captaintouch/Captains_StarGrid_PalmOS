@@ -241,7 +241,7 @@ static Pawn *gameSession_nextPawn() {
 }
 
 static void gameSession_moveCameraToPawn(Pawn *pawn) {
-    gameSession.cameraPawn = (Pawn){PAWNTYPE_SHIP, gameSession.activePawn->position, (Inventory){1, 0, 0, false}, 0, 0, false, false};
+    gameSession.cameraPawn = (Pawn){PAWNTYPE_SHIP, gameSession.activePawn->position, (Inventory){-1, 0, 0, false}, 0, 0, false, false};
     gameActionLogic_scheduleMovement(&gameSession.cameraPawn, NULL, pawn->position);
 }
 

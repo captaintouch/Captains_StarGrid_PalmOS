@@ -247,13 +247,13 @@ void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coo
     int i, j;
     int positionCount = 0;
     Coordinate *positions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * maxTileRange * 2 * maxTileRange * 2);
-    for (i = -maxTileRange + 1; i < maxTileRange; i++) {
-        for (j = -maxTileRange + 1; j < maxTileRange; j++) {
+    for (i = -maxTileRange - 2; i < maxTileRange + 2; i++) {
+        for (j = -maxTileRange - 2; j < maxTileRange + 2; j++) {
             Coordinate newPosition = (Coordinate){currentPosition.x + i, currentPosition.y + j};
             if (isEqualCoordinate(currentPosition, newPosition)) {
                 continue;
             }
-            if (movement_distance(currentPosition, newPosition) >= maxTileRange) {
+            if (movement_distance(currentPosition, newPosition) > maxTileRange) {
                 continue;
             }
             if (invalidCoordinates != NULL && movement_positionInCoordinates(newPosition, invalidCoordinates, invalidCoordinatesCount)) {
