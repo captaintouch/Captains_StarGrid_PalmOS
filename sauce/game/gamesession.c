@@ -19,7 +19,7 @@ void gameSession_initialize() {
     gameSession.timeBetweenLogicProgressions = SysTicksPerSecond() / GAME_LOGIC_TICK;
 
     gameSession.state = GAMESTATE_DEFAULT;
-    gameSession.lastPenInput = (InputPen){false, false, (Coordinate){-1, -1}};
+    gameSession.lastPenInput = (InputPen){false, false, false, false, (Coordinate){-1, -1}};
 
     gameSession.pawns = NULL;
     gameSession.activePawn = NULL;
@@ -351,6 +351,8 @@ static void gameSession_handlePawnActionButtonSelection() {
         return;
     }
 
+    gameSession.lastPenInput.disableUpdateUntilPenUp = true;
+
     switch (pawnActionMenuViewModel_actionAtIndex(selectedIndex, gameSession.activePawn)) {
         case MenuActionTypeCancel:
             gameSession.state = GAMESTATE_DEFAULT;
@@ -581,6 +583,10 @@ void gameSession_progressLogic() {
                     break;
             }
         } else {
+            if (gameSession.lastPenInput.penUp) {
+                gameSession.drawingState.shouldRedrawOverlay = true;
+                return;
+            }
             switch (gameSession.state) {
                 case GAMESTATE_DEFAULT:
                     if (gameSession_handleMiniMapTap()) break;

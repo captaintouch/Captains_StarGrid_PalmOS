@@ -7,6 +7,8 @@
 typedef struct InputPen {
     Boolean moving;
     Boolean wasUpdatedFlag;
+    Boolean penUp;
+    Boolean disableUpdateUntilPenUp;
     Coordinate touchCoordinate;
 } InputPen;
 
