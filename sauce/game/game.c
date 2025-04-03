@@ -19,6 +19,21 @@ WinHandle screenBuffer = NULL;
 Boolean shouldRedrawBackground = true;
 Coordinate lastScreenSize;
 
+static void game_windowCleanup() {
+    if (backgroundBuffer != NULL) {
+        WinDeleteWindow(backgroundBuffer, false);
+        backgroundBuffer = NULL;
+    }
+    if (overlayBuffer != NULL) {
+        WinDeleteWindow(overlayBuffer, false);
+        overlayBuffer = NULL;
+    }
+    if (screenBuffer != NULL) {
+        WinDeleteWindow(screenBuffer, false);
+        screenBuffer = NULL;
+    }
+}
+
 static void game_resetForm() {
     FormType *frmP = FrmGetActiveForm();
     Coordinate screenSize = deviceinfo_screenSize();
@@ -36,7 +51,7 @@ static void game_resetForm() {
         if (PINGetInputTriggerState() != pinInputTriggerDisabled) {
             PINSetInputTriggerState(pinInputTriggerDisabled);
         }
-        game_cleanup();
+        game_windowCleanup();
         shouldRedrawBackground = true;
         gameSession.drawingState.shouldRedrawOverlay = true;
     }
@@ -54,18 +69,7 @@ void game_setup() {
 }
 
 void game_cleanup() {
-    if (backgroundBuffer != NULL) {
-        WinDeleteWindow(backgroundBuffer, false);
-        backgroundBuffer = NULL;
-    }
-    if (overlayBuffer != NULL) {
-        WinDeleteWindow(overlayBuffer, false);
-        overlayBuffer = NULL;
-    }
-    if (screenBuffer != NULL) {
-        WinDeleteWindow(screenBuffer, false);
-        screenBuffer = NULL;
-    }
+    game_windowCleanup();
     gameSession_cleanup();
 }
 
