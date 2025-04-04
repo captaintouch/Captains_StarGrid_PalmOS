@@ -18,9 +18,8 @@ static UInt32 applyScreenMode() {
 
 static void checkHiResSupport() {
     #ifdef HIRESBUILD
-    UInt32 version;
-    if (FtrGet(sysFtrCreator, sysFtrNumWinVersion, &version) != errNone || version < 4) {
-        ErrFatalDisplay("Device not compatible with hires version");
+    if (!deviceinfo_isRunningMinimalOSVersion(5) || !deviceinfo_supportsHiDensity()) {
+        ErrFatalDisplay("Please install lowres version");
     }
     #endif
 }

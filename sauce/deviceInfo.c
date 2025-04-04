@@ -25,15 +25,21 @@ Int32 deviceinfo_maxDepth() {
     }
 }
 
-static UInt32 deviceinfo_os4OrHigher() {
+Boolean deviceinfo_isRunningMinimalOSVersion(UInt8 minVersion) {
     UInt32 romVersion;
     FtrGet(sysFtrCreator, sysFtrNumROMVersion, &romVersion); 
-    return romVersion >= sysMakeROMVersion(4, 0, 0, sysROMStageRelease, 0);
+    return romVersion >= sysMakeROMVersion(minVersion, 0, 0, sysROMStageRelease, 0);
+}
+
+Boolean deviceinfo_supportsHiDensity() {
+    UInt32 attr;
+    WinScreenGetAttribute(winScreenDensity, &attr); 
+    return (attr == kDensityDouble);
 }
 
 Coordinate deviceinfo_screenSize() {
     RectangleType screenBounds;
-    deviceinfo_os4OrHigher() ? WinGetBounds(WinGetDisplayWindow(), &screenBounds) : WinGetDrawWindowBounds(&screenBounds);
+    deviceinfo_isRunningMinimalOSVersion(4) ? WinGetBounds(WinGetDisplayWindow(), &screenBounds) : WinGetDrawWindowBounds(&screenBounds);
     return (Coordinate){screenBounds.extent.x, screenBounds.extent.y};
 }
 
