@@ -120,7 +120,7 @@ void gameActionLogic_afterAttack() {
     if (gameSession.attackAnimation->targetPawn->inventory.health <= 0) {
         gameSession.attackAnimation->targetPawn->inventory.health = 0;
         gameSession.attackAnimation->targetPawn->position = (Coordinate){-1, -1};
-
+        
         if (gameSession.attackAnimation->targetPawn->type == PAWNTYPE_BASE) {
             int i;
             for (i = 0; i < gameSession.pawnCount; i++) {
@@ -129,6 +129,16 @@ void gameActionLogic_afterAttack() {
                 }
             }
             FrmCustomAlert(GAME_ALERT_BASEDESTROYED, NULL, NULL, NULL);
+        }
+        if (gameSession.attackAnimation->targetPawn->type == PAWNTYPE_SHIP && gameSession.attackAnimation->targetPawn->inventory.carryingFlag) {
+            // return the lost flag to it's original base
+            int i;
+            gameSession.attackAnimation->targetPawn->inventory.carryingFlag = false;
+            for (i = 0; i < gameSession.pawnCount; i++) {
+                if (gameSession.pawns[i].faction == gameSession.attackAnimation->targetPawn->inventory.flagOfFaction && gameSession.pawns[i].type == PAWNTYPE_BASE) {
+                    gameSession.pawns[i].inventory.carryingFlag = true;
+                }
+            }
         }
     }
 
