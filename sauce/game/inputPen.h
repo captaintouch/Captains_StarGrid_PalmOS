@@ -5,13 +5,12 @@
 #include "models.h"
 
 typedef struct InputPen {
+    Coordinate touchCoordinate;
+    UInt32 blockUntilTicks;
     Boolean moving;
     Boolean wasUpdatedFlag;
-    Boolean penUp;
-    Boolean disableUpdateUntilPenUp;
-    Coordinate touchCoordinate;
 } InputPen;
 
 void inputPen_updateEventDetails(InputPen *pen, EventPtr eventPtr);
-
+void inputPen_temporarylyBlockPenInput(InputPen *pen);
 #endif

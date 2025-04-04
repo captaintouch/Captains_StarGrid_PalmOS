@@ -27,6 +27,7 @@ typedef struct DrawingState {
 
     Coordinate miniMapDrawPosition;
     Coordinate miniMapSize;
+    Boolean awaitingEndMiniMapScrolling;
 
     Coordinate barButtonPositions[2];
     int barButtonHeight;
