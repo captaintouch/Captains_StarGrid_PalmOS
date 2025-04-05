@@ -177,7 +177,7 @@ static void game_drawPawns() {
         Pawn *pawn = &gameSession.pawns[i];
         Coordinate pawnPosition, pawnPositionConverted;
         RectangleType rect;
-        if (pawn->type != PAWNTYPE_BASE) {
+        if (pawn->type != PAWNTYPE_BASE || isInvalidCoordinate(gameSession.pawns[i].position)) {
             continue;
         }
         pawnPosition = hexgrid_tileCenterPosition(pawn->position);
@@ -194,7 +194,7 @@ static void game_drawPawns() {
         Pawn *pawn = &gameSession.pawns[i];
         Coordinate pawnPosition;
         ImageSprite *shipSprite;
-        if (pawn->type != PAWNTYPE_SHIP) {
+        if (pawn->type != PAWNTYPE_SHIP || isInvalidCoordinate(gameSession.pawns[i].position)) {
             continue;
         }
         shipSprite = game_spriteForPawn(pawn);
@@ -213,7 +213,7 @@ static void game_drawPawns() {
     for (i = 0; i < gameSession.pawnCount; i++) {
         Pawn *pawn = &gameSession.pawns[i];
         Coordinate pawnPosition = hexgrid_tileCenterPosition(pawn->position);
-        if (isInvalidCoordinate(pawnPosition)) {
+        if (isInvalidCoordinate(pawn->position)) {
             continue;
         }
         if (pawn->inventory.carryingFlag) {
@@ -325,7 +325,7 @@ static void game_drawLowMemBackground(Coordinate screenSize) {
     RctSetRectangle(&rect, 0, 0, screenSize.x, screenSize.y);
     drawhelper_applyForeColor(DRACULAORCHID);
     drawhelper_fillRectangle(&rect, 0);
-    if (!gameSession.drawingState.awaitingEndMiniMapScrolling && gameSession.movement == NULL) {
+    if (!gameSession.drawingState.awaitingEndMiniMapScrolling && gameSession.movement == NULL && gameSession.factionTurn == gameSession.playerFaction) {
         hexgrid_drawEntireGrid(true);
     }
 }

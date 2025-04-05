@@ -14,6 +14,9 @@ static UInt8 gameActionLogic_nonCapturedFlagsLeft(UInt8 faction) {
     for (i = 0; i < gameSession.pawnCount; i++) {
         // Count of enemies that are currently carrying a flag (including bases)
         // + Count of own ships that are currently carrying a flag (excluding home base)
+        if (isInvalidCoordinate(gameSession.pawns[i].position)) {
+            continue;
+        }
         if ((gameSession.pawns[i].faction != faction && gameSession.pawns[i].inventory.carryingFlag) ||
             (gameSession.pawns[i].faction == faction && gameSession.pawns[i].inventory.carryingFlag && gameSession.pawns[i].type != PAWNTYPE_BASE)) {
             flagsLeft++;
@@ -81,6 +84,9 @@ Boolean gameActionLogic_afterMove() {
         // Flag dissapears, enemy base dissapears, enemy ships join the players fleet
         int i;
         for (i = 0; i < gameSession.pawnCount; i++) {
+            if (isInvalidCoordinate(gameSession.pawns[i].position)) {
+                continue;
+            }
             if (gameSession.pawns[i].faction == gameSession.activePawn->inventory.flagOfFaction) {
                 gameSession.pawns[i].faction = gameSession.activePawn->faction;
                 if (gameSession.pawns[i].type == PAWNTYPE_BASE) {
@@ -124,6 +130,9 @@ void gameActionLogic_afterAttack() {
         if (gameSession.attackAnimation->targetPawn->type == PAWNTYPE_BASE) {
             int i;
             for (i = 0; i < gameSession.pawnCount; i++) {
+                if (isInvalidCoordinate(gameSession.pawns[i].position)) {
+                    continue;
+                }
                 if (gameSession.pawns[i].faction == gameSession.attackAnimation->targetPawn->faction) {
                     gameSession.pawns[i].faction = gameSession.activePawn->faction;
                 }

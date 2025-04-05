@@ -135,16 +135,16 @@ static CPUStrategyResult cpuLogic_captureTheFlagStrategy(Pawn *pawn, Pawn *allPa
             return strategyResult;
         }
         distance = movement_distance(pawn->position, enemyHomeBase->position);
-        if (pawn->cloaked) {
+        if (pawn->cloaked && distance <= GAMEMECHANICS_MAXTILEMOVERANGE) {  // if we are cloaked, and close to the target, decloak
             strategyResult.score += 50;
             strategyResult.CPUAction = CPUACTION_CLOAK;               // Decloak so we are go for capture on the next turn
-        } else if (distance >= GAMEMECHANICS_MAXTILEMOVERANGE * 2) {  // if we are not cloaked, and far away from the target, activate cloak
+        } else if (!pawn->cloaked && distance >= GAMEMECHANICS_MAXTILEMOVERANGE * 2) {  // if we are not cloaked, and far away from the target, activate cloak
             strategyResult.score += 50;
             strategyResult.CPUAction = CPUACTION_CLOAK;
-        } else if (distance <= GAMEMECHANICS_MAXTILEMOVERANGE) {  // if we can capture the flag, do it
+        } else if (!pawn->cloaked && distance <= GAMEMECHANICS_MAXTILEMOVERANGE) {  // if we can capture the flag, do it
             strategyResult.CPUAction = CPUACTION_MOVE;
             strategyResult.target = enemyHomeBase;
-            strategyResult.score += 50;
+            strategyResult.score += 90;
         } else if (enemyHomeBase != NULL) {  // if not, move towards enemy home base
             strategyResult.CPUAction = CPUACTION_MOVE;
             strategyResult.target = enemyHomeBase;

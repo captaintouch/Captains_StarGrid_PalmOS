@@ -111,7 +111,7 @@ static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn) {
 static Pawn *gameSession_pawnAtTile(Coordinate tile) {
     int i;
     for (i = 0; i < gameSession.pawnCount; i++) {
-        if (gameSession.pawns[i].position.x == tile.x && gameSession.pawns[i].position.y == tile.y) {
+        if (gameSession.pawns[i].position.x == tile.x && gameSession.pawns[i].position.y == tile.y && !isInvalidCoordinate(gameSession.pawns[i].position)) {
             return &gameSession.pawns[i];
         }
     }
@@ -128,7 +128,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
             coordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.pawnCount);
             for (i = 0; i < gameSession.pawnCount; i++) {
                 Boolean isCloakedShipFromOtherFaction = gameSession.pawns[i].type == PAWNTYPE_SHIP && gameSession.pawns[i].faction != gameSession.activePawn->faction && gameSession.pawns[i].cloaked;
-                if (!isCloakedShipFromOtherFaction && gameSession.pawns[i].type != PAWNTYPE_BASE) {
+                if (!isCloakedShipFromOtherFaction && gameSession.pawns[i].type != PAWNTYPE_BASE && !isInvalidCoordinate(gameSession.pawns[i].position)) {
                     coordinates[coordinatesCount] = gameSession.pawns[i].position;
                     coordinatesCount++;
                 }
@@ -184,7 +184,7 @@ static int gameSession_pawnCount(Coordinate location) {
 static void gameSession_enableActionsForFaction(int faction) {
     int i;
     for (i = 0; i < gameSession.pawnCount; i++) {
-        if (gameSession.pawns[i].faction == faction && gameSession.pawns[i].type == PAWNTYPE_SHIP) {
+        if (gameSession.pawns[i].faction == faction && gameSession.pawns[i].type == PAWNTYPE_SHIP && !isInvalidCoordinate(gameSession.pawns[i].position)) {
             gameSession.pawns[i].turnComplete = (gameSession.pawns[i].cloaked && gameSession_pawnCount(gameSession.pawns[i].position) > 1);
             gameSession.activePawn = &gameSession.pawns[i];
         }
@@ -206,7 +206,7 @@ static int gameSession_nextAvailableFaction(int currentFaction) {
     int nextFaction;
     int factionCount = 0;
     for (i = 0; i < gameSession.pawnCount; i++) {
-        if (gameSession.pawns[i].faction > factionCount) {
+        if (gameSession.pawns[i].faction > factionCount && !isInvalidCoordinate(gameSession.pawns[i].position)) {
             factionCount = gameSession.pawns[i].faction;
         }
     }
@@ -531,7 +531,7 @@ static void gameSession_cpuTurn() {
         Pawn *targetPawn;
         CPUStrategyResult strategy;
         Pawn *pawn = &gameSession.pawns[i];
-        if (pawn->faction != gameSession.factionTurn || pawn->type != PAWNTYPE_SHIP || pawn->turnComplete) {
+        if (pawn->faction != gameSession.factionTurn || pawn->type != PAWNTYPE_SHIP || pawn->turnComplete || isInvalidCoordinate(pawn->position)) {
             continue;
         }
         // move camera to active pawn
@@ -599,6 +599,7 @@ void gameSession_progressLogic() {
             if (gameSession.drawingState.awaitingEndMiniMapScrolling) {
                 gameSession.drawingState.awaitingEndMiniMapScrolling = false;
                 gameSession.drawingState.shouldRedrawOverlay = true;
+                return;
             }
             switch (gameSession.state) {
                 case GAMESTATE_DEFAULT:
