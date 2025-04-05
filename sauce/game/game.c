@@ -325,7 +325,7 @@ static void game_drawLowMemBackground(Coordinate screenSize) {
     RctSetRectangle(&rect, 0, 0, screenSize.x, screenSize.y);
     drawhelper_applyForeColor(DRACULAORCHID);
     drawhelper_fillRectangle(&rect, 0);
-    if (!gameSession.drawingState.awaitingEndMiniMapScrolling && gameSession.movement == NULL && gameSession.factionTurn == gameSession.playerFaction) {
+    if (!gameSession.drawingState.awaitingEndMiniMapScrolling && gameSession.movement == NULL && gameSession.factions[gameSession.factionTurn].human) {
         hexgrid_drawEntireGrid(true);
     }
 }
@@ -416,7 +416,7 @@ static void game_drawBottomActivePawn() {
     RctSetRectangle(&rect, pawnCenterPosition.x - HEXTILE_PAWNSIZE / 2, pawnCenterPosition.y - HEXTILE_PAWNSIZE / 2, HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE);
     WinCopyRectangle(overlayBuffer, screenBuffer, &rect, targetCenterPosition.x, targetCenterPosition.y, winPaint);
 
-    if (gameSession.playerFaction != gameSession.activePawn->faction) { // draw cpu action text
+    if (!gameSession.factions[gameSession.factionTurn].human) { // draw cpu action text
         int textWidth = FntCharsWidth(gameSession.cpuActionText, StrLen(gameSession.cpuActionText));
         drawhelper_applyTextColor(CLOUDS);
         drawhelper_applyBackgroundColor(DRACULAORCHID);

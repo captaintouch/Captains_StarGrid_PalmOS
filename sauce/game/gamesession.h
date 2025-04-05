@@ -33,6 +33,11 @@ typedef struct DrawingState {
     int barButtonHeight;
 } DrawingState;
 
+typedef struct Faction {
+    Boolean human;
+    CPUFactionProfile profile;
+} Faction;
+
 typedef struct GameSession {
     GameState state;
     InputPen lastPenInput;
@@ -44,7 +49,7 @@ typedef struct GameSession {
 
     Char cpuActionText[10];
 
-    int playerFaction; // Replace this in the future with a Faction array (multiple users can be human, others can be cpu)
+    Faction factions[4];
     int factionTurn;
     CPUStrategyResult *cpuStrategyResult;
 

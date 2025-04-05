@@ -15,6 +15,15 @@
 
 static void gameSession_resetHighlightTiles();
 
+Faction gameSession_factionWithRandomizedCPUProfile() {
+    Faction faction;
+    faction.human = false;
+    faction.profile.defendBasePriority = random(-70, 70);
+    faction.profile.captureFlagPriority = random(-70, 70);
+    faction.profile.attackPriority = random(-70, 70);
+    return faction;
+}
+
 void gameSession_initialize() {
     gameSession.diaSupport = deviceinfo_diaSupported();
     gameSession.colorSupport = deviceinfo_colorSupported();
@@ -45,9 +54,15 @@ void gameSession_initialize() {
     gameSession.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 1, 0, true}, 0, 1, false, false};
     gameSession.pawns[7] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, 0, true}, 0, 2, false, false};
 
+    // setup factions
+
+    gameSession.factions[0] = (Faction){true, {0, 0, 0}};
+    gameSession.factions[1] = gameSession_factionWithRandomizedCPUProfile();
+    gameSession.factions[2] = gameSession_factionWithRandomizedCPUProfile();
+    gameSession.factions[3] = gameSession_factionWithRandomizedCPUProfile();
+
     gameSession.factionTurn = 0;
-    gameSession.playerFaction = 0;
-    gameSession.drawingState.shouldDrawButtons = gameSession.factionTurn == gameSession.playerFaction;
+    gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
 
     gameSession.activePawn = &gameSession.pawns[0];
 
@@ -249,11 +264,11 @@ static void gameSession_startTurnForNextFaction() {
     Pawn *nextPawn;
     gameSession_enableActionsForFaction(gameSession.factionTurn);
     gameSession.factionTurn = gameSession_nextAvailableFaction(gameSession.factionTurn);
-    gameSession.drawingState.shouldDrawButtons = gameSession.factionTurn == gameSession.playerFaction;
+    gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
     nextPawn = gameSession_nextPawn();
     gameSession_moveCameraToPawn(nextPawn);
     gameSession.activePawn = nextPawn;
-    
+
     gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
@@ -274,7 +289,7 @@ static Boolean gameSession_handleTileTap() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
     Pawn *selectedPawn = gameSession_pawnAtTile(selectedTile);
-    if (selectedPawn != NULL && selectedPawn->faction == gameSession.playerFaction) {
+    if (selectedPawn != NULL && gameSession.factions[selectedPawn->faction].human) {
         gameSession.activePawn = selectedPawn;
         gameSession_updateViewPortOffset(true);
         gameSession_showPawnActions();
@@ -523,7 +538,7 @@ static void gameSession_progressUpdateMovement() {
 
 static void gameSession_cpuTurn() {
     int i;
-    if (gameSession.attackAnimation != NULL || gameSession.movement != NULL || gameSession.state != GAMESTATE_DEFAULT) {
+    if (gameSession.attackAnimation != NULL || gameSession.movement != NULL || gameSession.state != GAMESTATE_DEFAULT || gameSession.factions[gameSession.factionTurn].human) {
         return;
     }
     for (i = 0; i < gameSession.pawnCount; i++) {
@@ -540,7 +555,7 @@ static void gameSession_cpuTurn() {
             gameSession.activePawn = pawn;
             return;
         }
-        strategy = cpuLogic_getStrategy(pawn, gameSession.pawns, gameSession.pawnCount);
+        strategy = cpuLogic_getStrategy(pawn, gameSession.pawns, gameSession.pawnCount, gameSession.factions[pawn->faction].profile);
         pawn->turnComplete = true;
         gameSession.activePawn = pawn;
         switch (strategy.CPUAction) {
@@ -581,38 +596,41 @@ static void gameSession_cpuTurn() {
 }
 
 void gameSession_progressLogic() {
-    if (gameSession.playerFaction != gameSession.factionTurn) {
-        gameSession_cpuTurn();
-    } else if (gameSession.lastPenInput.wasUpdatedFlag) {  // handle user actions
-        // Handle pen input
-        gameSession.lastPenInput.wasUpdatedFlag = false;
-        if (gameSession.lastPenInput.moving) {
-            switch (gameSession.state) {
-                case GAMESTATE_DEFAULT:
-                    gameSession.drawingState.awaitingEndMiniMapScrolling = gameSession_handleMiniMapTap();
-                    break;
-                case GAMESTATE_CHOOSEPAWNACTION:
-                case GAMESTATE_SELECTTARGET:
-                    break;
-            }
-        } else {
-            if (gameSession.drawingState.awaitingEndMiniMapScrolling) {
-                gameSession.drawingState.awaitingEndMiniMapScrolling = false;
-                gameSession.drawingState.shouldRedrawOverlay = true;
-                return;
-            }
-            switch (gameSession.state) {
-                case GAMESTATE_DEFAULT:
-                    if (gameSession_handleMiniMapTap()) break;
-                    if (gameSession_handleTileTap()) break;
-                    if (gameSession_handleBarButtonsTap()) break;
-                    break;
-                case GAMESTATE_CHOOSEPAWNACTION:
-                    gameSession_handlePawnActionButtonSelection();
-                    break;
-                case GAMESTATE_SELECTTARGET:
-                    gameSession_handleTargetSelection();
-                    break;
+    Boolean animating = (gameSession.movement != NULL || gameSession.attackAnimation != NULL);
+    if (!animating) {
+        if (!gameSession.factions[gameSession.factionTurn].human) {
+            gameSession_cpuTurn();
+        } else if (gameSession.lastPenInput.wasUpdatedFlag) {  // handle user actions
+            // Handle pen input
+            gameSession.lastPenInput.wasUpdatedFlag = false;
+            if (gameSession.lastPenInput.moving) {
+                switch (gameSession.state) {
+                    case GAMESTATE_DEFAULT:
+                        gameSession.drawingState.awaitingEndMiniMapScrolling = gameSession_handleMiniMapTap();
+                        break;
+                    case GAMESTATE_CHOOSEPAWNACTION:
+                    case GAMESTATE_SELECTTARGET:
+                        break;
+                }
+            } else {
+                if (gameSession.drawingState.awaitingEndMiniMapScrolling) {
+                    gameSession.drawingState.awaitingEndMiniMapScrolling = false;
+                    gameSession.drawingState.shouldRedrawOverlay = true;
+                    return;
+                }
+                switch (gameSession.state) {
+                    case GAMESTATE_DEFAULT:
+                        if (gameSession_handleMiniMapTap()) break;
+                        if (gameSession_handleTileTap()) break;
+                        if (gameSession_handleBarButtonsTap()) break;
+                        break;
+                    case GAMESTATE_CHOOSEPAWNACTION:
+                        gameSession_handlePawnActionButtonSelection();
+                        break;
+                    case GAMESTATE_SELECTTARGET:
+                        gameSession_handleTargetSelection();
+                        break;
+                }
             }
         }
     }

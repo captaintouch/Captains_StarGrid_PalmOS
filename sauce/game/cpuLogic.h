@@ -2,6 +2,12 @@
 #define CPU_LOGIC_H
 #include "models.h"
 
+typedef struct CPUFactionProfile {
+    int defendBasePriority;
+    int captureFlagPriority;
+    int attackPriority;
+} CPUFactionProfile;
+
 typedef enum CPUAction {
     CPUACTION_NONE,
     CPUACTION_MOVE,
@@ -16,6 +22,6 @@ typedef struct CPUStrategyResult {
     Pawn *target;
 } CPUStrategyResult;
 
-CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount);
+CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, CPUFactionProfile factionProfile);
 
 #endif
