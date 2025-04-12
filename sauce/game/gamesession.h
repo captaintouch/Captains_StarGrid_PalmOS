@@ -34,8 +34,8 @@ typedef struct DrawingState {
 } DrawingState;
 
 typedef struct Faction {
-    Boolean human;
     CPUFactionProfile profile;
+    Boolean human;
 } Faction;
 
 typedef struct GameSession {
@@ -47,9 +47,10 @@ typedef struct GameSession {
     Pawn *activePawn;
     Pawn cameraPawn;
 
-    Char cpuActionText[10];
+    Char cpuActionText[15];
 
     Faction factions[4];
+    int factionCount;
     int factionTurn;
     CPUStrategyResult *cpuStrategyResult;
 

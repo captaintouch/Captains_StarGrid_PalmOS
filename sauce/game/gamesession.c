@@ -56,11 +56,10 @@ void gameSession_initialize() {
 
     // setup factions
 
-    gameSession.factions[0] = (Faction){true, {0, 0, 0}};
+    gameSession.factions[0] = (Faction){(CPUFactionProfile){0, 0, 0}, true};
     gameSession.factions[1] = gameSession_factionWithRandomizedCPUProfile();
     gameSession.factions[2] = gameSession_factionWithRandomizedCPUProfile();
-    gameSession.factions[3] = gameSession_factionWithRandomizedCPUProfile();
-
+    gameSession.factionCount = 3;
     gameSession.factionTurn = 0;
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
 
@@ -217,19 +216,9 @@ static Boolean gameSession_movesLeftForFaction(int faction) {
 }
 
 static int gameSession_nextAvailableFaction(int currentFaction) {
-    int i;
-    int nextFaction;
-    int factionCount = 0;
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        if (gameSession.pawns[i].faction > factionCount && !isInvalidCoordinate(gameSession.pawns[i].position)) {
-            factionCount = gameSession.pawns[i].faction;
-        }
-    }
-    factionCount++;
-
-    nextFaction = (currentFaction + 1) % factionCount;
+    int nextFaction = (currentFaction + 1) % gameSession.factionCount;
     while (!gameSession_movesLeftForFaction(nextFaction)) {
-        nextFaction = (nextFaction + 1) % factionCount;
+        nextFaction = (nextFaction + 1) % gameSession.factionCount;
     }
     return nextFaction;
 }
@@ -546,7 +535,7 @@ static void gameSession_cpuTurn() {
         Pawn *targetPawn;
         CPUStrategyResult strategy;
         Pawn *pawn = &gameSession.pawns[i];
-        if (pawn->faction != gameSession.factionTurn || pawn->type != PAWNTYPE_SHIP || pawn->turnComplete || isInvalidCoordinate(pawn->position)) {
+        if (pawn->faction != gameSession.factionTurn || gameSession.factions[pawn->faction].human || pawn->type != PAWNTYPE_SHIP || pawn->turnComplete || isInvalidCoordinate(pawn->position)) {
             continue;
         }
         // move camera to active pawn
