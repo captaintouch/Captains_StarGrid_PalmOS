@@ -20,6 +20,7 @@ typedef struct CPUStrategyResult {
     int score;
     CPUAction CPUAction;
     Pawn *target;
+    Coordinate targetPosition;
 } CPUStrategyResult;
 
 CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, CPUFactionProfile factionProfile);

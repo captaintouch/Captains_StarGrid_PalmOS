@@ -290,7 +290,7 @@ static Boolean movement_shipOrBaseAtTarget(Coordinate targetCoordinate, Pawn *al
     return false;
 }
 
-Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Pawn *target, Pawn *allPawns, int totalPawnCount, Boolean allowBase) {
+Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Coordinate targetPosition, Pawn *allPawns, int totalPawnCount, Boolean allowBase) {
     Coordinate closestTile = pawn->position;
     int minDistance = 9999;
     int maxRange = GAMEMECHANICS_MAXTILEMOVERANGE;
@@ -301,7 +301,7 @@ Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Pawn *target, Pawn *a
             Coordinate candidateTile = {pawn->position.x + dx, pawn->position.y + dy};
             Boolean targetOccupied = allowBase ? movement_shipAtTarget(candidateTile, allPawns, totalPawnCount) : movement_shipOrBaseAtTarget(candidateTile, allPawns, totalPawnCount);
             if (!isInvalidCoordinate(candidateTile) && !targetOccupied) {
-                int distance = movement_distance(candidateTile, target->position);
+                int distance = movement_distance(candidateTile, targetPosition);
                 if (distance < minDistance) {
                     minDistance = distance;
                     closestTile = candidateTile;

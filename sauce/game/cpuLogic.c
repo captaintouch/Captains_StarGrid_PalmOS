@@ -5,6 +5,8 @@
 #include "drawhelper.h"
 #include "mathIsFun.h"
 #include "movement.h"
+#include "hexgrid.h"
+#include "viewport.h"
 
 typedef enum CPUStrategy {
     CPUSTRATEGY_DEFENDBASE,
@@ -26,6 +28,53 @@ static Pawn *cpuLogic_closestOtherFactionHomeBaseWithFlag(Pawn *pawn, Pawn *allP
         }
     }
     return closestHomeBase;
+}
+
+static int cpuLogic_damageAssementForTile(Coordinate position, Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
+    int i;
+    int damage = 0;
+    for (i = 0; i < totalPawnCount; i++) {
+        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].type == PAWNTYPE_SHIP && pawn->faction != allPawns[i].faction && !allPawns[i].cloaked) {
+            int distance = movement_distance(position, allPawns[i].position);
+            if (allPawns[i].inventory.torpedoCount > 0 && distance <= GAMEMECHANICS_MAXTILETORPEDORANGE) {
+                damage += GAMEMECHANICS_MAXIMPACTTORPEDO;
+            } else if (distance <= GAMEMECHANICS_MAXTILEPHASERRANGE) {
+                damage += GAMEMECHANICS_MAXIMPACTPHASER;
+            }
+        }
+    }
+    return damage;
+}
+
+// This function is used to find a safe position for the pawn to move to, avoiding enemy ships
+static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPawnCount, Pawn *target) {
+    int maxRange = GAMEMECHANICS_MAXTILEMOVERANGE;
+    int dx, dy;
+    int minDistance = 9999;
+    int maxDamage = random(0, 5) >= 4 ? pawn->inventory.health - 5 : 10;
+    Coordinate targetPosition, safePosition;
+    if (target == NULL || isInvalidCoordinate(target->position)) {
+        return (Coordinate){-1, -1};
+    }
+    targetPosition = movement_closestTileToTargetInRange(pawn, target->position, allPawns, totalPawnCount, true);
+    safePosition = targetPosition;
+    for (dx = -maxRange; dx <= maxRange; dx++) {
+        for (dy = -maxRange; dy <= maxRange; dy++) {
+            Coordinate candidateTile = {pawn->position.x + dx, pawn->position.y + dy};
+            int possibleDamage = cpuLogic_damageAssementForTile(candidateTile, pawn, allPawns, totalPawnCount);
+            #ifdef DEBUG
+            drawhelper_drawTextWithValue("", possibleDamage, viewport_convertedCoordinate(hexgrid_tileCenterPosition(candidateTile)));
+            #endif
+            if (!isInvalidCoordinate(candidateTile) && possibleDamage <= maxDamage && movement_distance(pawn->position, candidateTile) <= maxRange) {
+                int distance = movement_distance(candidateTile, targetPosition);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    safePosition = candidateTile;
+                }
+            }
+        }
+    }
+    return safePosition;
 }
 
 static Pawn *cpuLogic_homeBase(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
@@ -221,6 +270,7 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
             bestStrategy = strategyResult[i];
         }
     }
+    bestStrategy.targetPosition = cpuLogic_safePosition(pawn, allPawns, totalPawnCount, bestStrategy.target);
 
 #ifdef DEBUG
     switch (bestStrategy.CPUAction) {

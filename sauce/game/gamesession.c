@@ -549,7 +549,7 @@ static void gameSession_cpuTurn() {
         gameSession.activePawn = pawn;
         switch (strategy.CPUAction) {
             case CPUACTION_MOVE:
-                closestTile = movement_closestTileToTargetInRange(pawn, strategy.target, gameSession.pawns, gameSession.pawnCount, true);
+                closestTile = strategy.targetPosition;
                 if (isEqualCoordinate(closestTile, strategy.target->position)) {
                     targetPawn = strategy.target;
                 } else {
