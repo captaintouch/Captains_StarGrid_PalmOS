@@ -592,15 +592,8 @@ void gameSession_progressLogic() {
         } else if (gameSession.lastPenInput.wasUpdatedFlag) {  // handle user actions
             // Handle pen input
             gameSession.lastPenInput.wasUpdatedFlag = false;
-            if (gameSession.lastPenInput.moving) {
-                switch (gameSession.state) {
-                    case GAMESTATE_DEFAULT:
-                        gameSession.drawingState.awaitingEndMiniMapScrolling = gameSession_handleMiniMapTap();
-                        break;
-                    case GAMESTATE_CHOOSEPAWNACTION:
-                    case GAMESTATE_SELECTTARGET:
-                        break;
-                }
+            if (gameSession.lastPenInput.moving && gameSession.state == GAMESTATE_DEFAULT && gameSession_handleMiniMapTap()) {
+                gameSession.drawingState.awaitingEndMiniMapScrolling = true;
             } else {
                 if (gameSession.drawingState.awaitingEndMiniMapScrolling) {
                     gameSession.drawingState.awaitingEndMiniMapScrolling = false;
