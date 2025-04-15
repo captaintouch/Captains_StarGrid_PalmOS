@@ -62,6 +62,8 @@ float remapToMax(float a, float maxValue) {
 
 int random(int min, int max) {
     int seed = TimGetTicks();
+    int value;
     seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-    return min + (seed % (max - min + 1));
+    value = min + (seed % (max - min + 1));
+    return fmin(fmax(value, min), max);
 }

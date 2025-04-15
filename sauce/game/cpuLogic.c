@@ -14,16 +14,38 @@ typedef enum CPUStrategy {
     CPUSTRATEGY_ATTACK
 } CPUStrategy;
 
+static void cpuLogic_shuffledPawnsIndices(int *indices, int totalPawnCount) {
+    int i;
+    for (i = 0; i < totalPawnCount; i++) {
+        indices[i] = i;
+    }
+
+    for (i = 0; i < totalPawnCount; i++) {
+        int t;
+        int j = random(0, totalPawnCount - 1);
+        if (j == i) {
+            continue;
+        }
+        t = indices[j];
+        indices[j] = indices[i];
+        indices[i] = t;
+    }
+}
+
 static Pawn *cpuLogic_closestOtherFactionHomeBaseWithFlag(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
     int i;
     Pawn *closestHomeBase = NULL;
     int closestDistance = 999;
+    int indices[totalPawnCount];
+    cpuLogic_shuffledPawnsIndices(indices, totalPawnCount);
+
     for (i = 0; i < totalPawnCount; i++) {
-        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].type == PAWNTYPE_BASE && allPawns[i].faction != pawn->faction && allPawns[i].inventory.carryingFlag) {
-            int distance = movement_distance(pawn->position, allPawns[i].position);
+        int index = indices[i];
+        if (!isInvalidCoordinate(allPawns[index].position) && allPawns[index].type == PAWNTYPE_BASE && allPawns[index].faction != pawn->faction && allPawns[index].inventory.carryingFlag) {
+            int distance = movement_distance(pawn->position, allPawns[index].position);
             if (distance < closestDistance) {
                 closestDistance = distance;
-                closestHomeBase = &allPawns[i];
+                closestHomeBase = &allPawns[index];
             }
         }
     }
@@ -93,16 +115,20 @@ static Pawn *cpuLogic_homeBase(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
 static Pawn *cpuLogic_weakestEnemyInRange(Pawn *pawn, Pawn *allPawns, int totalPawnCount, Boolean includeBases, Boolean unlimitedRange) {
     int i;
     Pawn *weakestEnemy = NULL;
+    int indices[totalPawnCount];
+    cpuLogic_shuffledPawnsIndices(indices, totalPawnCount);
+
     for (i = 0; i < totalPawnCount; i++) {
-        Boolean isShip = includeBases ? true : allPawns[i].type == PAWNTYPE_SHIP;
-        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].faction != pawn->faction && isShip) {
-            int distance = unlimitedRange ? 0 : movement_distance(pawn->position, allPawns[i].position);
+        int index = indices[i];
+        Boolean isShip = includeBases ? true : allPawns[index].type == PAWNTYPE_SHIP;
+        if (!isInvalidCoordinate(allPawns[index].position) && allPawns[index].faction != pawn->faction && isShip) {
+            int distance = unlimitedRange ? 0 : movement_distance(pawn->position, allPawns[index].position);
             if (distance <= fmax(GAMEMECHANICS_MAXTILEPHASERRANGE, GAMEMECHANICS_MAXTILETORPEDORANGE)) {
                 if (weakestEnemy == NULL) {
-                    weakestEnemy = &allPawns[i];
+                    weakestEnemy = &allPawns[index];
                 } else {
-                    if (allPawns[i].inventory.health < weakestEnemy->inventory.health) {
-                        weakestEnemy = &allPawns[i];
+                    if (allPawns[index].inventory.health < weakestEnemy->inventory.health) {
+                        weakestEnemy = &allPawns[index];
                     }
                 }
             }
