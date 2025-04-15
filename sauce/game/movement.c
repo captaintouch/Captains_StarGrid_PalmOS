@@ -290,6 +290,16 @@ static Boolean movement_shipOrBaseAtTarget(Coordinate targetCoordinate, Pawn *al
     return false;
 }
 
+Pawn *movement_homeBase(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
+    int i;
+    for (i = 0; i < totalPawnCount; i++) {
+        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].type == PAWNTYPE_BASE && allPawns[i].faction == pawn->faction) {
+            return &allPawns[i];
+        }
+    }
+    return NULL;
+}
+
 Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Coordinate targetPosition, Pawn *allPawns, int totalPawnCount, Boolean allowBase) {
     Coordinate closestTile = pawn->position;
     int minDistance = 9999;

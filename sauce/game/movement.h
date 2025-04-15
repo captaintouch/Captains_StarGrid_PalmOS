@@ -11,4 +11,5 @@ void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coo
 UInt8 movement_orientationBetween(Coordinate coordA, Coordinate coordB);
 Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Coordinate targetPosition, Pawn *allPawns, int totalPawnCount, Boolean allowBase);
 Boolean movement_shipAtTarget(Coordinate targetCoordinate, Pawn *allPawns, int totalPawnCount);
+Pawn *movement_homeBase(Pawn *pawn, Pawn *allPawns, int totalPawnCount);
 #endif

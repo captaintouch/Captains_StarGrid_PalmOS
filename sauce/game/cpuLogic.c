@@ -102,16 +102,6 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
     return safePosition;
 }
 
-static Pawn *cpuLogic_homeBase(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
-    int i;
-    for (i = 0; i < totalPawnCount; i++) {
-        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].type == PAWNTYPE_BASE && allPawns[i].faction == pawn->faction) {
-            return &allPawns[i];
-        }
-    }
-    return NULL;
-}
-
 static Pawn *cpuLogic_weakestEnemyInRange(Pawn *pawn, Pawn *allPawns, int totalPawnCount, Boolean includeBases, Boolean unlimitedRange) {
     int i;
     Pawn *weakestEnemy = NULL;
@@ -168,7 +158,7 @@ static Boolean cpuLogic_attackIfInRange(Pawn *pawn, Pawn *target, CPUStrategyRes
 
 static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int factionValue) {
     CPUStrategyResult strategyResult = {factionValue + random(-30, 30), CPUACTION_NONE, NULL};
-    Pawn *homeBase = cpuLogic_homeBase(pawn, allPawns, totalPawnCount);
+    Pawn *homeBase = movement_homeBase(pawn, allPawns, totalPawnCount);
     Pawn *enemyInRangeOfHomeBase = cpuLogic_weakestEnemyInRange(pawn, allPawns, totalPawnCount, false, false);
 
     if (homeBase->inventory.carryingFlag == false) {  // flag was stolen! If enemy with flag is in range, attack, otherwise move to home base
@@ -176,7 +166,7 @@ static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns,
         strategyResult.score += 50;
         if (enemyWithFlag != NULL) {
             if (!cpuLogic_attackIfInRange(pawn, enemyWithFlag, &strategyResult)) {  // Attack if we can, if not, move to enemy home base
-                Pawn *enemyHomeBase = cpuLogic_homeBase(enemyWithFlag, allPawns, totalPawnCount);
+                Pawn *enemyHomeBase = movement_homeBase(enemyWithFlag, allPawns, totalPawnCount);
                 if (enemyHomeBase != NULL) {
                     strategyResult.CPUAction = CPUACTION_MOVE;
                     strategyResult.target = enemyHomeBase;
@@ -202,7 +192,7 @@ static CPUStrategyResult cpuLogic_captureTheFlagStrategy(Pawn *pawn, Pawn *allPa
     CPUStrategyResult strategyResult = {factionValue + random(-30, 30), CPUACTION_NONE, NULL};
 
     if (pawn->inventory.carryingFlag) {
-        Pawn *homeBase = cpuLogic_homeBase(pawn, allPawns, totalPawnCount);
+        Pawn *homeBase = movement_homeBase(pawn, allPawns, totalPawnCount);
         strategyResult.CPUAction = CPUACTION_MOVE;
         strategyResult.target = homeBase;
         strategyResult.score += 150;
@@ -233,7 +223,7 @@ static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int
     if (enemyWithFlag != NULL) {
         strategyResult.score += 50;
         if (!cpuLogic_attackIfInRange(pawn, enemyWithFlag, &strategyResult)) {  // Attack if we can, if not, move to enemy home base
-            Pawn *enemyHomeBase = cpuLogic_homeBase(enemyWithFlag, allPawns, totalPawnCount);
+            Pawn *enemyHomeBase = movement_homeBase(enemyWithFlag, allPawns, totalPawnCount);
             if (enemyHomeBase != NULL) {
                 strategyResult.CPUAction = CPUACTION_MOVE;
                 strategyResult.target = enemyHomeBase;

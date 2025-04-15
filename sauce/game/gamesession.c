@@ -347,6 +347,7 @@ void gameSession_scheduleNextGameLogicProgression() {
 static void gameSession_handlePawnActionButtonSelection() {
     int i;
     int selectedIndex = bottomMenu_selectedIndex(gameSession.lastPenInput.touchCoordinate);
+    Pawn *homeBase;
 
     if (selectedIndex >= gameSession.displayButtonCount) {
         return;
@@ -364,7 +365,9 @@ static void gameSession_handlePawnActionButtonSelection() {
             break;
         case MenuActionTypeWarp:
             gameSession.activePawn->turnComplete = true;
-            // TODO: Warp to home base
+            homeBase = movement_homeBase(gameSession.activePawn, gameSession.pawns, gameSession.pawnCount);
+            gameSession.activePawn->warped = true;
+            gameSession.activePawn->position = movement_closestTileToTargetInRange(gameSession.activePawn, homeBase->position, gameSession.pawns, gameSession.pawnCount, false);
             gameSession.state = GAMESTATE_DEFAULT;
             break;
         case MenuActionTypeTorpedo:
@@ -522,6 +525,7 @@ static void gameSession_cpuTurn() {
         Coordinate closestTile;
         Pawn *targetPawn;
         CPUStrategyResult strategy;
+        Pawn *homeBase;
         Pawn *pawn = &gameSession.pawns[i];
         if (pawn->faction != gameSession.factionTurn || gameSession.factions[pawn->faction].human || pawn->type != PAWNTYPE_SHIP || pawn->turnComplete || isInvalidCoordinate(pawn->position)) {
             continue;
@@ -552,7 +556,9 @@ static void gameSession_cpuTurn() {
                 StrCopy(gameSession.cpuActionText, "Attacking");
                 break;
             case CPUACTION_WARP:
+                homeBase = movement_homeBase(pawn, gameSession.pawns, gameSession.pawnCount);
                 pawn->warped = true;
+                pawn->position = movement_closestTileToTargetInRange(pawn, homeBase->position, gameSession.pawns, gameSession.pawnCount, false);
                 StrCopy(gameSession.cpuActionText, "Warping home");
                 gameSession.drawingState.requiresPauseAfterLayout = true;
                 break;
