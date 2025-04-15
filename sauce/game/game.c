@@ -220,11 +220,13 @@ static void game_drawPawns() {
         // Draw faction indicator
         if (pawn->type == PAWNTYPE_SHIP) {
             if (gameSession.colorSupport) {
+                /*
                 RectangleType flagRect;
                 Coordinate target = viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 10});
                 RctSetRectangle(&flagRect, target.x, target.y, 5, 5);
                 drawhelper_applyForeColor(pawn_factionColor(pawn->faction));
                 drawhelper_fillRectangle(&flagRect, 0);
+                */
             } else {
                 drawhelper_applyForeColor(CLOUDS);
                 drawhelper_drawTextWithValue("", pawn->faction + 1, (Coordinate){pawnPosition.x, pawnPosition.y - 10});
