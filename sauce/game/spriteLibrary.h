@@ -21,7 +21,6 @@ typedef struct SpriteLibrary {
     ImageSprite shipTwoSprite[GFX_FRAMECOUNT_SHIPB];
     ImageSprite shipThreeSprite[GFX_FRAMECOUNT_SHIPC];
     ImageSprite shipFourSprite[GFX_FRAMECOUNT_SHIPD];
-    ImageSprite shipCloakedSprite[GFX_FRAMECOUNT_SHIPCLOAKED];
     ImageSprite baseSprite;
     ImageSprite torpedoAnimation[GFX_FRAMECOUNT_TORP];
     ImageSprite explosionAnimation[GFX_FRAMECOUNT_EXPLOSION];

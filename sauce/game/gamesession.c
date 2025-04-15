@@ -141,8 +141,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
         case TARGETSELECTIONTYPE_MOVE:
             coordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.pawnCount);
             for (i = 0; i < gameSession.pawnCount; i++) {
-                Boolean isCloakedShipFromOtherFaction = gameSession.pawns[i].type == PAWNTYPE_SHIP && gameSession.pawns[i].faction != gameSession.activePawn->faction && gameSession.pawns[i].cloaked;
-                if (!isCloakedShipFromOtherFaction && gameSession.pawns[i].type != PAWNTYPE_BASE && !isInvalidCoordinate(gameSession.pawns[i].position)) {
+                if (gameSession.pawns[i].type != PAWNTYPE_BASE && !isInvalidCoordinate(gameSession.pawns[i].position)) {
                     coordinates[coordinatesCount] = gameSession.pawns[i].position;
                     coordinatesCount++;
                 }
@@ -184,22 +183,11 @@ static void gameSession_showPawnActions() {
     gameSession.state = GAMESTATE_CHOOSEPAWNACTION;
 }
 
-static int gameSession_pawnCount(Coordinate location) {
-    int i;
-    int count = 0;
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        if (isEqualCoordinate(gameSession.pawns[i].position, location)) {
-            count++;
-        }
-    }
-    return count;
-}
-
 static void gameSession_enableActionsForFaction(int faction) {
     int i;
     for (i = 0; i < gameSession.pawnCount; i++) {
         if (gameSession.pawns[i].faction == faction && gameSession.pawns[i].type == PAWNTYPE_SHIP && !isInvalidCoordinate(gameSession.pawns[i].position)) {
-            gameSession.pawns[i].turnComplete = (gameSession.pawns[i].cloaked && gameSession_pawnCount(gameSession.pawns[i].position) > 1);
+            gameSession.pawns[i].turnComplete = false;
             gameSession.activePawn = &gameSession.pawns[i];
         }
     }
@@ -374,9 +362,9 @@ static void gameSession_handlePawnActionButtonSelection() {
         case MenuActionTypeCancel:
             gameSession.state = GAMESTATE_DEFAULT;
             break;
-        case MenuActionTypeCloak:
+        case MenuActionTypeWarp:
             gameSession.activePawn->turnComplete = true;
-            gameSession.activePawn->cloaked = !gameSession.activePawn->cloaked;
+            // TODO: Warp to home base
             gameSession.state = GAMESTATE_DEFAULT;
             break;
         case MenuActionTypeTorpedo:
@@ -563,13 +551,9 @@ static void gameSession_cpuTurn() {
                 gameActionLogic_scheduleAttack(strategy.target, strategy.target->position, strategy.CPUAction == CPUACTION_PHASERATTACK ? TARGETSELECTIONTYPE_PHASER : TARGETSELECTIONTYPE_TORPEDO);
                 StrCopy(gameSession.cpuActionText, "Attacking");
                 break;
-            case CPUACTION_CLOAK:
-                pawn->cloaked = !pawn->cloaked;
-                if (pawn->cloaked) {
-                    StrCopy(gameSession.cpuActionText, "Cloaking");
-                } else {
-                    StrCopy(gameSession.cpuActionText, "Decloaking");
-                }
+            case CPUACTION_WARP:
+                pawn->warped = true;
+                StrCopy(gameSession.cpuActionText, "Warping home");
                 gameSession.drawingState.requiresPauseAfterLayout = true;
                 break;
             case CPUACTION_NONE:

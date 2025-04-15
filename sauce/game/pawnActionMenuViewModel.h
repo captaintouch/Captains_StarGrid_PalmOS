@@ -7,7 +7,7 @@ typedef enum {
     MenuActionTypeMove,
     MenuActionTypePhaser,
     MenuActionTypeTorpedo,
-    MenuActionTypeCloak,
+    MenuActionTypeWarp,
     MenuActionTypeCancel
 } MenuActionType;
 

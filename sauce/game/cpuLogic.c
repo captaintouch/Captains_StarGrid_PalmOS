@@ -3,9 +3,9 @@
 #include "../constants.h"
 #include "../deviceinfo.h"
 #include "drawhelper.h"
+#include "hexgrid.h"
 #include "mathIsFun.h"
 #include "movement.h"
-#include "hexgrid.h"
 #include "viewport.h"
 
 typedef enum CPUStrategy {
@@ -34,7 +34,7 @@ static int cpuLogic_damageAssementForTile(Coordinate position, Pawn *pawn, Pawn 
     int i;
     int damage = 0;
     for (i = 0; i < totalPawnCount; i++) {
-        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].type == PAWNTYPE_SHIP && pawn->faction != allPawns[i].faction && !allPawns[i].cloaked) {
+        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].type == PAWNTYPE_SHIP && pawn->faction != allPawns[i].faction) {
             int distance = movement_distance(position, allPawns[i].position);
             if (allPawns[i].inventory.torpedoCount > 0 && distance <= GAMEMECHANICS_MAXTILETORPEDORANGE) {
                 damage += GAMEMECHANICS_MAXIMPACTTORPEDO;
@@ -65,9 +65,9 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
             if (movement_shipAtTarget(candidateTile, allPawns, totalPawnCount) != NULL) {
                 continue;
             }
-            #ifdef DEBUG
+#ifdef DEBUG
             drawhelper_drawTextWithValue("", possibleDamage, viewport_convertedCoordinate(hexgrid_tileCenterPosition(candidateTile)));
-            #endif
+#endif
             if (!isInvalidCoordinate(candidateTile) && possibleDamage <= maxDamage && movement_distance(pawn->position, candidateTile) <= maxRange) {
                 int distance = movement_distance(candidateTile, targetPosition);
                 if (distance < minDistance) {
@@ -95,7 +95,7 @@ static Pawn *cpuLogic_weakestEnemyInRange(Pawn *pawn, Pawn *allPawns, int totalP
     Pawn *weakestEnemy = NULL;
     for (i = 0; i < totalPawnCount; i++) {
         Boolean isShip = includeBases ? true : allPawns[i].type == PAWNTYPE_SHIP;
-        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].faction != pawn->faction && isShip && !allPawns[i].cloaked) {
+        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].faction != pawn->faction && isShip) {
             int distance = unlimitedRange ? 0 : movement_distance(pawn->position, allPawns[i].position);
             if (distance <= fmax(GAMEMECHANICS_MAXTILEPHASERRANGE, GAMEMECHANICS_MAXTILETORPEDORANGE)) {
                 if (weakestEnemy == NULL) {
@@ -126,9 +126,6 @@ static Boolean cpuLogic_attackIfInRange(Pawn *pawn, Pawn *target, CPUStrategyRes
     if (pawn == NULL || target == NULL) {
         return false;
     }
-    if (pawn->cloaked) {  // can't attack while cloaked
-        return false;
-    }
     distanceToEnemy = movement_distance(pawn->position, target->position);
     if (distanceToEnemy <= GAMEMECHANICS_MAXTILETORPEDORANGE && pawn->inventory.torpedoCount > 0) {  // When in range, attack with torpedoes
         updateStrategy->CPUAction = CPUACTION_TORPEDOATTACK;
@@ -152,9 +149,7 @@ static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns,
         Pawn *enemyWithFlag = cpuLogic_enemyWithStolenFlag(pawn, allPawns, totalPawnCount);
         strategyResult.score += 50;
         if (enemyWithFlag != NULL) {
-            if (pawn->cloaked) {
-                strategyResult.CPUAction = CPUACTION_CLOAK;
-            } else if (!cpuLogic_attackIfInRange(pawn, enemyWithFlag, &strategyResult)) {  // Attack if we can, if not, move to enemy home base
+            if (!cpuLogic_attackIfInRange(pawn, enemyWithFlag, &strategyResult)) {  // Attack if we can, if not, move to enemy home base
                 Pawn *enemyHomeBase = cpuLogic_homeBase(enemyWithFlag, allPawns, totalPawnCount);
                 if (enemyHomeBase != NULL) {
                     strategyResult.CPUAction = CPUACTION_MOVE;
@@ -165,9 +160,7 @@ static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns,
     } else {
         if (enemyInRangeOfHomeBase != NULL) {
             strategyResult.score += 50;
-            if (pawn->cloaked) {
-                strategyResult.CPUAction = CPUACTION_CLOAK;                                         // Decloak so we are go for attack on the next turn
-            } else if (!cpuLogic_attackIfInRange(pawn, enemyInRangeOfHomeBase, &strategyResult)) {  // Attack if we can, if not, move towards enemy
+            if (!cpuLogic_attackIfInRange(pawn, enemyInRangeOfHomeBase, &strategyResult)) {  // Attack if we can, if not, move towards enemy
                 strategyResult.CPUAction = CPUACTION_MOVE;
                 strategyResult.target = enemyInRangeOfHomeBase;
             }
@@ -194,13 +187,7 @@ static CPUStrategyResult cpuLogic_captureTheFlagStrategy(Pawn *pawn, Pawn *allPa
             return strategyResult;
         }
         distance = movement_distance(pawn->position, enemyHomeBase->position);
-        if (pawn->cloaked && distance <= GAMEMECHANICS_MAXTILEMOVERANGE) {  // if we are cloaked, and close to the target, decloak
-            strategyResult.score += 50;
-            strategyResult.CPUAction = CPUACTION_CLOAK;                                 // Decloak so we are go for capture on the next turn
-        } else if (!pawn->cloaked && distance >= GAMEMECHANICS_MAXTILEMOVERANGE * 2) {  // if we are not cloaked, and far away from the target, activate cloak
-            strategyResult.score += 50;
-            strategyResult.CPUAction = CPUACTION_CLOAK;
-        } else if (!pawn->cloaked && distance <= GAMEMECHANICS_MAXTILEMOVERANGE) {  // if we can capture the flag, do it
+        if (distance <= GAMEMECHANICS_MAXTILEMOVERANGE) {  // if we can capture the flag, do it
             strategyResult.CPUAction = CPUACTION_MOVE;
             strategyResult.target = enemyHomeBase;
             strategyResult.score += 90;
@@ -222,21 +209,15 @@ static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int
         if (!cpuLogic_attackIfInRange(pawn, enemyWithFlag, &strategyResult)) {  // Attack if we can, if not, move to enemy home base
             Pawn *enemyHomeBase = cpuLogic_homeBase(enemyWithFlag, allPawns, totalPawnCount);
             if (enemyHomeBase != NULL) {
-                if (pawn->cloaked) {
-                    strategyResult.CPUAction = CPUACTION_CLOAK;
-                } else {
-                    strategyResult.CPUAction = CPUACTION_MOVE;
-                    strategyResult.target = enemyHomeBase;
-                }
+                strategyResult.CPUAction = CPUACTION_MOVE;
+                strategyResult.target = enemyHomeBase;
             }
         }
     } else {
         Pawn *nearestEnemyShipOrBase = cpuLogic_weakestEnemyInRange(pawn, allPawns, totalPawnCount, true, true);
         if (nearestEnemyShipOrBase != NULL) {
             strategyResult.score += 50;
-            if (pawn->cloaked) {
-                strategyResult.CPUAction = CPUACTION_CLOAK;
-            } else if (!cpuLogic_attackIfInRange(pawn, nearestEnemyShipOrBase, &strategyResult)) {  // Attack if we can, if not, move to enemy
+            if (!cpuLogic_attackIfInRange(pawn, nearestEnemyShipOrBase, &strategyResult)) {  // Attack if we can, if not, move to enemy
                 strategyResult.CPUAction = CPUACTION_MOVE;
                 strategyResult.target = nearestEnemyShipOrBase;
             }
@@ -285,11 +266,11 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
         case CPUACTION_TORPEDOATTACK:
             drawhelper_drawText("ATTACK", (Coordinate){0, 30});
             break;
-        case CPUACTION_CLOAK:
-            drawhelper_drawText("CLOAK", (Coordinate){0, 30});
-            break;
         case CPUACTION_NONE:
             drawhelper_drawText("NONE", (Coordinate){0, 30});
+            break;
+        case CPUACTION_WARP:
+            drawhelper_drawText("WARP", (Coordinate){0, 30});
             break;
     }
     sleep(1000);

@@ -137,9 +137,6 @@ static ImageSprite *game_spriteForPawn(Pawn *pawn) {
     if (pawn->type == PAWNTYPE_BASE) {
         return &spriteLibrary.baseSprite;
     }
-    if (pawn->cloaked) {
-        return &spriteLibrary.shipCloakedSprite[pawn->orientation];
-    }
     return &spriteLibrary_factionShipSprite(pawn->faction)[pawn->orientation];
 }
 

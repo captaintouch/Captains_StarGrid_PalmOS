@@ -35,7 +35,7 @@ typedef struct Pawn {
     Inventory inventory;
     UInt8 orientation;
     UInt8 faction;
-    Boolean cloaked;
+    Boolean warped;
     Boolean turnComplete;
 } Pawn;
 

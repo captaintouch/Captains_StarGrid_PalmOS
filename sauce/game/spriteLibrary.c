@@ -60,15 +60,6 @@ void spriteLibrary_initialize() {
             drawhelper_loadImage(spriteLibrary.shipFourSprite[i].resourceId);
     }
 
-    for (i = 0; i < GFX_FRAMECOUNT_SHIPCLOAKED; i++) {
-        spriteLibrary.shipCloakedSprite[i] = (ImageSprite){
-            GFX_RES_SHIPCLOAKED_0 + i,
-            (Coordinate){HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE},
-        };
-        spriteLibrary.shipCloakedSprite[i].imageData =
-            drawhelper_loadImage(spriteLibrary.shipCloakedSprite[i].resourceId);
-    }
-
     spriteLibrary.baseSprite = (ImageSprite){
         GFX_RES_BASE,
         (Coordinate){HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE},
@@ -117,9 +108,6 @@ void spriteLibrary_clean() {
     }
     for (i = 0; i < GFX_FRAMECOUNT_SHIPD; i++) {
         drawhelper_releaseImage(spriteLibrary.shipFourSprite[i].imageData);
-    }
-    for (i = 0; i < GFX_FRAMECOUNT_SHIPCLOAKED; i++) {
-        drawhelper_releaseImage(spriteLibrary.shipCloakedSprite[i].imageData);
     }
     for (i = 0; i < GFX_FRAMECOUNT_TORP; i++) {
         drawhelper_releaseImage(spriteLibrary.torpedoAnimation[i].imageData);
