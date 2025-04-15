@@ -10,4 +10,5 @@ Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate end
 void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coordinate *invalidCoordinates, int invalidCoordinatesCount, Coordinate **results, int *numberOfPositions);
 UInt8 movement_orientationBetween(Coordinate coordA, Coordinate coordB);
 Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Coordinate targetPosition, Pawn *allPawns, int totalPawnCount, Boolean allowBase);
+Boolean movement_shipAtTarget(Coordinate targetCoordinate, Pawn *allPawns, int totalPawnCount);
 #endif

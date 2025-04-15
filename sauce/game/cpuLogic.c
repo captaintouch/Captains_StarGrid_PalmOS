@@ -62,6 +62,9 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
         for (dy = -maxRange; dy <= maxRange; dy++) {
             Coordinate candidateTile = {pawn->position.x + dx, pawn->position.y + dy};
             int possibleDamage = cpuLogic_damageAssementForTile(candidateTile, pawn, allPawns, totalPawnCount);
+            if (movement_shipAtTarget(candidateTile, allPawns, totalPawnCount) != NULL) {
+                continue;
+            }
             #ifdef DEBUG
             drawhelper_drawTextWithValue("", possibleDamage, viewport_convertedCoordinate(hexgrid_tileCenterPosition(candidateTile)));
             #endif

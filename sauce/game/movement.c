@@ -270,7 +270,7 @@ void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coo
     *numberOfPositions = positionCount;
 }
 
-static Boolean movement_shipAtTarget(Coordinate targetCoordinate, Pawn *allPawns, int totalPawnCount) {
+Boolean movement_shipAtTarget(Coordinate targetCoordinate, Pawn *allPawns, int totalPawnCount) {
     int i;
     for (i = 0; i < totalPawnCount; i++) {
         if (allPawns[i].type == PAWNTYPE_SHIP && isEqualCoordinate(allPawns[i].position, targetCoordinate)) {
