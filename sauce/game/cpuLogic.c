@@ -14,6 +14,16 @@ typedef enum CPUStrategy {
     CPUSTRATEGY_ATTACK
 } CPUStrategy;
 
+static Pawn *cpuLogic_enemyWithStolenFlag(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
+    int i;
+    for (i = 0; i < totalPawnCount; i++) {
+        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].faction != pawn->faction && allPawns[i].inventory.carryingFlag && allPawns[i].inventory.flagOfFaction == pawn->faction) {
+            return &allPawns[i];
+        }
+    }
+    return NULL;
+}
+
 static void cpuLogic_shuffledPawnsIndices(int *indices, int totalPawnCount) {
     int i;
     for (i = 0; i < totalPawnCount; i++) {
@@ -73,7 +83,7 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
     int maxRange = GAMEMECHANICS_MAXTILEMOVERANGE;
     int dx, dy;
     int minDistance = 9999;
-    int maxDamage = random(0, 5) >= 4 ? pawn->inventory.health - 5 : 10;
+    int maxDamage = cpuLogic_enemyWithStolenFlag(pawn, allPawns, totalPawnCount) != NULL ? 9999 : random(0, 5) >= 4 ? (pawn->inventory.health * 1.3) : 10;
     Coordinate targetPosition, safePosition;
     if (target == NULL || isInvalidCoordinate(target->position)) {
         return (Coordinate){-1, -1};
@@ -125,16 +135,6 @@ static Pawn *cpuLogic_weakestEnemyInRange(Pawn *pawn, Pawn *allPawns, int totalP
         }
     }
     return weakestEnemy;
-}
-
-static Pawn *cpuLogic_enemyWithStolenFlag(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
-    int i;
-    for (i = 0; i < totalPawnCount; i++) {
-        if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].faction != pawn->faction && allPawns[i].inventory.carryingFlag && allPawns[i].inventory.flagOfFaction == pawn->faction) {
-            return &allPawns[i];
-        }
-    }
-    return NULL;
 }
 
 static Boolean cpuLogic_attackIfInRange(Pawn *pawn, Pawn *target, CPUStrategyResult *updateStrategy) {
