@@ -177,8 +177,14 @@ static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns,
         if (enemyInRangeOfHomeBase != NULL) {
             strategyResult.score += 50;
             if (!cpuLogic_attackIfInRange(pawn, enemyInRangeOfHomeBase, &strategyResult)) {  // Attack if we can, if not, move towards enemy
-                strategyResult.CPUAction = CPUACTION_MOVE;
-                strategyResult.target = enemyInRangeOfHomeBase;
+                Boolean farAway = movement_distance(homeBase->position, pawn->position) > GAMEMECHANICS_MAXTILEMOVERANGE;
+                if (!pawn->warped && farAway) {
+                    strategyResult.score += 50;
+                    strategyResult.CPUAction = CPUACTION_WARP;
+                } else {
+                    strategyResult.CPUAction = CPUACTION_MOVE;
+                    strategyResult.target = enemyInRangeOfHomeBase;
+                }
             }
         } else {  // no enemies near base, go easy on this strategy
             strategyResult.score -= 50;
