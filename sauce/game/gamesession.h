@@ -67,6 +67,8 @@ typedef struct GameSession {
     Boolean diaSupport; // Support for large screens that can hide the input area like the T3/T5 ...
     Boolean colorSupport; // Support for color screens
 
+    Boolean continueCPUPlay;
+
     Button *displayButtons;
     UInt8 displayButtonCount;
 
@@ -85,6 +87,7 @@ void gameSession_cleanup();
 void gameSession_registerPenInput(EventPtr eventptr);
 void gameSession_progressLogic();
 Boolean gameSession_shouldShowHealthBar();
+Boolean gameSession_animating();
 AppColor gameSession_hightlightTilesColor();
 
 #endif

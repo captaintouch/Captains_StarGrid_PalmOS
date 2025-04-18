@@ -115,7 +115,7 @@ Boolean gameActionLogic_afterMove() {
     Pawn *selectedPawn = gameSession.movement->targetPawn;
     StrCopy(gameSession.cpuActionText, "");
     // Check if flag was captured
-    if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->inventory.carryingFlag && selectedPawn->inventory.flagOfFaction != gameSession.activePawn->faction) {
+    if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->inventory.carryingFlag && !gameSession.activePawn->inventory.carryingFlag && selectedPawn->inventory.flagOfFaction != gameSession.activePawn->faction) {
         gameSession.activePawn->inventory.carryingFlag = true;
         gameSession.activePawn->inventory.flagOfFaction = selectedPawn->inventory.flagOfFaction;
         selectedPawn->inventory.carryingFlag = false;
@@ -139,9 +139,11 @@ Boolean gameActionLogic_afterMove() {
         gameSession.activePawn->inventory.carryingFlag = false;
         if (gameActionLogic_nonCapturedFlagsLeft(gameSession.activePawn->faction) > 0) {  // Still some flags left to capture
             FrmCustomAlert(GAME_ALERT_FLAGCAPTURED, NULL, NULL, NULL);
-            if (!gameActionLogic_humanShipsLeft()) {
+            if (!gameSession.continueCPUPlay && !gameActionLogic_humanShipsLeft()) {
                 if (FrmCustomAlert(GAME_ALERT_CPUCONTINUEPLAYING, NULL, NULL, NULL) != 0) { // Do not continue playing
                     gameActionLogic_restartGame();
+                } else {
+                    gameSession.continueCPUPlay = true;
                 }
             }
         } else {  // Game over, all flags captured

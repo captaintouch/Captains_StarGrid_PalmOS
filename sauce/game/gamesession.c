@@ -35,6 +35,7 @@ void gameSession_initialize() {
 
     gameSession.pawns = NULL;
     gameSession.activePawn = NULL;
+    gameSession.continueCPUPlay = false;
 
     gameSession.drawingState = (DrawingState){true, true, false, false, (Coordinate){0, 0}, (Coordinate){0, 0}};
 
@@ -42,18 +43,19 @@ void gameSession_initialize() {
         gameSession.pawnCount = 0;
         MemPtrFree(gameSession.pawns);
     }
-    gameSession.pawns = MemPtrNew(sizeof(Pawn) * 8);
-    MemSet(gameSession.pawns, sizeof(Pawn) * 8, 0);
-    gameSession.pawnCount = 8;
+    gameSession.pawns = MemPtrNew(sizeof(Pawn) * 9);
+    MemSet(gameSession.pawns, sizeof(Pawn) * 9, 0);
+    gameSession.pawnCount = 9;
     gameSession.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 0, false, false};
-    gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){9, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 1, GAMEMECHANICS_MAXTORPEDOCOUNT, true}, 0, 0, false, false};
-    gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){7, 8}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 1, true, false};
-    gameSession.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 1, false, false};
-    gameSession.pawns[4] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 6}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 2, false, false};
-
-    gameSession.pawns[5] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 0, 0, true}, 0, 0, false, false};
-    gameSession.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){8, 8}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 1, 0, false}, 0, 1, false, false};
-    gameSession.pawns[7] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 7}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, 0, true}, 0, 2, false, false};
+    gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 0, false, false};
+    gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){9, 6}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 1, true, false};
+    gameSession.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){10, 7}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 1, false, false};
+    gameSession.pawns[4] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 9}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 2, false, false};
+    gameSession.pawns[5] = (Pawn){PAWNTYPE_SHIP, (Coordinate){2, 10}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 2, false, false};
+    
+    gameSession.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 0, 0, true}, 0, 0, false, false};
+    gameSession.pawns[7] = (Pawn){PAWNTYPE_BASE, (Coordinate){10, 6}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 1, 0, true}, 0, 1, false, false};
+    gameSession.pawns[8] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 10}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, 0, true}, 0, 2, false, false};
 
     // setup factions
 
@@ -547,7 +549,7 @@ static void gameSession_progressUpdateMovement() {
     }
 }
 
-static Boolean gameSession_animating() {
+Boolean gameSession_animating() {
     return gameSession.attackAnimation != NULL || gameSession.movement != NULL || gameSession.warpAnimation.isWarping;
 }
 

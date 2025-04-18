@@ -348,7 +348,7 @@ static void game_drawLowMemBackground(Coordinate screenSize) {
     RctSetRectangle(&rect, 0, 0, screenSize.x, screenSize.y);
     drawhelper_applyForeColor(DRACULAORCHID);
     drawhelper_fillRectangle(&rect, 0);
-    if (!gameSession.drawingState.awaitingEndMiniMapScrolling && gameSession.movement == NULL && gameSession.factions[gameSession.factionTurn].human) {
+    if (!gameSession.drawingState.awaitingEndMiniMapScrolling && !gameSession_animating() && gameSession.factions[gameSession.factionTurn].human) {
         hexgrid_drawEntireGrid(true);
     }
 }
