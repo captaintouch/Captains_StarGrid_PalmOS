@@ -189,7 +189,6 @@ static void gameSession_enableActionsForFaction(int faction) {
     for (i = 0; i < gameSession.pawnCount; i++) {
         if (gameSession.pawns[i].faction == faction && gameSession.pawns[i].type == PAWNTYPE_SHIP && !isInvalidCoordinate(gameSession.pawns[i].position)) {
             gameSession.pawns[i].turnComplete = false;
-            gameSession.activePawn = &gameSession.pawns[i];
         }
     }
 }
