@@ -44,15 +44,14 @@ static Boolean gameActionLogic_humanShipsLeft() {
     return false;
 }
 
-static UInt8 gameActionLogic_enemyUnitsLeft() {
+static Boolean gameActionLogic_enemyShipsLeft() {
     int i;
-    UInt8 enemyUnits = 0;
     for (i = 0; i < gameSession.pawnCount; i++) {
-        if (gameSession.pawns[i].faction != gameSession.activePawn->faction && !isInvalidCoordinate(gameSession.pawns[i].position)) {
-            enemyUnits++;
+        if (gameSession.pawns[i].type == PAWNTYPE_SHIP && gameSession.pawns[i].faction != gameSession.activePawn->faction && !isInvalidCoordinate(gameSession.pawns[i].position)) {
+            return true;
         }
     }
-    return enemyUnits;
+    return false;
 }
 
 void gameActionLogic_clearMovement() {
@@ -138,7 +137,7 @@ Boolean gameActionLogic_afterMove() {
             }
         }
         gameSession.activePawn->inventory.carryingFlag = false;
-        if (gameActionLogic_nonCapturedFlagsLeft(gameSession.activePawn->faction) > 0 && gameActionLogic_enemyUnitsLeft() > 0) {  // Still some flags left to capture
+        if (gameActionLogic_nonCapturedFlagsLeft(gameSession.activePawn->faction) > 0) {  // Still some flags left to capture
             FrmCustomAlert(GAME_ALERT_FLAGCAPTURED, NULL, NULL, NULL);
             if (!gameActionLogic_humanShipsLeft()) {
                 if (FrmCustomAlert(GAME_ALERT_CPUCONTINUEPLAYING, NULL, NULL, NULL) != 0) { // Do not continue playing
@@ -201,7 +200,7 @@ void gameActionLogic_afterAttack() {
     }
 
     // Check for game over if no enemy units left
-    if (gameActionLogic_enemyUnitsLeft() == 0) {
+    if (!gameActionLogic_enemyShipsLeft()) {
         if (gameSession.factions[gameSession.activePawn->faction].human) {
             FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_TOTALDESTRUCTION, NULL, NULL, NULL);
         } else {

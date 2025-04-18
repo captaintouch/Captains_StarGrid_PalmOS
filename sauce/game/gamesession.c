@@ -514,7 +514,7 @@ static void gameSession_progressUpdateWarp() {
             if (timePassedScale < WARPINITIALTIME) {
                 gameSession.warpAnimation.circleDiameter[i] = (1 - timePassedScale / 2) * (WARPCIRCLECOUNT - i) * 4;
             } else {
-                gameSession.warpAnimation.circleDiameter[i] = (timePassedScale - WARPINITIALTIME)  * (WARPCIRCLECOUNT - i) * 6;
+                gameSession.warpAnimation.circleDiameter[i] = (timePassedScale - WARPINITIALTIME) * (WARPCIRCLECOUNT - i) * 6;
                 gameSession.warpAnimation.currentPosition = gameSession.warpAnimation.endPosition;
             }
         }
@@ -616,32 +616,38 @@ void gameSession_progressLogic() {
     if (!gameSession_animating()) {
         if (!gameSession.factions[gameSession.factionTurn].human) {
             gameSession_cpuTurn();
-        } else if (gameSession.lastPenInput.wasUpdatedFlag) {  // handle user actions
-            // Handle pen input
-            gameSession.lastPenInput.wasUpdatedFlag = false;
-            if (gameSession.lastPenInput.moving && gameSession.state == GAMESTATE_DEFAULT && gameSession_handleMiniMapTap()) {
-                gameSession.drawingState.awaitingEndMiniMapScrolling = true;
-            } else {
-                if (gameSession.drawingState.awaitingEndMiniMapScrolling) {
-                    gameSession.drawingState.awaitingEndMiniMapScrolling = false;
-                    gameSession.drawingState.shouldRedrawOverlay = true;
-                    return;
-                }
-                if (gameSession.lastPenInput.moving || isInvalidCoordinate(gameSession.lastPenInput.touchCoordinate)) {
-                    return;
-                }
-                switch (gameSession.state) {
-                    case GAMESTATE_DEFAULT:
-                        if (gameSession_handleMiniMapTap()) break;
-                        if (gameSession_handleTileTap()) break;
-                        if (gameSession_handleBarButtonsTap()) break;
-                        break;
-                    case GAMESTATE_CHOOSEPAWNACTION:
-                        gameSession_handlePawnActionButtonSelection();
-                        break;
-                    case GAMESTATE_SELECTTARGET:
-                        gameSession_handleTargetSelection();
-                        break;
+        } else {
+            if (!gameSession_movesLeftForFaction(gameSession.factionTurn)) {
+                gameSession_startTurnForNextFaction();
+                return;
+            }
+            if (gameSession.lastPenInput.wasUpdatedFlag) {  // handle user actions
+                // Handle pen input
+                gameSession.lastPenInput.wasUpdatedFlag = false;
+                if (gameSession.lastPenInput.moving && gameSession.state == GAMESTATE_DEFAULT && gameSession_handleMiniMapTap()) {
+                    gameSession.drawingState.awaitingEndMiniMapScrolling = true;
+                } else {
+                    if (gameSession.drawingState.awaitingEndMiniMapScrolling) {
+                        gameSession.drawingState.awaitingEndMiniMapScrolling = false;
+                        gameSession.drawingState.shouldRedrawOverlay = true;
+                        return;
+                    }
+                    if (gameSession.lastPenInput.moving || isInvalidCoordinate(gameSession.lastPenInput.touchCoordinate)) {
+                        return;
+                    }
+                    switch (gameSession.state) {
+                        case GAMESTATE_DEFAULT:
+                            if (gameSession_handleMiniMapTap()) break;
+                            if (gameSession_handleTileTap()) break;
+                            if (gameSession_handleBarButtonsTap()) break;
+                            break;
+                        case GAMESTATE_CHOOSEPAWNACTION:
+                            gameSession_handlePawnActionButtonSelection();
+                            break;
+                        case GAMESTATE_SELECTTARGET:
+                            gameSession_handleTargetSelection();
+                            break;
+                    }
                 }
             }
         }
