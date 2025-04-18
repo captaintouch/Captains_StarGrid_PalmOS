@@ -627,6 +627,9 @@ void gameSession_progressLogic() {
                     gameSession.drawingState.shouldRedrawOverlay = true;
                     return;
                 }
+                if (gameSession.lastPenInput.moving || isInvalidCoordinate(gameSession.lastPenInput.touchCoordinate)) {
+                    return;
+                }
                 switch (gameSession.state) {
                     case GAMESTATE_DEFAULT:
                         if (gameSession_handleMiniMapTap()) break;
