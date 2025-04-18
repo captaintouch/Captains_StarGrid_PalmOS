@@ -17,6 +17,12 @@ void drawhelper_fillRectangleWithShadow(RectangleType *rect, UInt16 cornerDiam, 
     WinPaintRectangle(rect, cornerDiam);
 }
 
+void drawhelper_drawCircle(Coordinate center, int radius) {
+    RectangleType rect;
+    RctSetRectangle(&rect, center.x - radius, center.y - radius, 2 * radius, 2 * radius);
+    drawhelper_fillRectangle(&rect, radius);
+}
+
 void drawhelper_borderRectangle(RectangleType *rect) {
     WinDrawRectangleFrame(roundFrame, rect);
 }

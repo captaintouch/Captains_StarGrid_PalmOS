@@ -73,6 +73,23 @@ void game_cleanup() {
     gameSession_cleanup();
 }
 
+static void game_drawWarpAnimation() {
+    int i;
+    Coordinate targetPosition;
+    if (!gameSession.warpAnimation.isWarping) {
+        return;
+    }
+    targetPosition = hexgrid_tileCenterPosition(gameSession.warpAnimation.currentPosition);
+    for (i = 0; i < WARPCIRCLECOUNT; i++) {
+        if (i % 2 == 0) {
+            drawhelper_applyForeColor(BELIZEHOLE);
+        } else {
+            drawhelper_applyForeColor(CLOUDS);
+        }
+        drawhelper_drawCircle(viewport_convertedCoordinate(targetPosition), gameSession.warpAnimation.circleDiameter[i]);
+    }
+}
+
 static void game_drawAttackAnimation() {
     int i;
     if (gameSession.attackAnimation == NULL) {
@@ -195,14 +212,21 @@ static void game_drawPawns() {
             continue;
         }
         shipSprite = game_spriteForPawn(pawn);
-        pawnPosition = hexgrid_tileCenterPosition(pawn->position);
+        if (gameSession.warpAnimation.isWarping && gameSession.warpAnimation.pawn == pawn) {
+            if (!gameSession.warpAnimation.shipVisible) {
+                continue;
+            }
+            pawnPosition = gameSession.warpAnimation.currentPosition;
+        } else {
+            pawnPosition = pawn->position;
+        }
         if (isInvalidCoordinate(pawnPosition)) {
             continue;
         }
         if (gameSession.movement != NULL && gameSession.movement->pawn == pawn) {
             drawhelper_drawSprite(shipSprite, viewport_convertedCoordinate(gameSession.movement->pawnPosition));
         } else {
-            hexgrid_drawSpriteAtTile(shipSprite, pawn->position);
+            hexgrid_drawSpriteAtTile(shipSprite, pawnPosition);
         }
     }
     
@@ -355,6 +379,7 @@ static void game_drawDynamicViews() {  // ships, special tiles, etc.
     }
 
     game_drawHighlightTiles();
+    game_drawWarpAnimation();
     game_drawPawns();
     game_drawAttackAnimation();
     game_drawDebugTrajectoryMovement();

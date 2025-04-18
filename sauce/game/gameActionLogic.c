@@ -47,6 +47,15 @@ void gameActionLogic_clearMovement() {
     }
 }
 
+void gameActionLogic_scheduleWarp(Pawn *sourcePawn, Coordinate target) {
+    gameSession.warpAnimation.pawn = sourcePawn;
+    gameSession.warpAnimation.isWarping = true;
+    gameSession.warpAnimation.currentPosition = sourcePawn->position;
+    gameSession.warpAnimation.endPosition = target;
+    gameSession.warpAnimation.launchTimestamp = TimGetTicks();
+    gameSession.warpAnimation.shipVisible = true;
+}
+
 void gameActionLogic_scheduleMovement(Pawn *sourcePawn, Pawn *targetPawn, Coordinate selectedTile) {
     gameActionLogic_clearMovement();
 

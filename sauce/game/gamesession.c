@@ -12,6 +12,7 @@
 #include "viewport.h"
 
 #define GAME_LOGIC_TICK 20
+#define WARPINITIALTIME 0.4
 
 static void gameSession_resetHighlightTiles();
 
@@ -45,7 +46,7 @@ void gameSession_initialize() {
     MemSet(gameSession.pawns, sizeof(Pawn) * 8, 0);
     gameSession.pawnCount = 8;
     gameSession.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 0, false, false};
-    gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 0, false, false};
+    gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){9, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 0, false, false};
     gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){7, 8}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 1, true, false};
     gameSession.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){8, 7}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 1, false, false};
     gameSession.pawns[4] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 6}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 2, false, false};
@@ -348,6 +349,7 @@ static void gameSession_handlePawnActionButtonSelection() {
     int i;
     int selectedIndex = bottomMenu_selectedIndex(gameSession.lastPenInput.touchCoordinate);
     Pawn *homeBase;
+    Coordinate closestTile;
 
     if (selectedIndex >= gameSession.displayButtonCount) {
         return;
@@ -367,8 +369,10 @@ static void gameSession_handlePawnActionButtonSelection() {
             gameSession.activePawn->turnComplete = true;
             homeBase = movement_homeBase(gameSession.activePawn, gameSession.pawns, gameSession.pawnCount);
             gameSession.activePawn->warped = true;
-            gameSession.activePawn->position = movement_closestTileToTargetInRange(gameSession.activePawn, homeBase->position, gameSession.pawns, gameSession.pawnCount, false);
+            closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.pawns, gameSession.pawnCount, false);
             gameSession.state = GAMESTATE_DEFAULT;
+            gameActionLogic_scheduleWarp(gameSession.activePawn, closestTile);
+            gameSession.activePawn->position = closestTile;
             break;
         case MenuActionTypeTorpedo:
             gameSession.state = GAMESTATE_SELECTTARGET;
@@ -496,6 +500,34 @@ static void gameSession_progressUpdateAttack() {
     }
 }
 
+static void gameSession_progressUpdateWarp() {
+    Int32 timeSinceLaunch;
+    float timePassedScale;
+    int i;
+    if (gameSession.warpAnimation.isWarping) {
+        gameSession.drawingState.shouldRedrawOverlay = true;
+        timeSinceLaunch = TimGetTicks() - gameSession.warpAnimation.launchTimestamp;
+        timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * 1.2);
+        gameSession.warpAnimation.pawn->orientation = (int)(timePassedScale * 1.5 * GFX_FRAMECOUNT_SHIPA) % GFX_FRAMECOUNT_SHIPA;
+        gameSession.warpAnimation.shipVisible = timePassedScale < WARPINITIALTIME || timePassedScale > WARPINITIALTIME + 0.3;
+        for (i = 0; i < WARPCIRCLECOUNT; i++) {
+            if (timePassedScale < WARPINITIALTIME) {
+                gameSession.warpAnimation.circleDiameter[i] = (1 - timePassedScale / 2) * (WARPCIRCLECOUNT - i) * 4;
+            } else {
+                gameSession.warpAnimation.circleDiameter[i] = (timePassedScale - WARPINITIALTIME)  * (WARPCIRCLECOUNT - i) * 6;
+                gameSession.warpAnimation.currentPosition = gameSession.warpAnimation.endPosition;
+            }
+        }
+        if (timePassedScale > WARPINITIALTIME) {
+            gameSession_updateViewPortOffset(true);
+        }
+        if (timePassedScale >= 1) {
+            gameSession.warpAnimation.isWarping = false;
+            gameSession.state = GAMESTATE_DEFAULT;
+        }
+    }
+}
+
 static void gameSession_progressUpdateMovement() {
     Int32 timeSinceLaunch;
     float timePassedScale;
@@ -516,9 +548,13 @@ static void gameSession_progressUpdateMovement() {
     }
 }
 
+static Boolean gameSession_animating() {
+    return gameSession.attackAnimation != NULL || gameSession.movement != NULL || gameSession.warpAnimation.isWarping;
+}
+
 static void gameSession_cpuTurn() {
     int i;
-    if (gameSession.attackAnimation != NULL || gameSession.movement != NULL || gameSession.state != GAMESTATE_DEFAULT || gameSession.factions[gameSession.factionTurn].human) {
+    if (gameSession_animating() || gameSession.state != GAMESTATE_DEFAULT || gameSession.factions[gameSession.factionTurn].human) {
         return;
     }
     for (i = 0; i < gameSession.pawnCount; i++) {
@@ -558,8 +594,10 @@ static void gameSession_cpuTurn() {
             case CPUACTION_WARP:
                 homeBase = movement_homeBase(pawn, gameSession.pawns, gameSession.pawnCount);
                 pawn->warped = true;
-                pawn->position = movement_closestTileToTargetInRange(pawn, homeBase->position, gameSession.pawns, gameSession.pawnCount, false);
+                closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.pawns, gameSession.pawnCount, false);
                 StrCopy(gameSession.cpuActionText, "Warping home");
+                gameActionLogic_scheduleWarp(pawn, closestTile);
+                pawn->position = closestTile;
                 gameSession.drawingState.requiresPauseAfterLayout = true;
                 break;
             case CPUACTION_NONE:
@@ -575,8 +613,7 @@ static void gameSession_cpuTurn() {
 }
 
 void gameSession_progressLogic() {
-    Boolean animating = (gameSession.movement != NULL || gameSession.attackAnimation != NULL);
-    if (!animating) {
+    if (!gameSession_animating()) {
         if (!gameSession.factions[gameSession.factionTurn].human) {
             gameSession_cpuTurn();
         } else if (gameSession.lastPenInput.wasUpdatedFlag) {  // handle user actions
@@ -609,4 +646,5 @@ void gameSession_progressLogic() {
 
     gameSession_progressUpdateMovement();
     gameSession_progressUpdateAttack();
+    gameSession_progressUpdateWarp();
 }

@@ -2,6 +2,8 @@
 #define MODELS_H_
 #include <PalmOS.h>
 
+#define WARPCIRCLECOUNT 3
+
 typedef struct Coordinate {
     int x;
     int y;
@@ -52,6 +54,16 @@ typedef struct AttackAnimation {
     UInt8 lineCount;
     UInt8 healthImpact;
 } AttackAnimation;
+
+typedef struct WarpAnimation {
+    Pawn *pawn;
+    Coordinate currentPosition;
+    Coordinate endPosition;
+    int circleDiameter[WARPCIRCLECOUNT];
+    Int32 launchTimestamp;
+    Boolean isWarping;
+    Boolean shipVisible;
+} WarpAnimation;
 
 typedef struct Movement {
     Pawn *pawn;
