@@ -509,7 +509,7 @@ static void gameSession_progressUpdateWarp() {
         timeSinceLaunch = TimGetTicks() - gameSession.warpAnimation.launchTimestamp;
         timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * 1.2);
         gameSession.warpAnimation.pawn->orientation = (int)(timePassedScale * 1.5 * GFX_FRAMECOUNT_SHIPA) % GFX_FRAMECOUNT_SHIPA;
-        gameSession.warpAnimation.shipVisible = timePassedScale < WARPINITIALTIME || timePassedScale > WARPINITIALTIME + 0.3;
+        gameSession.warpAnimation.shipVisible = timePassedScale < WARPINITIALTIME || timePassedScale > WARPINITIALTIME + 0.4;
         for (i = 0; i < WARPCIRCLECOUNT; i++) {
             if (timePassedScale < WARPINITIALTIME) {
                 gameSession.warpAnimation.circleDiameter[i] = (1 - timePassedScale / 2) * (WARPCIRCLECOUNT - i) * 4;
