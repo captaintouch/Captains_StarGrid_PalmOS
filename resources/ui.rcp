@@ -34,17 +34,31 @@ BEGIN
     BUTTONS "Next level"
 END
 
+ALERT ID 2000
+BEGIN
+    TITLE "Game Over - Defeat!"
+    MESSAGE "CPU captured all remaining flags!"
+    BUTTONS "Next level"
+END
+
+ALERT ID 2001
+BEGIN
+    TITLE "Game Over - Defeat!"
+    MESSAGE "CPU destroyed all enemy ships and bases!"
+    BUTTONS "Next level"
+END
+
 ALERT ID 1002
 BEGIN
     TITLE "Flag captured!"
-    MESSAGE "The remaining enemy fleet has joined your command."
+    MESSAGE "The remaining enemy fleet has joined forces."
     BUTTONS "Ok"
 END
 
 ALERT ID 1003
 BEGIN
-    TITLE "Enemy base destroyed!"
-    MESSAGE "The remaining enemy fleet has joined your command."
+    TITLE "Base destroyed!"
+    MESSAGE "The remaining enemy fleet has joined forces."
     BUTTONS "Ok"
 END
 
@@ -52,5 +66,19 @@ ALERT ID 1004
 BEGIN
     TITLE "Uh-oh"
     MESSAGE "This ship cannot take any more actions this turn."
+    BUTTONS "Ok"
+END
+
+ALERT ID 1005
+BEGIN
+    TITLE "Game Over"
+    MESSAGE "Continue watching the cpu players?"
+    BUTTONS "Yes" "No"
+END
+
+ALERT ID 5555
+BEGIN
+    TITLE "Thanks for playing!"
+    MESSAGE "This game is a work in progress, hope to offer more levels, scoring system and a smarter AI soon! For progress updates, check out https://quarters.captaintouch.com or hang around the PalmDB discord."
     BUTTONS "Ok"
 END
