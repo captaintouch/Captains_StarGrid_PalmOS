@@ -28,7 +28,19 @@
             }
         },
         {
-            "label": "CP COLOR",
+            "label": "CP COLOR RELEASE",
+            "dependsOn": [
+                "makeAllBuilds"
+            ],
+            "command": "cloudpilot-emu -l 6667 emu/m505.image -s emu/cloudpilotStartRelease.cp",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CP COLOR DEBUG",
             "dependsOn": [
                 "makeDebugBuild"
             ],
@@ -40,7 +52,7 @@
             "problemMatcher": []
         },
         {
-            "label": "CP BW",
+            "label": "CP BW DEBUG",
             "dependsOn": [
                 "makeDebugBuild"
             ],
