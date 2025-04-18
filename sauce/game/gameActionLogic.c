@@ -77,6 +77,20 @@ void gameActionLogic_scheduleMovement(Pawn *sourcePawn, Pawn *targetPawn, Coordi
     sourcePawn->position = selectedTile;
 }
 
+static void gameActionLogic_returnFlagToBase(Pawn *pawn) {
+    int i;
+    if (!pawn->inventory.carryingFlag) {
+        return;
+    }
+    pawn->inventory.carryingFlag = false;
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        if (gameSession.pawns[i].faction == pawn->inventory.flagOfFaction && gameSession.pawns[i].type == PAWNTYPE_BASE) {
+            gameSession.pawns[i].inventory.carryingFlag = true;
+            return;
+        }
+    }
+}
+
 // returns true when another movement has been scheduled
 Boolean gameActionLogic_afterMove() {
     Boolean didScheduleMovement = false;
@@ -98,6 +112,7 @@ Boolean gameActionLogic_afterMove() {
             }
             if (gameSession.pawns[i].faction == gameSession.activePawn->inventory.flagOfFaction) {
                 gameSession.pawns[i].faction = gameSession.activePawn->faction;
+                gameActionLogic_returnFlagToBase(&gameSession.pawns[i]);
                 if (gameSession.pawns[i].type == PAWNTYPE_BASE) {
                     gameSession.pawns[i].position = (Coordinate){-1, -1};
                 }
@@ -148,16 +163,7 @@ void gameActionLogic_afterAttack() {
             }
             FrmCustomAlert(GAME_ALERT_BASEDESTROYED, NULL, NULL, NULL);
         }
-        if (gameSession.attackAnimation->targetPawn->type == PAWNTYPE_SHIP && gameSession.attackAnimation->targetPawn->inventory.carryingFlag) {
-            // return the lost flag to it's original base
-            int i;
-            gameSession.attackAnimation->targetPawn->inventory.carryingFlag = false;
-            for (i = 0; i < gameSession.pawnCount; i++) {
-                if (gameSession.pawns[i].faction == gameSession.attackAnimation->targetPawn->inventory.flagOfFaction && gameSession.pawns[i].type == PAWNTYPE_BASE) {
-                    gameSession.pawns[i].inventory.carryingFlag = true;
-                }
-            }
-        }
+        gameActionLogic_returnFlagToBase(gameSession.attackAnimation->targetPawn);
     }
 
     // Check for game over if no enemy units left
