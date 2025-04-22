@@ -79,6 +79,19 @@ END
 ALERT ID 5555
 BEGIN
     TITLE "Thanks for playing!"
-    MESSAGE "This game is a work in progress, hope to offer more levels, scoring system and a smarter AI soon! For progress updates, check out https://quarters.captaintouch.com or hang around the PalmDB discord."
+    MESSAGE "This game is a work in progress, more levels, scoring system and a smarter AI arriving soon! For progress updates, check out https://quarters.captaintouch.com or hang around the PalmDB discord."
     BUTTONS "Ok"
 END
+
+STRING 1000 "Move"
+STRING 1001 "Phaser"
+STRING 1002 "Torpedo"
+STRING 1003 "Warp home"
+STRING 1004 "Cancel"
+
+STRING 1010 "Moving"
+STRING 1011 "Attacking"
+STRING 1013 "No action"
+
+STRING 1020 "next"
+STRING 1021 "end turn"

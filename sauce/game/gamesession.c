@@ -557,6 +557,9 @@ static void gameSession_cpuTurn() {
         return;
     }
     for (i = 0; i < gameSession.pawnCount; i++) {
+        UInt16 textId;
+        char *text;
+        MemHandle resourceHandle;
         Coordinate closestTile;
         Pawn *targetPawn;
         CPUStrategyResult strategy;
@@ -583,27 +586,32 @@ static void gameSession_cpuTurn() {
                     targetPawn = NULL;
                 }
                 gameActionLogic_scheduleMovement(gameSession.activePawn, targetPawn, closestTile);
-                StrCopy(gameSession.cpuActionText, "Moving");
+                textId = STRING_MOVING;
                 break;
             case CPUACTION_PHASERATTACK:
             case CPUACTION_TORPEDOATTACK:
                 gameActionLogic_scheduleAttack(strategy.target, strategy.target->position, strategy.CPUAction == CPUACTION_PHASERATTACK ? TARGETSELECTIONTYPE_PHASER : TARGETSELECTIONTYPE_TORPEDO);
-                StrCopy(gameSession.cpuActionText, "Attacking");
+                textId = STRING_ATTACKING;
                 break;
             case CPUACTION_WARP:
                 homeBase = movement_homeBase(pawn, gameSession.pawns, gameSession.pawnCount);
                 pawn->warped = true;
                 closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.pawns, gameSession.pawnCount, false);
-                StrCopy(gameSession.cpuActionText, "Warping home");
+                textId = STRING_WARP;
                 gameActionLogic_scheduleWarp(pawn, closestTile);
                 pawn->position = closestTile;
                 gameSession.drawingState.requiresPauseAfterLayout = true;
                 break;
             case CPUACTION_NONE:
-                StrCopy(gameSession.cpuActionText, "No action");
+                textId = STRING_NOACTION;
                 gameSession.drawingState.requiresPauseAfterLayout = true;
                 break;
         }
+        resourceHandle = DmGetResource(strRsc, textId);
+        text = (char *)MemHandleLock(resourceHandle);
+        StrCopy(gameSession.cpuActionText, text);
+        MemHandleUnlock(resourceHandle);
+        DmReleaseResource(resourceHandle);
         return;
     }
     if (!gameSession_movesLeftForFaction(gameSession.factionTurn)) {

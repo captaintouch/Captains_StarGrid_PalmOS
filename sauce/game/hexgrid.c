@@ -117,7 +117,6 @@ void hexgrid_drawEntireGrid(Boolean adjustForViewport) {
     hexgrid_drawTileAtPosition(centerTile, adjustForViewport);
     if (adjustForViewport) {
         startPosition = viewport_convertedCoordinate(startPosition);
-        //drawhelper_drawTextWithValue("", 99, (Coordinate){startPosition.x - 2, startPosition.y - 2});
     }
 
     for (i = 0; i < HEXGRID_COLS; i++) {

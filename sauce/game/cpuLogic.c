@@ -282,7 +282,7 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
     }
     bestStrategy.targetPosition = cpuLogic_safePosition(pawn, allPawns, totalPawnCount, bestStrategy.target);
 
-#ifdef DEBUG
+/*#ifdef DEBUG
     switch (bestStrategy.CPUAction) {
         case CPUACTION_MOVE:
             drawhelper_drawTextWithValue("MOVE X:", bestStrategy.target->position.x, (Coordinate){0, 30});
@@ -300,6 +300,6 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
             break;
     }
     sleep(1000);
-#endif
+#endif*/
     return bestStrategy;
 }

@@ -1,26 +1,20 @@
 #include "pawnActionMenuViewModel.h"
-
-// TODO: Move literals to resource file
-#define moveText "Move"
-#define phaserText "Phaser"
-#define torpedoText "Torpedo"
-#define warpText "Warp home"
-#define cancelText "Cancel"
+#include "../constants.h"
 
 const MenuActionType allActions[] = {MenuActionTypeCancel, MenuActionTypeWarp, MenuActionTypeTorpedo, MenuActionTypePhaser, MenuActionTypeMove};
 
-static char *pawnActionMenuViewModel_textForActionType(MenuActionType actionType) {
+static UInt16 pawnActionMenuViewModel_textForActionType(MenuActionType actionType) {
     switch (actionType) {
         case MenuActionTypeMove:
-            return moveText;
+            return STRING_MOVE;
         case MenuActionTypePhaser:
-            return phaserText;
+            return STRING_PHASER;
         case MenuActionTypeTorpedo:
-            return torpedoText;
+            return STRING_TORPEDO;
         case MenuActionTypeWarp:
-            return warpText;
+            return STRING_WARP;
         case MenuActionTypeCancel:
-            return cancelText;
+            return STRING_CANCEL;
     }
 }
 
@@ -44,8 +38,11 @@ void pawnActionMenuViewModel_setupMenuForPawn(Pawn *pawn, Button **displayButton
     Button *buttons = (Button *)MemPtrNew(sizeof(Button) * actionCount);
 
     for (i = 0; i < actionCount; i++) {
-        Char *text = pawnActionMenuViewModel_textForActionType(actions[i]);
+        MemHandle resourceHandle = DmGetResource(strRsc, pawnActionMenuViewModel_textForActionType(actions[i]));
+        char *text = (char *)MemHandleLock(resourceHandle);
         buttons[i].text = (char *)MemPtrNew(StrLen(text) + 1);
+        MemHandleUnlock(resourceHandle);
+        DmReleaseResource(resourceHandle);
         StrCopy(buttons[i].text, text);
         buttons[i].length = StrLen(text);
         buttons[i].disabled = pawnActionMenuViewModel_isDisabled(actions[i], pawn);

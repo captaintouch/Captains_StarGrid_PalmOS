@@ -479,8 +479,10 @@ static void game_drawBottomActivePawnStats() {
 static void game_drawBottomButtons() {
     Coordinate screenSize = deviceinfo_screenSize();
     RectangleType rect;
-    char nextText[] = "next";
-    char endText[] = "end turn";
+    MemHandle nextResourceHandle = DmGetResource(strRsc, STRING_NEXT);
+    MemHandle endResourceHandle = DmGetResource(strRsc, STRING_ENDTURN);
+    char *nextText = (char *)MemHandleLock(nextResourceHandle);
+    char *endText = (char *)MemHandleLock(endResourceHandle);
     int startOffsetX = gameSession.drawingState.miniMapDrawPosition.x + gameSession.drawingState.miniMapSize.x + 4;
     int startOffsetY = screenSize.y - BOTTOMMENU_HEIGHT + 2;
     int buttonWidth = screenSize.x - startOffsetX - 4;
@@ -500,6 +502,11 @@ static void game_drawBottomButtons() {
     drawhelper_fillRectangleWithShadow(&rect, 4, buttonColor, ASBESTOS);
     drawhelper_drawText(endText, (Coordinate){startOffsetX + (buttonWidth / 2) - (FntCharsWidth(endText, StrLen(endText)) / 2), startOffsetY + buttonHeight + 2});
     gameSession.drawingState.barButtonPositions[1] = (Coordinate){rect.topLeft.x, rect.topLeft.y};
+
+    MemHandleUnlock(nextResourceHandle);
+    DmReleaseResource(nextResourceHandle);
+    MemHandleUnlock(endResourceHandle);
+    DmReleaseResource(endResourceHandle);
 }
 
 static void game_drawUserInterfaceElements() {

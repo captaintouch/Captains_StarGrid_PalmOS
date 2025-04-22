@@ -3,9 +3,6 @@
 #include <PalmOS.h>
 
 #include "models.h"
-#ifdef DEBUG
-#include "drawhelper.h"
-#endif
 
 void inputPen_updateEventDetails(InputPen *pen, EventPtr eventPtr) {
     if (pen->blockUntilTicks > 0 && TimGetTicks() < pen->blockUntilTicks) {
