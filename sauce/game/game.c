@@ -542,10 +542,12 @@ Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu)
         game_resetForm();
         return true;
     }
-    if (eventptr->eType != nilEvent)
+    if (eventptr->eType != nilEvent) { 
         return false;
-
+    }
+    
     gameSession_progressLogic();
     game_drawLayout();
+    
     return true;
 }

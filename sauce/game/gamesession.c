@@ -616,6 +616,13 @@ void gameSession_progressLogic() {
                 gameSession_startTurnForNextFaction();
                 return;
             }
+            if (gameSession.drawingState.awaitingEndMiniMapScrolling && gameSession.lastPenInput.penUpOccured) {
+                gameSession.lastPenInput.penUpOccured = false;
+                gameSession.drawingState.awaitingEndMiniMapScrolling = false;
+                gameSession.drawingState.shouldRedrawOverlay = true;
+                return;
+            }
+            gameSession.lastPenInput.penUpOccured = false;
             if (gameSession.lastPenInput.wasUpdatedFlag) {  // handle user actions
                 // Handle pen input
                 gameSession.lastPenInput.wasUpdatedFlag = false;
@@ -626,12 +633,6 @@ void gameSession_progressLogic() {
                 if (gameSession.lastPenInput.moving && gameSession.state == GAMESTATE_DEFAULT && gameSession_handleMiniMapTap()) {
                     gameSession.drawingState.awaitingEndMiniMapScrolling = true;
                 } else {
-                    if (gameSession.drawingState.awaitingEndMiniMapScrolling && gameSession.lastPenInput.penUpOccured) {
-                        gameSession.lastPenInput.penUpOccured = false;
-                        gameSession.drawingState.awaitingEndMiniMapScrolling = false;
-                        gameSession.drawingState.shouldRedrawOverlay = true;
-                    }
-                    
                     if ((gameSession.state == GAMESTATE_SELECTTARGET && gameSession.lastPenInput.moving || isInvalidCoordinate(gameSession.lastPenInput.touchCoordinate))) {
                         return;
                     }

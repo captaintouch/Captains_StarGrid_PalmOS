@@ -13,11 +13,7 @@ void inputPen_updateEventDetails(InputPen *pen, EventPtr eventPtr) {
     }
     pen->blockUntilTicks = 0;
     if (eventPtr->eType == penUpEvent) {
-        pen->moving = false;
         pen->penUpOccured = true;
-        pen->touchCoordinate.x = -999;
-        pen->touchCoordinate.y = -999;
-        pen->wasUpdatedFlag = true;
         return;
     }
     if (eventPtr->eType != penDownEvent && eventPtr->eType != penMoveEvent) {
