@@ -52,6 +52,18 @@
             "problemMatcher": []
         },
         {
+            "label": "CP BW RELEASE",
+            "dependsOn": [
+                "makeAllBuilds"
+            ],
+            "command": "cloudpilot-emu -l 6667 emu/m100.image -s emu/cloudpilotStartRelease.cp",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "CP BW DEBUG",
             "dependsOn": [
                 "makeDebugBuild"

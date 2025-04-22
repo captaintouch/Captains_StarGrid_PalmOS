@@ -257,8 +257,9 @@ static void game_drawPawns() {
                 drawhelper_fillRectangle(&flagRect, 0);
                 */
             } else {
-                drawhelper_applyForeColor(CLOUDS);
-                drawhelper_drawTextWithValue("", pawn->faction + 1, (Coordinate){pawnPosition.x, pawnPosition.y - 10});
+                drawhelper_applyBackgroundColor(ASBESTOS);
+                drawhelper_applyTextColor(CLOUDS);
+                drawhelper_drawTextWithValue("", pawn->faction + 1, viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 10}));
             }
         }
 
