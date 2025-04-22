@@ -1,6 +1,7 @@
 #include "hexgrid.h"
 
 #include "../constants.h"
+#include "../deviceinfo.h"
 #include "colors.h"
 #include "drawhelper.h"
 #include "mathIsFun.h"
@@ -106,11 +107,35 @@ void hexgrid_fillTileAtPosition(Coordinate hexPosition, Boolean adjustForViewpor
 }
 
 void hexgrid_drawEntireGrid(Boolean adjustForViewport) {
+    Coordinate screenSize = deviceinfo_screenSize();
+    Coordinate center = viewport_convertedCoordinateInverted((Coordinate){screenSize.x / 2, screenSize.y / 2});
+    Coordinate centerTile = hexgrid_tileAtPixel(center.x, center.y);
+    Coordinate startPosition = hexgrid_tileStartPosition(centerTile.x, centerTile.y);
+    WinHandle drawWindow = WinGetDrawWindow();
     int i, j;
     drawhelper_applyForeColor(ASBESTOS);
+    hexgrid_drawTileAtPosition(centerTile, adjustForViewport);
+    if (adjustForViewport) {
+        startPosition = viewport_convertedCoordinate(startPosition);
+        //drawhelper_drawTextWithValue("", 99, (Coordinate){startPosition.x - 2, startPosition.y - 2});
+    }
+
     for (i = 0; i < HEXGRID_COLS; i++) {
         for (j = 0; j < HEXGRID_ROWS; j++) {
-            hexgrid_drawTileAtPosition((Coordinate){i, j}, adjustForViewport);
+            RectangleType rect;
+            Coordinate targetPosition = hexgrid_tileStartPosition(i, j);
+            if (i == centerTile.x && j == centerTile.y) {
+                continue;
+            }
+            // copy the pattern
+            if (adjustForViewport) {
+                targetPosition = viewport_convertedCoordinate(targetPosition);
+                if (targetPosition.x + HEXTILE_SIZE < 0 || targetPosition.y + HEXTILE_SIZE < 0 || targetPosition.x - HEXTILE_SIZE > screenSize.x || targetPosition.y - HEXTILE_SIZE > screenSize.y - BOTTOMMENU_HEIGHT) {
+                    continue;
+                }
+            }
+            RctSetRectangle(&rect, startPosition.x, startPosition.y, HEXTILE_SIZE + 1, HEXTILE_SIZE + 1);
+            WinCopyRectangle(drawWindow, drawWindow, &rect, targetPosition.x, targetPosition.y, winPaint);
         }
     }
 }
@@ -138,7 +163,7 @@ Coordinate hexgrid_tileAtPixel(int x, int y) {
             if (yIndex < 0 || yIndex >= HEXTILE_SIZE) {
                 continue;
             }
-            if (x>= tileCoordinate.x + hexgrid_tilePattern[yIndex] && x <= tileCoordinate.x + HEXTILE_SIZE - hexgrid_tilePattern[yIndex]) {
+            if (x >= tileCoordinate.x + hexgrid_tilePattern[yIndex] && x <= tileCoordinate.x + HEXTILE_SIZE - hexgrid_tilePattern[yIndex]) {
                 return (Coordinate){c, r};
             }
         }
@@ -148,10 +173,10 @@ Coordinate hexgrid_tileAtPixel(int x, int y) {
 
 Coordinate hexgrid_size() {
     Coordinate lastPosition = hexgrid_tileCenterPosition((Coordinate){HEXGRID_COLS - 1, HEXGRID_ROWS - 1});
-    return (Coordinate) {lastPosition.x + HEXTILE_SIZE + 5, lastPosition.y + HEXTILE_SIZE + 5};
+    return (Coordinate){lastPosition.x + HEXTILE_SIZE + 5, lastPosition.y + HEXTILE_SIZE + 5};
 }
 
-void hexgrid_drawSpriteAtTile(ImageSprite *imageSprite, Coordinate hexPosition) {
+void hexgrid_drawSpriteAtTile(ImageSprite* imageSprite, Coordinate hexPosition) {
     Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
     Coordinate centerPosition = (Coordinate){startPosition.x + HEXTILE_SIZE / 2, startPosition.y + HEXTILE_SIZE / 2};
     drawhelper_drawSprite(imageSprite, viewport_convertedCoordinate(centerPosition));

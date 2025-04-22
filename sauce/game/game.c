@@ -301,12 +301,16 @@ static void game_drawBottomMenu() {
 }
 
 static void game_drawBackdrop() {
-    int i;
     Coordinate gridSize = hexgrid_size();
     RectangleType rect;
     RctSetRectangle(&rect, 0, 0, gridSize.x, gridSize.y);
     drawhelper_applyForeColor(DRACULAORCHID);
     drawhelper_fillRectangle(&rect, 0);
+}
+
+static void game_drawStars() {
+    int i;
+    Coordinate gridSize = hexgrid_size();
 
     // Draw stars at random locations
     for (i = 0; i < BACKDROP_STARCOUNT; i++) {
@@ -341,6 +345,7 @@ static void game_drawBackground() {
     WinSetDrawWindow(backgroundBuffer);
     game_drawBackdrop();
     hexgrid_drawEntireGrid(false);
+    game_drawStars();
 }
 
 static void game_drawLowMemBackground(Coordinate screenSize) {
@@ -348,7 +353,7 @@ static void game_drawLowMemBackground(Coordinate screenSize) {
     RctSetRectangle(&rect, 0, 0, screenSize.x, screenSize.y);
     drawhelper_applyForeColor(DRACULAORCHID);
     drawhelper_fillRectangle(&rect, 0);
-    if (!gameSession.drawingState.awaitingEndMiniMapScrolling && !gameSession_animating() && gameSession.factions[gameSession.factionTurn].human) {
+    if (!gameSession.drawingState.awaitingEndMiniMapScrolling && !gameSession_animating() && gameSession.state != GAMESTATE_CHOOSEPAWNACTION && gameSession.factions[gameSession.factionTurn].human) {
         hexgrid_drawEntireGrid(true);
     }
 }

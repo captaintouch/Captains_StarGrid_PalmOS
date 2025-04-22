@@ -4,7 +4,7 @@
 #include "../graphicResources.h"
 #include "drawhelper.h"
 
-ImageData *drawhelper_loadImage(UInt16 bitmapId) {
+static ImageData *drawhelper_loadImage(UInt16 bitmapId) {
     MemHandle bitmapH;
 
     bitmapH = DmGetResource(bitmapRsc, bitmapId);
