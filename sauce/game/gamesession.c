@@ -628,14 +628,19 @@ void gameSession_progressLogic() {
                 if (gameSession.lastPenInput.moving && gameSession.state == GAMESTATE_DEFAULT && gameSession_handleMiniMapTap()) {
                     gameSession.drawingState.awaitingEndMiniMapScrolling = true;
                 } else {
-                    if (gameSession.drawingState.awaitingEndMiniMapScrolling) {
+                    if (gameSession.drawingState.awaitingEndMiniMapScrolling && gameSession.lastPenInput.penUpOccured) {
+                        gameSession.lastPenInput.penUpOccured = false;
                         gameSession.drawingState.awaitingEndMiniMapScrolling = false;
                         gameSession.drawingState.shouldRedrawOverlay = true;
+                    }
+                    #ifdef DEBUG
+                    drawhelper_drawTextWithValue("X:", gameSession.lastPenInput.touchCoordinate.x, (Coordinate){gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y});
+                    drawhelper_drawTextWithValue("Y:", gameSession.lastPenInput.touchCoordinate.y, (Coordinate){gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y + 10});
+                #endif
+                    if ((gameSession.state == GAMESTATE_SELECTTARGET && gameSession.lastPenInput.moving || isInvalidCoordinate(gameSession.lastPenInput.touchCoordinate))) {
                         return;
                     }
-                    if (gameSession.lastPenInput.moving || isInvalidCoordinate(gameSession.lastPenInput.touchCoordinate)) {
-                        return;
-                    }
+                    
                     switch (gameSession.state) {
                         case GAMESTATE_DEFAULT:
                             if (gameSession_handleMiniMapTap()) break;

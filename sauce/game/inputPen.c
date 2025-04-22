@@ -14,6 +14,7 @@ void inputPen_updateEventDetails(InputPen *pen, EventPtr eventPtr) {
     pen->blockUntilTicks = 0;
     if (eventPtr->eType == penUpEvent) {
         pen->moving = false;
+        pen->penUpOccured = true;
         pen->touchCoordinate.x = -999;
         pen->touchCoordinate.y = -999;
         pen->wasUpdatedFlag = true;
@@ -22,17 +23,14 @@ void inputPen_updateEventDetails(InputPen *pen, EventPtr eventPtr) {
     if (eventPtr->eType != penDownEvent && eventPtr->eType != penMoveEvent) {
         return;
     }
-    pen->moving = eventPtr->eType == penMoveEvent;
+    pen->moving = eventPtr->eType == penMoveEvent && !isEqualCoordinate(pen->touchCoordinate, (Coordinate){eventPtr->screenX, eventPtr->screenY});
     pen->touchCoordinate.x = eventPtr->screenX;
     pen->touchCoordinate.y = eventPtr->screenY;
     pen->wasUpdatedFlag = true;
 
-#ifdef DEBUG
-    drawhelper_drawTextWithValue("X:", eventPtr->screenX, (Coordinate){eventPtr->screenX, eventPtr->screenY});
-    drawhelper_drawTextWithValue("Y:", eventPtr->screenY, (Coordinate){eventPtr->screenX, eventPtr->screenY + 10});
-#endif
+    
 }
 
 void inputPen_temporarylyBlockPenInput(InputPen *pen) {
-    pen->blockUntilTicks = TimGetTicks() + SysTicksPerSecond() / 10;
+    pen->blockUntilTicks = TimGetTicks() + SysTicksPerSecond() / 3;
 }
