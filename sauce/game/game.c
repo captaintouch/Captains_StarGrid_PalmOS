@@ -175,8 +175,6 @@ static void game_drawHealthBar(Pawn *pawn, int maxWidth, int height, Coordinate 
     drawhelper_applyForeColor(ALIZARIN);
     RctSetRectangle(&rect, position.x, position.y, healthWidth, height);
     drawhelper_fillRectangle(&rect, 0);
-
-    
 }
 
 static void game_drawPawns() {
@@ -202,7 +200,6 @@ static void game_drawPawns() {
         hexgrid_drawSpriteAtTile(&spriteLibrary.baseSprite, pawn->position);
     }
 
-    
     // DRAW SHIPS
     for (i = 0; i < gameSession.pawnCount; i++) {
         Pawn *pawn = &gameSession.pawns[i];
@@ -229,7 +226,7 @@ static void game_drawPawns() {
             hexgrid_drawSpriteAtTile(shipSprite, pawnPosition);
         }
     }
-    
+
     // DRAW ACCESSORIES (FLAGS, FACTION INDICATORS)
     for (i = 0; i < gameSession.pawnCount; i++) {
         Pawn *pawn = &gameSession.pawns[i];
@@ -436,16 +433,16 @@ static void game_drawBottomActivePawn() {
     } else {
         pawnCenterPosition = gameSession.movement->pawnPosition;
     }
-    
-    RctSetRectangle(&rect,  targetCenterPosition.x - 2, targetCenterPosition.y - 2, HEXTILE_PAWNSIZE + 4, HEXTILE_PAWNSIZE + 4);
+
+    RctSetRectangle(&rect, targetCenterPosition.x - 2, targetCenterPosition.y - 2, HEXTILE_PAWNSIZE + 4, HEXTILE_PAWNSIZE + 4);
     drawhelper_applyForeColor(DRACULAORCHID);
     drawhelper_fillRectangle(&rect, 4);
-    
+
     pawnCenterPosition = viewport_convertedCoordinate(pawnCenterPosition);
     RctSetRectangle(&rect, pawnCenterPosition.x - HEXTILE_PAWNSIZE / 2, pawnCenterPosition.y - HEXTILE_PAWNSIZE / 2, HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE);
     WinCopyRectangle(overlayBuffer, screenBuffer, &rect, targetCenterPosition.x, targetCenterPosition.y, winPaint);
 
-    if (!gameSession.factions[gameSession.factionTurn].human) { // draw cpu action text
+    if (!gameSession.factions[gameSession.factionTurn].human) {  // draw cpu action text
         int textWidth = FntCharsWidth(gameSession.cpuActionText, StrLen(gameSession.cpuActionText));
         drawhelper_applyTextColor(CLOUDS);
         drawhelper_applyBackgroundColor(DRACULAORCHID);
@@ -459,7 +456,7 @@ static void game_drawBottomActivePawnStats() {
     if (gameSession.activePawn == NULL) {
         return;
     }
-    
+
     drawhelper_drawSprite(&spriteLibrary.healthSprite, (Coordinate){8, screenSize.y - BOTTOMMENU_HEIGHT + 8});
     game_drawHealthBar(gameSession.activePawn, 28, 6, (Coordinate){16, screenSize.y - BOTTOMMENU_HEIGHT + 5});
     for (i = 0; i < gameSession.activePawn->inventory.torpedoCount; i++) {
@@ -539,15 +536,6 @@ static void game_drawLayout() {
     }
 }
 
-static Int32 game_timeUntilNextEvent() {
-    Int32 timeleft = evtWaitForever;
-
-    if (gameSession.nextGameLogicProgressionTime != evtWaitForever) {
-        timeleft = gameSession.nextGameLogicProgressionTime - TimGetTicks();
-    }
-    return timeleft;
-}
-
 Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu) {
     gameSession_registerPenInput(eventptr);
     if (eventptr->eType == winDisplayChangedEvent) {
@@ -557,11 +545,7 @@ Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu)
     if (eventptr->eType != nilEvent)
         return false;
 
+    gameSession_progressLogic();
     game_drawLayout();
-
-    if (gameSession.lastPenInput.wasUpdatedFlag || game_timeUntilNextEvent() <= 0) {
-        gameSession_scheduleNextGameLogicProgression();
-        gameSession_progressLogic();
-    }
     return true;
 }

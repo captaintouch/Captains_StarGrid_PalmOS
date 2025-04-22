@@ -32,5 +32,5 @@ void inputPen_updateEventDetails(InputPen *pen, EventPtr eventPtr) {
 }
 
 void inputPen_temporarylyBlockPenInput(InputPen *pen) {
-    pen->blockUntilTicks = TimGetTicks() + SysTicksPerSecond() / 3;
+    pen->blockUntilTicks = TimGetTicks() + (float)SysTicksPerSecond() / 3.0;
 }

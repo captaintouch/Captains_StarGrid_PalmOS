@@ -11,7 +11,6 @@
 #include "pawnActionMenuViewModel.h"
 #include "viewport.h"
 
-#define GAME_LOGIC_TICK 20
 #define WARPINITIALTIME 0.4
 
 static void gameSession_resetHighlightTiles();
@@ -28,7 +27,6 @@ Faction gameSession_factionWithRandomizedCPUProfile() {
 void gameSession_initialize() {
     gameSession.diaSupport = deviceinfo_diaSupported();
     gameSession.colorSupport = deviceinfo_colorSupported();
-    gameSession.timeBetweenLogicProgressions = SysTicksPerSecond() / GAME_LOGIC_TICK;
 
     gameSession.state = GAMESTATE_DEFAULT;
     MemSet(&gameSession.lastPenInput, sizeof(InputPen), 0);
@@ -342,10 +340,6 @@ Boolean gameSession_shouldShowHealthBar() {
            gameSession.movement == NULL;
 }
 
-void gameSession_scheduleNextGameLogicProgression() {
-    gameSession.nextGameLogicProgressionTime = TimGetTicks() + gameSession.timeBetweenLogicProgressions;
-}
-
 static void gameSession_handlePawnActionButtonSelection() {
     int i;
     int selectedIndex = bottomMenu_selectedIndex(gameSession.lastPenInput.touchCoordinate);
@@ -625,6 +619,10 @@ void gameSession_progressLogic() {
             if (gameSession.lastPenInput.wasUpdatedFlag) {  // handle user actions
                 // Handle pen input
                 gameSession.lastPenInput.wasUpdatedFlag = false;
+                #ifdef DEBUG
+                    drawhelper_drawTextWithValue("X:", gameSession.lastPenInput.touchCoordinate.x, (Coordinate){gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y});
+                    drawhelper_drawTextWithValue("Y:", gameSession.lastPenInput.touchCoordinate.y, (Coordinate){gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y + 10});
+                #endif
                 if (gameSession.lastPenInput.moving && gameSession.state == GAMESTATE_DEFAULT && gameSession_handleMiniMapTap()) {
                     gameSession.drawingState.awaitingEndMiniMapScrolling = true;
                 } else {
@@ -633,10 +631,7 @@ void gameSession_progressLogic() {
                         gameSession.drawingState.awaitingEndMiniMapScrolling = false;
                         gameSession.drawingState.shouldRedrawOverlay = true;
                     }
-                    #ifdef DEBUG
-                    drawhelper_drawTextWithValue("X:", gameSession.lastPenInput.touchCoordinate.x, (Coordinate){gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y});
-                    drawhelper_drawTextWithValue("Y:", gameSession.lastPenInput.touchCoordinate.y, (Coordinate){gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y + 10});
-                #endif
+                    
                     if ((gameSession.state == GAMESTATE_SELECTTARGET && gameSession.lastPenInput.moving || isInvalidCoordinate(gameSession.lastPenInput.touchCoordinate))) {
                         return;
                     }
