@@ -19,13 +19,14 @@ static void minimap_updateViewport(Coordinate originalOffset, Coordinate mapSize
     targetSize->y = ((float)screenSize.y - (float)BOTTOMMENU_HEIGHT) / (float)gridSize.y * (float)mapSize.y;
 }
 
-void minimap_draw(Pawn *pawns, int pawnCount, Coordinate drawPosition, Coordinate mapSize, Movement *activeMovement, Pawn *activePawn, Coordinate viewportOffset) {
+void minimap_draw(Pawn *pawns, int pawnCount, Coordinate drawPosition, Coordinate mapSize, Movement *activeMovement, Pawn *activePawn, Coordinate viewportOffset, Boolean colorSupport) {
     int i, j, k;
     RectangleType rect = (RectangleType){drawPosition.x, drawPosition.y, mapSize.x, mapSize.y};
     Coordinate gridSize = hexgrid_size();
     Coordinate minimapViewportOffset;
     Coordinate minimapViewportSize;
     RectangleType minimapViewportRect;
+    AppColor foreColor = colorSupport ? CLOUDS : ASBESTOS;
     drawhelper_applyForeColor(DRACULAORCHID);
     drawhelper_fillRectangle(&rect, 0);
     for (i = 0; i < pawnCount; i++) {
@@ -49,14 +50,14 @@ void minimap_draw(Pawn *pawns, int pawnCount, Coordinate drawPosition, Coordinat
         }
 
         if (&pawns[i] == activePawn) {
-            drawhelper_applyForeColor(CLOUDS);
+            drawhelper_applyForeColor(foreColor);
             drawhelper_drawBoxAround(convertedPoint, 3);
         }
 
     }
 
     // Draw the viewport with a border around it
-    drawhelper_applyForeColor(CLOUDS);
+    drawhelper_applyForeColor(foreColor);
     minimap_updateViewport(viewportOffset, mapSize, gridSize, &minimapViewportOffset, &minimapViewportSize);
     minimapViewportRect = (RectangleType){minimapViewportOffset.x + drawPosition.x, minimapViewportOffset.y + drawPosition.y, minimapViewportSize.x, minimapViewportSize.y};
     drawhelper_borderRectangle(&minimapViewportRect);

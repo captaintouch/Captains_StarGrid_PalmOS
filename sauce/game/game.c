@@ -154,7 +154,11 @@ static ImageSprite *game_spriteForPawn(Pawn *pawn) {
     if (pawn->type == PAWNTYPE_BASE) {
         return &spriteLibrary.baseSprite;
     }
-    return &spriteLibrary_factionShipSprite(pawn->faction)[pawn->orientation];
+    if (gameSession.colorSupport) {
+        return &spriteLibrary_factionShipSprite(pawn->faction)[pawn->orientation];
+    } else {
+        return &spriteLibrary.shipTwoSprite[pawn->orientation];
+    }
 }
 
 static void game_drawHealthBar(Pawn *pawn, int maxWidth, int height, Coordinate position) {
@@ -181,7 +185,11 @@ static void game_drawPawns() {
     int i;
     if (gameSession.activePawn != NULL) {
         drawhelper_applyForeColor(EMERALD);
-        hexgrid_drawTileAtPosition(gameSession.activePawn->position, true);
+        if (gameSession.colorSupport) {
+            hexgrid_drawTileAtPosition(gameSession.activePawn->position, true);
+        } else {
+            hexgrid_fillTileAtPosition(gameSession.activePawn->position, true);
+        }
     }
 
     // DRAW BASES
@@ -402,7 +410,8 @@ static void game_drawMiniMap() {
                  gameSession.drawingState.miniMapSize,
                  gameSession.movement,
                  gameSession.activePawn,
-                 gameSession.viewportOffset);
+                 gameSession.viewportOffset,
+                 gameSession.colorSupport);
 }
 
 static void game_drawBottomBackground() {
@@ -541,12 +550,12 @@ Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu)
         game_resetForm();
         return true;
     }
-    if (eventptr->eType != nilEvent) { 
+    if (eventptr->eType != nilEvent) {
         return false;
     }
-    
+
     gameSession_progressLogic();
     game_drawLayout();
-    
+
     return true;
 }
