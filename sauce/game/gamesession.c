@@ -175,6 +175,10 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
 }
 
 static void gameSession_showPawnActions() {
+    if (!gameSession.factions[gameSession.activePawn->faction].human || gameSession.activePawn->type != PAWNTYPE_SHIP) {
+        gameSession.drawingState.shouldRedrawOverlay = true;
+        return;
+    }
     if (gameSession.activePawn->turnComplete) {
         FrmCustomAlert(GAME_ALERT_NOMOREACTIONS, NULL, NULL, NULL);
         return;
@@ -266,7 +270,7 @@ static Boolean gameSession_handleTileTap() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
     Pawn *selectedPawn = gameSession_pawnAtTile(selectedTile);
-    if (selectedPawn != NULL && gameSession.factions[selectedPawn->faction].human) {
+    if (selectedPawn != NULL) {
         gameSession.activePawn = selectedPawn;
         gameSession_updateViewPortOffset(true);
         gameSession_showPawnActions();

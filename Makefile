@@ -9,7 +9,7 @@ SDK_VERSION = 5
 PALMCC = m68k-palmos-gcc
 PALMINC = /opt/palmdev/sdk-5r3/include
 PILRC = /usr/bin/pilrc
-PALMCFLAGS = -O2 -DPALMOS -DSDK_$(SDK_VERSION)=1 \
+PALMCFLAGS = -O2 -mshort -DPALMOS -DSDK_$(SDK_VERSION)=5 \
 	-I$(PALMINC) \
 	-I$(PALMINC)/Dynamic \
 	-I$(PALMINC)/Core \

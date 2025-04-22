@@ -411,9 +411,8 @@ static void game_drawBottomBackground() {
     int centerOffsetX = (screenSize.x - width) / 2;
     RectangleType rect;
     RctSetRectangle(&rect, 0, screenSize.y - BOTTOMMENU_HEIGHT, screenSize.x, BOTTOMMENU_HEIGHT);
-    drawhelper_applyForeColor(pawn_factionColor(gameSession.factionTurn));
+    drawhelper_applyForeColor(pawn_factionColor(gameSession.activePawn->faction));
     drawhelper_fillRectangle(&rect, 0);
-    drawhelper_applyForeColor(pawn_factionColor(gameSession.factionTurn));
     RctSetRectangle(&rect, centerOffsetX - 2, screenSize.y - MINIMAP_HEIGHT, width + 4, MINIMAP_HEIGHT + 10);
     drawhelper_fillRectangle(&rect, 4);
 }
@@ -477,7 +476,7 @@ static void game_drawBottomButtons() {
     int startOffsetY = screenSize.y - BOTTOMMENU_HEIGHT + 2;
     int buttonWidth = screenSize.x - startOffsetX - 4;
     int buttonHeight = ((screenSize.y - startOffsetY) / 2) - 2;
-    AppColor buttonColor = pawn_factionColor(gameSession.factionTurn) == BELIZEHOLE ? EMERALD : BELIZEHOLE;
+    AppColor buttonColor = pawn_factionColor(gameSession.activePawn->faction) == BELIZEHOLE ? EMERALD : BELIZEHOLE;
 
     RctSetRectangle(&rect, startOffsetX, startOffsetY, buttonWidth, buttonHeight);
     drawhelper_fillRectangleWithShadow(&rect, 4, buttonColor, ASBESTOS);
