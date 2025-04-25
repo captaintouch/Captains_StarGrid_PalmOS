@@ -1,7 +1,10 @@
 #include "colors.h"
 #include "pawn.h"
 
-AppColor pawn_factionColor(UInt8 faction) {
+AppColor pawn_factionColor(UInt8 faction, Boolean colorSupport) {
+    if (!colorSupport) {
+        return BELIZEHOLE;
+    }
     switch (faction % 4) {
         case 0:
             return EMERALD;

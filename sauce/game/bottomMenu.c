@@ -11,14 +11,19 @@ static Coordinate bottomMenu_positionForButton(int index) {
     return (Coordinate){0, screenSize.y - index * buttonHeight - buttonHeight};
 }
 
-void bottomMenu_display(Button *buttons, Int8 buttonCount) {
+void bottomMenu_display(Button *buttons, Int8 buttonCount, Boolean colorSupport) {
     int i;
     RectangleType rect;
     Coordinate screenSize = deviceinfo_screenSize();
     FontID oldFont = FntSetFont(largeBoldFont);
     for (i = 0; i < buttonCount; i++) {
         Coordinate position = bottomMenu_positionForButton(i);
-        AppColor bgColor = buttons[i].disabled ? DRACULAORCHID : ASBESTOS;
+        AppColor bgColor;
+        if (colorSupport) {
+            bgColor = buttons[i].disabled ? DRACULAORCHID : ASBESTOS;
+        } else {
+            bgColor = buttons[i].disabled ? ASBESTOS : ALIZARIN;
+        }
         if (i == 0) {
             bgColor = ALIZARIN;
         }

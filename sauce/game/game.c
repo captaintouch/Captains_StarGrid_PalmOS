@@ -118,11 +118,18 @@ static void game_drawAttackAnimation() {
 static void game_drawHighlightTiles() {  // Tiles that need to be highlighted (for example to indicate where a pawn can move)
     int i;
     if (gameSession.secondaryHighlightTiles != NULL && gameSession.secondaryHighlightTileCount > 0) {
-        drawhelper_applyForeColor(gameSession_hightlightTilesColor());
         for (i = 0; i < gameSession.secondaryHighlightTileCount; i++) {
-            hexgrid_drawTileAtPosition(gameSession.secondaryHighlightTiles[i], true);
+            drawhelper_applyForeColor(gameSession_hightlightTilesColor());
+            if (gameSession.colorSupport) {
+                hexgrid_drawTileAtPosition(gameSession.secondaryHighlightTiles[i], true);
+            } else {
+                hexgrid_fillTileAtPosition(gameSession.secondaryHighlightTiles[i], true);
+                drawhelper_applyForeColor(CLOUDS);
+                hexgrid_drawTileAtPosition(gameSession.secondaryHighlightTiles[i], true);
+            }
         }
     }
+
     if (gameSession.highlightTiles != NULL && gameSession.highlightTileCount > 0) {
         drawhelper_applyForeColor(gameSession_hightlightTilesColor());
         for (i = 0; i < gameSession.highlightTileCount; i++) {
@@ -203,7 +210,7 @@ static void game_drawPawns() {
         pawnPosition = hexgrid_tileCenterPosition(pawn->position);
         pawnPositionConverted = viewport_convertedCoordinate(pawnPosition);
         RctSetRectangle(&rect, pawnPositionConverted.x - 6, pawnPositionConverted.y - 6, 12, 12);
-        drawhelper_applyForeColor(pawn_factionColor(pawn->faction));
+        drawhelper_applyForeColor(pawn_factionColor(pawn->faction, gameSession.colorSupport));
         drawhelper_fillRectangle(&rect, 0);
         hexgrid_drawSpriteAtTile(&spriteLibrary.baseSprite, pawn->position);
     }
@@ -243,24 +250,22 @@ static void game_drawPawns() {
             continue;
         }
         if (pawn->inventory.carryingFlag) {
-            game_drawFlag(viewport_convertedCoordinate(pawnPosition), pawn_factionColor(pawn->inventory.flagOfFaction));
+            game_drawFlag(viewport_convertedCoordinate(pawnPosition), pawn_factionColor(pawn->inventory.flagOfFaction, gameSession.colorSupport));
         }
 
         // Draw faction indicator
-        if (pawn->type == PAWNTYPE_SHIP) {
-            if (gameSession.colorSupport) {
-                /*
-                RectangleType flagRect;
-                Coordinate target = viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 10});
-                RctSetRectangle(&flagRect, target.x, target.y, 5, 5);
-                drawhelper_applyForeColor(pawn_factionColor(pawn->faction));
-                drawhelper_fillRectangle(&flagRect, 0);
-                */
-            } else {
-                drawhelper_applyBackgroundColor(ASBESTOS);
-                drawhelper_applyTextColor(CLOUDS);
-                drawhelper_drawTextWithValue("", pawn->faction + 1, viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 10}));
-            }
+        if (gameSession.colorSupport) {
+            /*
+            RectangleType flagRect;
+            Coordinate target = viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 10});
+            RctSetRectangle(&flagRect, target.x, target.y, 5, 5);
+            drawhelper_applyForeColor(pawn_factionColor(pawn->faction, gameSession.colorSupport));
+            drawhelper_fillRectangle(&flagRect, 0);
+            */
+        } else {
+            drawhelper_applyBackgroundColor(ASBESTOS);
+            drawhelper_applyTextColor(CLOUDS);
+            drawhelper_drawTextWithValue("", pawn->faction + 1, viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 10}));
         }
 
         if (gameSession_shouldShowHealthBar() && gameSession.factionTurn != gameSession.pawns[i].faction) {
@@ -303,7 +308,7 @@ static void game_drawBottomMenu() {
     if (gameSession.displayButtonCount <= 0) {
         return;
     }
-    bottomMenu_display(gameSession.displayButtons, gameSession.displayButtonCount);
+    bottomMenu_display(gameSession.displayButtons, gameSession.displayButtonCount, gameSession.colorSupport);
 }
 
 static void game_drawBackdrop() {
@@ -421,7 +426,7 @@ static void game_drawBottomBackground() {
     int centerOffsetX = (screenSize.x - width) / 2;
     RectangleType rect;
     RctSetRectangle(&rect, 0, screenSize.y - BOTTOMMENU_HEIGHT, screenSize.x, BOTTOMMENU_HEIGHT);
-    drawhelper_applyForeColor(pawn_factionColor(gameSession.activePawn->faction));
+    drawhelper_applyForeColor(pawn_factionColor(gameSession.activePawn->faction, gameSession.colorSupport));
     drawhelper_fillRectangle(&rect, 0);
     RctSetRectangle(&rect, centerOffsetX - 2, screenSize.y - MINIMAP_HEIGHT, width + 4, MINIMAP_HEIGHT + 10);
     drawhelper_fillRectangle(&rect, 4);
@@ -473,7 +478,7 @@ static void game_drawBottomActivePawnStats() {
     }
 
     if (gameSession.activePawn->inventory.carryingFlag) {
-        game_drawFlag((Coordinate){gameSession.drawingState.miniMapDrawPosition.x + gameSession.drawingState.miniMapSize.x + 1, screenSize.y - 7}, pawn_factionColor(gameSession.activePawn->inventory.flagOfFaction));
+        game_drawFlag((Coordinate){gameSession.drawingState.miniMapDrawPosition.x + gameSession.drawingState.miniMapSize.x + 1, screenSize.y - 7}, pawn_factionColor(gameSession.activePawn->inventory.flagOfFaction, gameSession.colorSupport));
     }
 }
 
@@ -488,7 +493,7 @@ static void game_drawBottomButtons() {
     int startOffsetY = screenSize.y - BOTTOMMENU_HEIGHT + 2;
     int buttonWidth = screenSize.x - startOffsetX - 4;
     int buttonHeight = ((screenSize.y - startOffsetY) / 2) - 2;
-    AppColor buttonColor = pawn_factionColor(gameSession.activePawn->faction) == BELIZEHOLE ? EMERALD : BELIZEHOLE;
+    AppColor buttonColor = pawn_factionColor(gameSession.activePawn->faction, gameSession.colorSupport) == BELIZEHOLE ? EMERALD : BELIZEHOLE;
 
     RctSetRectangle(&rect, startOffsetX, startOffsetY, buttonWidth, buttonHeight);
     drawhelper_fillRectangleWithShadow(&rect, 4, buttonColor, ASBESTOS);

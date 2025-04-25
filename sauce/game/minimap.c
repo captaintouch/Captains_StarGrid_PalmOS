@@ -41,7 +41,7 @@ void minimap_draw(Pawn *pawns, int pawnCount, Coordinate drawPosition, Coordinat
         }
         convertedPoint.x += drawPosition.x;
         convertedPoint.y += drawPosition.y;
-        drawhelper_applyForeColor(pawn_factionColor(pawns[i].faction));
+        drawhelper_applyForeColor(pawn_factionColor(pawns[i].faction, colorSupport));
 
         for (j = -1; j <= 1; j++) {
             for (k = -1; k <= 1; k++) {
