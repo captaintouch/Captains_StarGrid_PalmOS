@@ -1,7 +1,8 @@
 # Makefile
-CREATORID = CSTG
 FILENAME = StarGrid
+APPDEFINITION = $(FILENAME).def
 SRCFILES = $(wildcard sauce/*.c) $(wildcard sauce/game/*.c)
+OBJS = $(SRCFILES:.c=.o)
 HIRES = false
 
 # Palm SDK config
@@ -9,7 +10,9 @@ SDK_VERSION = 5
 PALMCC = m68k-palmos-gcc
 PALMINC = /opt/palmdev/sdk-5r3/include
 PILRC = /usr/bin/pilrc
-PALMCFLAGS = -O2 -mshort -DPALMOS -DSDK_$(SDK_VERSION)=5 \
+MULTIGEN = /usr/local/bin/m68k-palmos-multigen
+BUILDPRC = /usr/local/bin/build-prc
+PALMCFLAGS = -O2 -mshort -DPALMOS -DSDK_$(SDK_VERSION) \
 	-I$(PALMINC) \
 	-I$(PALMINC)/Dynamic \
 	-I$(PALMINC)/Core \
@@ -38,10 +41,7 @@ all:
 debug: 
 	$(MAKE) EXT="_debug" HIRES=false GCCFLAGS="-DDEBUG" build
 
-build: compile prebin bin gen_grc combine cleanup
-
-compile: 
-	$(PALMCC) $(GCCFLAGS) $(PALMCFLAGS) ${WARNINGFLAGS} $(SRCFILES)
+build: prebin bin combine cleanup
 
 ifeq ($(HIRES), true)
 prebin:
@@ -53,18 +53,25 @@ prebin:
 	./generateResourceFile.sh
 endif
 
+sections.o:
+	$(MULTIGEN) $(APPDEFINITION)
+	$(PALMCC) -c -o sections.o $(FILENAME)-sections.s
+
+.c.o:
+	$(PALMCC) -c $(GCCFLAGS) $(PALMCFLAGS) ${WARNINGFLAGS} $<
+
+app.out: sections.o $(OBJS)
+	$(PALMCC) $(notdir $(OBJS)) sections.o $(FILENAME)-sections.ld -o app.out
+
 bin:
 	$(PILRC) $(PILRCFLAGS) resources/ui.rcp 
 	$(PILRC) $(PILRCFLAGS) resources/graphicResources.rcp
 
-gen_grc: 
-	m68k-palmos-obj-res a.out
-
-combine:	
-	build-prc artifacts/$(FILENAME)$(EXT).prc "$(FILENAME)" $(CREATORID) *.a.out.grc *.bin
+combine: app.out
+	$(BUILDPRC) $(APPDEFINITION) -o artifacts/$(FILENAME)$(EXT).prc app.out *.bin
 
 cleanup:
-	rm *.grc *.out *.bin
-	rm -Rf resources/assets
-	rm -Rf resources/hiresTMP
-	rm resources/graphicResources.rcp
+	rm -f *.out *.bin *.o *.ld *.s || true
+	rm -Rf resources/assets || true
+	rm -Rf resources/hiresTMP || true
+	rm -f resources/graphicResources.rcp || true

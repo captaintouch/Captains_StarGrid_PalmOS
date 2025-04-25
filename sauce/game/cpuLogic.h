@@ -1,6 +1,10 @@
 #ifndef CPU_LOGIC_H
 #define CPU_LOGIC_H
+
+#define CPULOGIC_SECTION  __attribute__ ((section ("cpulogic")))
+
 #include "models.h"
+
 
 typedef struct CPUFactionProfile {
     int defendBasePriority;
@@ -23,6 +27,6 @@ typedef struct CPUStrategyResult {
     Coordinate targetPosition;
 } CPUStrategyResult;
 
-CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, CPUFactionProfile factionProfile);
+CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, CPUFactionProfile factionProfile) CPULOGIC_SECTION;
 
 #endif

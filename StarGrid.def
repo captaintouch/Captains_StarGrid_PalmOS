@@ -1,0 +1,2 @@
+application { "StarGrid" CSTG }
+multiple code { "movement" "cpulogic" }
