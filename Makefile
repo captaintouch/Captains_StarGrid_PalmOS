@@ -3,6 +3,7 @@ FILENAME = StarGrid
 APPDEFINITION = $(FILENAME).def
 SRCFILES = $(wildcard sauce/*.c) $(wildcard sauce/game/*.c)
 OBJS = $(SRCFILES:.c=.o)
+SECTIONNAME = $(FILENAME)-sections
 HIRES = false
 
 # Palm SDK config
@@ -53,22 +54,22 @@ prebin:
 	./generateResourceFile.sh
 endif
 
-sections.o:
-	$(MULTIGEN) $(APPDEFINITION)
-	$(PALMCC) -c -o sections.o $(FILENAME)-sections.s
+$(SECTIONNAME).o:
+	$(MULTIGEN) --base $(SECTIONNAME) $(APPDEFINITION)
+	$(PALMCC) -c $(SECTIONNAME).s
 
 .c.o:
 	$(PALMCC) -c $(GCCFLAGS) $(PALMCFLAGS) ${WARNINGFLAGS} $<
 
-app.out: sections.o $(OBJS)
-	$(PALMCC) $(notdir $(OBJS)) sections.o $(FILENAME)-sections.ld -o app.out
+$(FILENAME).out: $(SECTIONNAME).o $(OBJS)
+	$(PALMCC) $(notdir $(OBJS)) $(SECTIONNAME).o $(SECTIONNAME).ld -o $(FILENAME).out
 
 bin:
 	$(PILRC) $(PILRCFLAGS) resources/ui.rcp 
 	$(PILRC) $(PILRCFLAGS) resources/graphicResources.rcp
 
-combine: app.out
-	$(BUILDPRC) $(APPDEFINITION) -o artifacts/$(FILENAME)$(EXT).prc app.out *.bin
+combine: $(FILENAME).out
+	$(BUILDPRC) $(APPDEFINITION) -o artifacts/$(FILENAME)$(EXT).prc $(FILENAME).out *.bin
 
 cleanup:
 	rm -f *.out *.bin *.o *.ld *.s || true
