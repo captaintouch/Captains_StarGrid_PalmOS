@@ -458,7 +458,7 @@ static void game_drawBottomActivePawn() {
 
     if (!gameSession.factions[gameSession.factionTurn].human) {  // draw cpu action text
         int textWidth = FntCharsWidth(gameSession.cpuActionText, StrLen(gameSession.cpuActionText));
-        drawhelper_applyTextColor(CLOUDS);
+        drawhelper_applyTextColor(gameSession.colorSupport ? CLOUDS : ASBESTOS);
         drawhelper_applyBackgroundColor(DRACULAORCHID);
         drawhelper_drawText(gameSession.cpuActionText, (Coordinate){screenSize.x / 2 - textWidth / 2, screenSize.y - 12});
     }
