@@ -109,6 +109,16 @@ static void gameActionLogic_returnFlagToBase(Pawn *pawn) {
     }
 }
 
+static Boolean gameActionLogic_baseOnPosition(Coordinate position) {
+    int i;
+    for (i = 0; i < gameSession.pawnCount; i++) {
+        if (!isInvalidCoordinate(gameSession.pawns[i].position) && isEqualCoordinate(gameSession.pawns[i].position, position) && gameSession.pawns[i].type == PAWNTYPE_BASE) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // returns true when another movement has been scheduled
 Boolean gameActionLogic_afterMove() {
     Boolean didScheduleMovement = false;
@@ -157,8 +167,8 @@ Boolean gameActionLogic_afterMove() {
     }
 
     // if currentposition is on a base, move away from it
-    if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE) {
-        Coordinate finalCoordinate = movement_closestTileToTargetInRange(gameSession.activePawn, selectedPawn->position, gameSession.pawns, gameSession.pawnCount, false);
+    if (gameActionLogic_baseOnPosition(gameSession.activePawn->position)) {
+        Coordinate finalCoordinate = movement_closestTileToTargetInRange(gameSession.activePawn, gameSession.activePawn->position, gameSession.pawns, gameSession.pawnCount, false);
         gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, finalCoordinate);
         didScheduleMovement = true;
     } else {
