@@ -32,7 +32,7 @@
             "dependsOn": [
                 "makeAllBuilds"
             ],
-            "command": "cloudpilot-emu -l 6667 emu/m505.image -s emu/cloudpilotStartRelease.cp",
+            "command": "cloudpilot-emu emu/m505.image -s emu/cloudpilotStartRelease.cp",
             "type": "shell",
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -44,7 +44,7 @@
             "dependsOn": [
                 "makeDebugBuild"
             ],
-            "command": "cloudpilot-emu -l 6667 emu/m505.image -s emu/cloudpilotStartDebug.cp",
+            "command": "cloudpilot-emu emu/m505.image -s emu/cloudpilotStartDebug.cp",
             "type": "shell",
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -68,7 +68,7 @@
             "dependsOn": [
                 "makeAllBuilds"
             ],
-            "command": "cloudpilot-emu -l 6667 emu/m100.image -s emu/cloudpilotStartRelease.cp",
+            "command": "cloudpilot-emu emu/m100.image -s emu/cloudpilotStartRelease.cp",
             "type": "shell",
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -80,7 +80,7 @@
             "dependsOn": [
                 "makeDebugBuild"
             ],
-            "command": "cloudpilot-emu -l 6667 emu/m100.image -s emu/cloudpilotStartDebug.cp",
+            "command": "cloudpilot-emu emu/m100.image -s emu/cloudpilotStartDebug.cp",
             "type": "shell",
             "options": {
                 "cwd": "${workspaceFolder}"
