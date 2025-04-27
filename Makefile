@@ -10,9 +10,9 @@ HIRES = false
 SDK_VERSION = 5
 PALMCC = m68k-palmos-gcc
 PALMINC = /opt/palmdev/sdk-5r3/include
-PILRC = /usr/bin/pilrc
-MULTIGEN = /usr/local/bin/m68k-palmos-multigen
-BUILDPRC = /usr/local/bin/build-prc
+PILRC = pilrc
+MULTIGEN = m68k-palmos-multigen
+BUILDPRC = build-prc
 PALMCFLAGS = -O2 -mshort -DPALMOS -DSDK_$(SDK_VERSION) \
 	-I$(PALMINC) \
 	-I$(PALMINC)/Dynamic \
@@ -69,6 +69,7 @@ bin:
 	$(PILRC) $(PILRCFLAGS) resources/graphicResources.rcp
 
 combine: $(FILENAME).out
+	mkdir -p artifacts
 	$(BUILDPRC) $(APPDEFINITION) -o artifacts/$(FILENAME)$(EXT).prc $(FILENAME).out *.bin
 
 cleanup:

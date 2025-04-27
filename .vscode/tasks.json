@@ -52,6 +52,18 @@
             "problemMatcher": []
         },
         {
+            "label": "CP-UARM HIRES Release",
+            "dependsOn": [
+                "makeAllBuilds"
+            ],
+            "command": "emu/createsd.sh artifacts/StarGrid_hires.prc && cp-uarm emu/uarm.session -s emu/sdcard.image",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "CP BW RELEASE",
             "dependsOn": [
                 "makeAllBuilds"
