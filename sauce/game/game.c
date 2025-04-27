@@ -346,7 +346,7 @@ static void game_drawBackground() {
     shouldRedrawBackground = false;
     gridSize = hexgrid_size();
     if (backgroundBuffer == NULL) {
-        backgroundBuffer = WinCreateOffscreenWindow(gridSize.x, gridSize.y, screenFormat, &err);
+        backgroundBuffer = WinCreateOffscreenWindow(gridSize.x, gridSize.y, nativeFormat, &err);
         if (err != errNone) {
             backgroundBuffer = NULL;
             return;
@@ -382,7 +382,7 @@ static void game_drawDynamicViews() {  // ships, special tiles, etc.
     gameSession.drawingState.shouldRedrawOverlay = false;
     gridSize = hexgrid_size();
     if (overlayBuffer == NULL) {
-        overlayBuffer = WinCreateOffscreenWindow(overlaySize.x, overlaySize.y, screenFormat, &err);
+        overlayBuffer = WinCreateOffscreenWindow(overlaySize.x, overlaySize.y, nativeFormat, &err);
     }
 
     WinSetDrawWindow(overlayBuffer);
@@ -534,7 +534,7 @@ static void game_drawLayout() {
     Err err = errNone;
     Coordinate screenSize = deviceinfo_screenSize();
     if (screenBuffer == NULL) {
-        screenBuffer = WinCreateOffscreenWindow(screenSize.x, screenSize.y, screenFormat, &err);
+        screenBuffer = WinCreateOffscreenWindow(screenSize.x, screenSize.y, nativeFormat, &err);
     }
     game_drawBackground();
     game_drawDynamicViews();
