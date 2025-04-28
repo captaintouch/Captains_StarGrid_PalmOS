@@ -249,7 +249,7 @@ static void gameSession_startTurnForNextFaction() {
     nextPawn = gameSession_nextPawn();
     gameSession_moveCameraToPawn(nextPawn);
     gameSession.activePawn = nextPawn;
-
+    gameSession.lastPenInput.wasUpdatedFlag = false;
     gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
@@ -258,8 +258,10 @@ static Boolean gameSession_handleBarButtonsTap() {
         gameSession.activePawn = gameSession_nextPawn();
         gameSession_updateViewPortOffset(true);
         gameSession.drawingState.shouldRedrawOverlay = true;
+        inputPen_temporarylyBlockPenInput(&gameSession.lastPenInput);
         return true;
     } else if (gameSession.lastPenInput.touchCoordinate.x > gameSession.drawingState.barButtonPositions[1].x && gameSession.lastPenInput.touchCoordinate.y > gameSession.drawingState.barButtonPositions[1].y && gameSession.lastPenInput.touchCoordinate.y < gameSession.drawingState.barButtonPositions[1].y + gameSession.drawingState.barButtonHeight) {  // end turn button
+        inputPen_temporarylyBlockPenInput(&gameSession.lastPenInput);
         gameSession_startTurnForNextFaction();
         return true;
     }
