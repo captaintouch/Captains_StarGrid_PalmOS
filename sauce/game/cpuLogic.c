@@ -128,10 +128,11 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
     int maxDamage = cpuLogic_enemyWithStolenFlag(pawn, allPawns, totalPawnCount) != NULL ? 9999 : random(0, 5) >= 4 ? (pawn->inventory.health * 1.3)
                                                                                                                     : 10;
     Coordinate targetPosition, safePosition;
+    Boolean canGoToBase = target->type == PAWNTYPE_BASE && target->faction != pawn->faction;
     if (target == NULL || isInvalidCoordinate(target->position)) {
         return (Coordinate){-1, -1};
     }
-    targetPosition = movement_closestTileToTargetInRange(pawn, target->position, allPawns, totalPawnCount, true);
+    targetPosition = movement_closestTileToTargetInRange(pawn, target->position, allPawns, totalPawnCount, canGoToBase);
     safePosition = targetPosition;
     for (dx = -maxRange; dx <= maxRange; dx++) {
         for (dy = -maxRange; dy <= maxRange; dy++) {
@@ -202,8 +203,7 @@ static Boolean cpuLogic_attackIfInRange(Pawn *pawn, Pawn *target, CPUStrategyRes
 static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int factionValue) {
     CPUStrategyResult strategyResult = {factionValue + random(-30, 30), CPUACTION_NONE, NULL};
     Pawn *homeBase = movement_homeBase(pawn, allPawns, totalPawnCount);
-    Pawn *enemyInRangeOfHomeBase = cpuLogic_weakestEnemyInRange(pawn, allPawns, totalPawnCount, false, false, (float)GAMEMECHANICS_MAXTILEMOVERANGE * 1.3);
-
+   
     if (homeBase->inventory.carryingFlag == false) {  // flag was stolen! If enemy with flag is in range, attack, otherwise move to home base
         Pawn *enemyWithFlag = cpuLogic_enemyWithStolenFlag(pawn, allPawns, totalPawnCount);
         strategyResult.score += 50;
@@ -217,12 +217,12 @@ static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns,
             }
         }  // No else case, this means the flag was succesfully brought to the enemy base
     } else {
+        Pawn *enemyInRangeOfHomeBase = cpuLogic_weakestEnemyInRange(pawn, allPawns, totalPawnCount, false, false, (float)GAMEMECHANICS_MAXTILEMOVERANGE * 1.5);
         if (enemyInRangeOfHomeBase != NULL) {
             strategyResult.score += 80;
             if (!cpuLogic_attackIfInRange(pawn, enemyInRangeOfHomeBase, &strategyResult)) {  // Attack if we can, if not, move towards enemy
-                Boolean farAway = movement_distance(homeBase->position, pawn->position) > (float)GAMEMECHANICS_MAXTILEMOVERANGE * 1.3;
+                Boolean farAway = movement_distance(homeBase->position, pawn->position) > (float)GAMEMECHANICS_MAXTILEMOVERANGE * 2;
                 if (!pawn->warped && farAway) {
-                    strategyResult.score += 80;
                     strategyResult.CPUAction = CPUACTION_WARP;
                 } else {
                     strategyResult.CPUAction = CPUACTION_MOVE;
@@ -278,14 +278,15 @@ static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int
         if (!cpuLogic_attackIfInRange(pawn, enemyWithFlag, &strategyResult)) {  // Attack if we can, if not, move to enemy home base
             Pawn *enemyHomeBase = movement_homeBase(enemyWithFlag, allPawns, totalPawnCount);
             if (enemyHomeBase != NULL) {
-                strategyResult.CPUAction = CPUACTION_MOVE;
-                strategyResult.target = enemyHomeBase;
+                if (!cpuLogic_attackIfInRange(pawn, enemyWithFlag, &strategyResult)) {
+                    strategyResult.CPUAction = CPUACTION_MOVE;
+                    strategyResult.target = enemyHomeBase;
+                }
             }
         }
     } else {
         Pawn *nearestEnemyShipOrBase = cpuLogic_weakestEnemyInRange(pawn, allPawns, totalPawnCount, true, true, 1);
         if (nearestEnemyShipOrBase != NULL) {
-            strategyResult.score += 50;
             if (!cpuLogic_attackIfInRange(pawn, nearestEnemyShipOrBase, &strategyResult)) {  // Attack if we can, if not, move to enemy
                 strategyResult.CPUAction = CPUACTION_MOVE;
                 strategyResult.target = nearestEnemyShipOrBase;
