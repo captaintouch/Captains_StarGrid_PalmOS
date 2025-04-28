@@ -111,5 +111,17 @@
             },
             "problemMatcher": []
         },
+        {
+            "label": "Install HIRES to Palm",
+            "dependsOn": [
+                "makeAllBuilds"
+            ],
+            "command": "pilot-xfer -pusb: -i artifacts/StarGrid_hires.prc",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
     ]
 }
