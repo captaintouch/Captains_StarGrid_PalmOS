@@ -77,7 +77,7 @@ static int cpuLogic_defenseValueForBase(Pawn *base, Pawn *allPawns, int totalPaw
             healthPercentage = (float)(maxRange - distance) * 100.0 / (float)maxRange;
             defenseValue += ((float)allPawns[i].inventory.health * (float)healthPercentage / 100.0);
             */
-           defenseValue += allPawns[i].inventory.health;
+            defenseValue += allPawns[i].inventory.health;
         }
     }
 
@@ -104,7 +104,6 @@ static Pawn *cpuLogic_weakestOtherFactionHomeBaseWithFlag(Pawn *pawn, Pawn *allP
     return weakestHomeBase;
 }
 
-
 static int cpuLogic_damageAssementForTile(Coordinate position, Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
     int i;
     int damage = 0;
@@ -126,7 +125,8 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
     int maxRange = GAMEMECHANICS_MAXTILEMOVERANGE;
     int dx, dy;
     int minDistance = 9999;
-    int maxDamage = cpuLogic_enemyWithStolenFlag(pawn, allPawns, totalPawnCount) != NULL ? 9999 : random(0, 5) >= 4 ? (pawn->inventory.health * 1.3) : 10;
+    int maxDamage = cpuLogic_enemyWithStolenFlag(pawn, allPawns, totalPawnCount) != NULL ? 9999 : random(0, 5) >= 4 ? (pawn->inventory.health * 1.3)
+                                                                                                                    : 10;
     Coordinate targetPosition, safePosition;
     if (target == NULL || isInvalidCoordinate(target->position)) {
         return (Coordinate){-1, -1};
@@ -300,6 +300,9 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
     int i;
     CPUStrategyResult bestStrategy;
     CPUStrategyResult strategyResult[3];
+#ifdef DEBUG
+    CPUStrategy selectedStrategy = 0;
+#endif
     if (isInvalidCoordinate(pawn->position)) {
         return (CPUStrategyResult){CPUACTION_NONE, NULL};
     }
@@ -308,12 +311,6 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
     strategyResult[CPUSTRATEGY_CAPTUREFLAG] = cpuLogic_captureTheFlagStrategy(pawn, allPawns, totalPawnCount, factionProfile.captureFlagPriority);
     strategyResult[CPUSTRATEGY_ATTACK] = cpuLogic_attackStrategy(pawn, allPawns, totalPawnCount, factionProfile.attackPriority);
 
-#ifdef DEBUG
-    drawhelper_drawTextWithValue("DEFBASE:", strategyResult[CPUSTRATEGY_DEFENDBASE].score, (Coordinate){0, 0});
-    drawhelper_drawTextWithValue("CTF:", strategyResult[CPUSTRATEGY_CAPTUREFLAG].score, (Coordinate){0, 10});
-    drawhelper_drawTextWithValue("ATTACK:", strategyResult[CPUSTRATEGY_ATTACK].score, (Coordinate){0, 20});
-#endif
-
     bestStrategy = strategyResult[0];
     for (i = 1; i < 3; i++) {
         if (strategyResult[i].CPUAction == CPUACTION_NONE) {
@@ -321,10 +318,30 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
         }
         if (strategyResult[i].score > bestStrategy.score) {
             bestStrategy = strategyResult[i];
+#ifdef DEBUG
+            selectedStrategy = i;
+#endif
         }
     }
-   //bestStrategy = strategyResult[CPUSTRATEGY_DEFENDBASE];
+    // bestStrategy = strategyResult[CPUSTRATEGY_DEFENDBASE];
     bestStrategy.targetPosition = cpuLogic_safePosition(pawn, allPawns, totalPawnCount, bestStrategy.target);
+
+#ifdef DEBUG
+    /*drawhelper_drawTextWithValue("DEFBASE:", strategyResult[CPUSTRATEGY_DEFENDBASE].score, (Coordinate){0, 0});
+    drawhelper_drawTextWithValue("CTF:", strategyResult[CPUSTRATEGY_CAPTUREFLAG].score, (Coordinate){0, 10});
+    drawhelper_drawTextWithValue("ATTACK:", strategyResult[CPUSTRATEGY_ATTACK].score, (Coordinate){0, 20});*/
+    switch (selectedStrategy) {
+        case CPUSTRATEGY_DEFENDBASE:
+            drawhelper_drawText("STRAT: DEFBASE", (Coordinate){0, 0});
+            break;
+        case CPUSTRATEGY_CAPTUREFLAG:
+            drawhelper_drawText("STRAT: CTF", (Coordinate){0, 0});
+            break;
+        case CPUSTRATEGY_ATTACK:
+            drawhelper_drawText("STRAT: ATT", (Coordinate){0, 0});
+            break;
+    }
+#endif
 
 #ifdef DEBUG
     switch (bestStrategy.CPUAction) {
