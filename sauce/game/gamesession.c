@@ -602,7 +602,6 @@ static void gameSession_cpuTurn() {
                 textId = STRING_WARP;
                 gameActionLogic_scheduleWarp(pawn, closestTile);
                 pawn->position = closestTile;
-                gameSession.drawingState.requiresPauseAfterLayout = true;
                 break;
             case CPUACTION_NONE:
                 textId = STRING_NOACTION;
