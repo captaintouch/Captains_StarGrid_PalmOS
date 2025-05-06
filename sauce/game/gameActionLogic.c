@@ -119,6 +119,18 @@ static Boolean gameActionLogic_baseOnPosition(Coordinate position) {
     return false;
 }
 
+static Boolean gameActionLogic_checkForGameOver() {
+    if (!gameSession.continueCPUPlay && !gameActionLogic_humanShipsLeft()) {
+        if (FrmCustomAlert(GAME_ALERT_CPUCONTINUEPLAYING, NULL, NULL, NULL) != 0) { // Do not continue playing
+            gameActionLogic_restartGame();
+            return true;
+        } else {
+            gameSession.continueCPUPlay = true;
+        }
+    }
+    return false;
+}
+
 // returns true when another movement has been scheduled
 Boolean gameActionLogic_afterMove() {
     Boolean didScheduleMovement = false;
@@ -149,12 +161,8 @@ Boolean gameActionLogic_afterMove() {
         gameSession.activePawn->inventory.carryingFlag = false;
         if (gameActionLogic_nonCapturedFlagsLeft(gameSession.activePawn->faction) > 0) {  // Still some flags left to capture
             FrmCustomAlert(GAME_ALERT_FLAGCAPTURED, NULL, NULL, NULL);
-            if (!gameSession.continueCPUPlay && !gameActionLogic_humanShipsLeft()) {
-                if (FrmCustomAlert(GAME_ALERT_CPUCONTINUEPLAYING, NULL, NULL, NULL) != 0) { // Do not continue playing
-                    gameActionLogic_restartGame();
-                } else {
-                    gameSession.continueCPUPlay = true;
-                }
+            if (gameActionLogic_checkForGameOver()) {
+                return false;
             }
         } else {  // Game over, all flags captured
             if (gameSession.factions[gameSession.activePawn->faction].human) {
@@ -205,10 +213,8 @@ void gameActionLogic_afterAttack() {
         gameActionLogic_returnFlagToBase(gameSession.attackAnimation->targetPawn);
     }
 
-    if (!gameActionLogic_humanShipsLeft()) {
-        if (FrmCustomAlert(GAME_ALERT_CPUCONTINUEPLAYING, NULL, NULL, NULL) != 0) { // Do not continue playing
-            gameActionLogic_restartGame();
-        }
+    if (gameActionLogic_checkForGameOver()) {
+        return false;
     }
 
     // Check for game over if no enemy units left
