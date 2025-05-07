@@ -223,7 +223,7 @@ static void game_drawGridTexts() {
 
 static void game_drawPawns() {
     int i;
-    if (gameSession.activePawn != NULL) {
+    if (gameSession.activePawn != NULL && gameSession.menuScreenType == MENUSCREEN_GAME) {
         drawhelper_applyForeColor(EMERALD);
         if (gameSession.colorSupport) {
             hexgrid_drawTileAtPosition(gameSession.activePawn->position, true);
@@ -354,10 +354,11 @@ static void game_drawBackdrop() {
 
 static void game_drawStars() {
     int i;
+    int starCount = gameSession.menuScreenType == MENUSCREEN_GAME ? BACKDROP_STARCOUNT : BACKDROP_STARCOUNT * 2;
     Coordinate gridSize = hexgrid_size();
 
     // Draw stars at random locations
-    for (i = 0; i < BACKDROP_STARCOUNT; i++) {
+    for (i = 0; i < starCount; i++) {
         if (i % 4 == 0) {
             drawhelper_applyForeColor(ASBESTOS);
         } else if (i % 6 == 0) {
@@ -388,7 +389,9 @@ static void game_drawBackground() {
 
     WinSetDrawWindow(backgroundBuffer);
     game_drawBackdrop();
-    hexgrid_drawEntireGrid(false);
+    if (gameSession.menuScreenType == MENUSCREEN_GAME) {
+        hexgrid_drawEntireGrid(false);
+    }
     game_drawStars();
 }
 
@@ -397,7 +400,7 @@ static void game_drawLowMemBackground(Coordinate screenSize) {
     RctSetRectangle(&rect, 0, 0, screenSize.x, screenSize.y);
     drawhelper_applyForeColor(DRACULAORCHID);
     drawhelper_fillRectangle(&rect, 0);
-    if (!gameSession.drawingState.awaitingEndMiniMapScrolling && !gameSession_animating() && gameSession.state != GAMESTATE_CHOOSEPAWNACTION && gameSession.factions[gameSession.factionTurn].human) {
+    if (!gameSession.drawingState.awaitingEndMiniMapScrolling && !gameSession_animating() && gameSession.state != GAMESTATE_CHOOSEPAWNACTION && gameSession.factions[gameSession.factionTurn].human && gameSession.menuScreenType == MENUSCREEN_GAME) {
         hexgrid_drawEntireGrid(true);
     }
 }
