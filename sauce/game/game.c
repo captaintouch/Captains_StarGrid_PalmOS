@@ -188,6 +188,39 @@ static void game_drawHealthBar(Pawn *pawn, int maxWidth, int height, Coordinate 
     drawhelper_fillRectangle(&rect, 0);
 }
 
+static void game_drawGridTexts() {
+    int i, j;
+    FontID oldFont;
+    if (gameSession.level.gridTexts == NULL) {
+        return;
+    }
+    drawhelper_applyTextColor(CLOUDS);
+    drawhelper_applyBackgroundColor(DRACULAORCHID);
+    oldFont = FntSetFont(boldFont);
+    for (i = 0; i < gameSession.level.gridTextCount; i++) {
+        GridText *gridText = &gameSession.level.gridTexts[i];
+        MemHandle resourceHandle = DmGetResource(strRsc, gridText->textResource);
+        Char *text = (char *)MemHandleLock(resourceHandle);
+        for (j = 0; text[j] != '\0'; j++) {
+            Coordinate position = (Coordinate){gridText->position.x + j, gridText->position.y};
+            Coordinate drawPosition = viewport_convertedCoordinate(hexgrid_tileCenterPosition(position));
+            char currChar[2];
+            currChar[0] = text[j];
+            currChar[1] = '\0';
+            //drawhelper_applyForeColor(ALIZARIN);
+            //hexgrid_fillTileAtPosition(position, true);
+            drawhelper_applyForeColor(EMERALD);
+            hexgrid_drawTileAtPosition(position, true);
+
+            drawhelper_drawText(&currChar, (Coordinate){drawPosition.x - 3, drawPosition.y - 7});
+        }
+        //drawhelper_drawText(text, viewport_convertedCoordinate(hexgrid_tileCenterPosition(gameSession.level.gridTexts[i].position)));
+        MemHandleUnlock(resourceHandle);
+        DmReleaseResource(resourceHandle);    
+    }
+    FntSetFont(oldFont);
+}
+
 static void game_drawPawns() {
     int i;
     if (gameSession.activePawn != NULL) {
@@ -200,11 +233,11 @@ static void game_drawPawns() {
     }
 
     // DRAW BASES
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        Pawn *pawn = &gameSession.pawns[i];
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
+        Pawn *pawn = &gameSession.level.pawns[i];
         Coordinate pawnPosition, pawnPositionConverted;
         RectangleType rect;
-        if (pawn->type != PAWNTYPE_BASE || isInvalidCoordinate(gameSession.pawns[i].position)) {
+        if (pawn->type != PAWNTYPE_BASE || isInvalidCoordinate(gameSession.level.pawns[i].position)) {
             continue;
         }
         pawnPosition = hexgrid_tileCenterPosition(pawn->position);
@@ -216,11 +249,11 @@ static void game_drawPawns() {
     }
 
     // DRAW SHIPS
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        Pawn *pawn = &gameSession.pawns[i];
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
+        Pawn *pawn = &gameSession.level.pawns[i];
         Coordinate pawnPosition;
         ImageSprite *shipSprite;
-        if (pawn->type != PAWNTYPE_SHIP || isInvalidCoordinate(gameSession.pawns[i].position)) {
+        if (pawn->type != PAWNTYPE_SHIP || isInvalidCoordinate(gameSession.level.pawns[i].position)) {
             continue;
         }
         shipSprite = game_spriteForPawn(pawn);
@@ -243,8 +276,8 @@ static void game_drawPawns() {
     }
 
     // DRAW ACCESSORIES (FLAGS, FACTION INDICATORS)
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        Pawn *pawn = &gameSession.pawns[i];
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
+        Pawn *pawn = &gameSession.level.pawns[i];
         Coordinate pawnPosition = hexgrid_tileCenterPosition(pawn->position);
         if (isInvalidCoordinate(pawn->position)) {
             continue;
@@ -268,9 +301,9 @@ static void game_drawPawns() {
             drawhelper_drawTextWithValue("", pawn->faction + 1, viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 10}));
         }
 
-        if (gameSession_shouldShowHealthBar() && gameSession.factionTurn != gameSession.pawns[i].faction) {
+        if (gameSession_shouldShowHealthBar() && gameSession.factionTurn != gameSession.level.pawns[i].faction) {
             int maxHealthWidth = HEXTILE_PAWNSIZE;
-            game_drawHealthBar(&gameSession.pawns[i], maxHealthWidth, 2, viewport_convertedCoordinate((Coordinate){pawnPosition.x - maxHealthWidth / 2, pawnPosition.y + HEXTILE_PAWNSIZE / 2}));
+            game_drawHealthBar(&gameSession.level.pawns[i], maxHealthWidth, 2, viewport_convertedCoordinate((Coordinate){pawnPosition.x - maxHealthWidth / 2, pawnPosition.y + HEXTILE_PAWNSIZE / 2}));
         }
     }
 }
@@ -397,6 +430,7 @@ static void game_drawDynamicViews() {  // ships, special tiles, etc.
     game_drawHighlightTiles();
     game_drawWarpAnimation();
     game_drawPawns();
+    game_drawGridTexts();
     game_drawAttackAnimation();
     game_drawDebugTrajectoryMovement();
 }
@@ -410,8 +444,8 @@ static void game_updateMiniMapDrawPosition() {
 }
 
 static void game_drawMiniMap() {
-    minimap_draw(gameSession.pawns,
-                 gameSession.pawnCount,
+    minimap_draw(gameSession.level.pawns,
+                 gameSession.level.pawnCount,
                  gameSession.drawingState.miniMapDrawPosition,
                  gameSession.drawingState.miniMapSize,
                  gameSession.movement,

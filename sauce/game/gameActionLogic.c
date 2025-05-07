@@ -11,14 +11,14 @@
 static UInt8 gameActionLogic_nonCapturedFlagsLeft(UInt8 faction) {
     int i;
     UInt8 flagsLeft = 0;
-    for (i = 0; i < gameSession.pawnCount; i++) {
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
         // Count of enemies that are currently carrying a flag (including bases)
         // + Count of own ships that are currently carrying a flag (excluding home base)
-        if (isInvalidCoordinate(gameSession.pawns[i].position)) {
+        if (isInvalidCoordinate(gameSession.level.pawns[i].position)) {
             continue;
         }
-        if ((gameSession.pawns[i].faction != faction && gameSession.pawns[i].inventory.carryingFlag) ||
-            (gameSession.pawns[i].faction == faction && gameSession.pawns[i].inventory.carryingFlag && gameSession.pawns[i].type != PAWNTYPE_BASE)) {
+        if ((gameSession.level.pawns[i].faction != faction && gameSession.level.pawns[i].inventory.carryingFlag) ||
+            (gameSession.level.pawns[i].faction == faction && gameSession.level.pawns[i].inventory.carryingFlag && gameSession.level.pawns[i].type != PAWNTYPE_BASE)) {
             flagsLeft++;
         }
     }
@@ -36,8 +36,8 @@ static void gameActionLogic_restartGame() {
 
 static Boolean gameActionLogic_humanShipsLeft() {
     int i;
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        if (gameSession.factions[gameSession.pawns[i].faction].human && gameSession.pawns[i].type == PAWNTYPE_SHIP && !isInvalidCoordinate(gameSession.pawns[i].position)) {
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
+        if (gameSession.factions[gameSession.level.pawns[i].faction].human && gameSession.level.pawns[i].type == PAWNTYPE_SHIP && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
             return true;
         }
     }
@@ -46,8 +46,8 @@ static Boolean gameActionLogic_humanShipsLeft() {
 
 static Boolean gameActionLogic_enemyShipsLeft() {
     int i;
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        if (gameSession.pawns[i].type == PAWNTYPE_SHIP && gameSession.pawns[i].faction != gameSession.activePawn->faction && !isInvalidCoordinate(gameSession.pawns[i].position)) {
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
+        if (gameSession.level.pawns[i].type == PAWNTYPE_SHIP && gameSession.level.pawns[i].faction != gameSession.activePawn->faction && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
             return true;
         }
     }
@@ -101,9 +101,9 @@ static void gameActionLogic_returnFlagToBase(Pawn *pawn) {
         return;
     }
     pawn->inventory.carryingFlag = false;
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        if (gameSession.pawns[i].faction == pawn->inventory.flagOfFaction && gameSession.pawns[i].type == PAWNTYPE_BASE) {
-            gameSession.pawns[i].inventory.carryingFlag = true;
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
+        if (gameSession.level.pawns[i].faction == pawn->inventory.flagOfFaction && gameSession.level.pawns[i].type == PAWNTYPE_BASE) {
+            gameSession.level.pawns[i].inventory.carryingFlag = true;
             return;
         }
     }
@@ -111,8 +111,8 @@ static void gameActionLogic_returnFlagToBase(Pawn *pawn) {
 
 static Boolean gameActionLogic_baseOnPosition(Coordinate position) {
     int i;
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        if (!isInvalidCoordinate(gameSession.pawns[i].position) && isEqualCoordinate(gameSession.pawns[i].position, position) && gameSession.pawns[i].type == PAWNTYPE_BASE) {
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
+        if (!isInvalidCoordinate(gameSession.level.pawns[i].position) && isEqualCoordinate(gameSession.level.pawns[i].position, position) && gameSession.level.pawns[i].type == PAWNTYPE_BASE) {
             return true;
         }
     }
@@ -146,15 +146,15 @@ Boolean gameActionLogic_afterMove() {
     if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->faction == gameSession.activePawn->faction && gameSession.activePawn->inventory.carryingFlag) {
         // Flag dissapears, enemy base dissapears, enemy ships join the players fleet
         int i;
-        for (i = 0; i < gameSession.pawnCount; i++) {
-            if (isInvalidCoordinate(gameSession.pawns[i].position)) {
+        for (i = 0; i < gameSession.level.pawnCount; i++) {
+            if (isInvalidCoordinate(gameSession.level.pawns[i].position)) {
                 continue;
             }
-            if (gameSession.pawns[i].faction == gameSession.activePawn->inventory.flagOfFaction) {
-                gameSession.pawns[i].faction = gameSession.activePawn->faction;
-                gameActionLogic_returnFlagToBase(&gameSession.pawns[i]);
-                if (gameSession.pawns[i].type == PAWNTYPE_BASE) {
-                    gameSession.pawns[i].position = (Coordinate){-1, -1};
+            if (gameSession.level.pawns[i].faction == gameSession.activePawn->inventory.flagOfFaction) {
+                gameSession.level.pawns[i].faction = gameSession.activePawn->faction;
+                gameActionLogic_returnFlagToBase(&gameSession.level.pawns[i]);
+                if (gameSession.level.pawns[i].type == PAWNTYPE_BASE) {
+                    gameSession.level.pawns[i].position = (Coordinate){-1, -1};
                 }
             }
         }
@@ -176,7 +176,7 @@ Boolean gameActionLogic_afterMove() {
 
     // if currentposition is on a base, move away from it
     if (gameActionLogic_baseOnPosition(gameSession.activePawn->position)) {
-        Coordinate finalCoordinate = movement_closestTileToTargetInRange(gameSession.activePawn, gameSession.activePawn->position, gameSession.pawns, gameSession.pawnCount, false);
+        Coordinate finalCoordinate = movement_closestTileToTargetInRange(gameSession.activePawn, gameSession.activePawn->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
         gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, finalCoordinate);
         didScheduleMovement = true;
     } else {
@@ -200,12 +200,12 @@ void gameActionLogic_afterAttack() {
 
         if (gameSession.attackAnimation->targetPawn->type == PAWNTYPE_BASE) {
             int i;
-            for (i = 0; i < gameSession.pawnCount; i++) {
-                if (isInvalidCoordinate(gameSession.pawns[i].position)) {
+            for (i = 0; i < gameSession.level.pawnCount; i++) {
+                if (isInvalidCoordinate(gameSession.level.pawns[i].position)) {
                     continue;
                 }
-                if (gameSession.pawns[i].faction == gameSession.attackAnimation->targetPawn->faction) {
-                    gameSession.pawns[i].faction = gameSession.activePawn->faction;
+                if (gameSession.level.pawns[i].faction == gameSession.attackAnimation->targetPawn->faction) {
+                    gameSession.level.pawns[i].faction = gameSession.activePawn->faction;
                 }
             }
             FrmCustomAlert(GAME_ALERT_BASEDESTROYED, NULL, NULL, NULL);

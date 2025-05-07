@@ -1,3 +1,5 @@
+#include "sauce/constants.h"
+
 APPLICATION         ID 1 "CSTG"
 VERSION             ID 1 "0.2"
 
@@ -95,3 +97,7 @@ STRING 1013 "No action"
 
 STRING 1020 "next"
 STRING 1021 "end turn"
+
+STRING STRING_NEW "NEW"
+STRING STRING_RANK "RANK"
+STRING STRING_ABOUT "ABOUT"

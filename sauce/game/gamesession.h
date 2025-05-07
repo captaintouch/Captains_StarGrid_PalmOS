@@ -6,12 +6,18 @@
 #include "colors.h"
 #include "bottomMenu.h"
 #include "cpuLogic.h"
+#include "level.h"
 
 typedef enum TargetSelectionType {
     TARGETSELECTIONTYPE_MOVE,
     TARGETSELECTIONTYPE_PHASER,
     TARGETSELECTIONTYPE_TORPEDO
 } TargetSelectionType;
+
+typedef enum MenuScreenType {
+    MENUSCREEN_START,
+    MENUSCREEN_GAME
+} MenuScreenType;
 
 typedef enum GameState {
     GAMESTATE_SELECTTARGET,
@@ -40,10 +46,10 @@ typedef struct Faction {
 
 typedef struct GameSession {
     GameState state;
+    MenuScreenType menuScreenType;
     InputPen lastPenInput;
 
-    Pawn *pawns;
-    int pawnCount;
+    Level level;
     Pawn *activePawn;
     Pawn cameraPawn;
 

@@ -14,6 +14,7 @@
 #define WARPINITIALTIME 0.4
 
 static void gameSession_resetHighlightTiles();
+static void gameSession_moveCameraToPawn(Pawn *pawn);
 
 Faction gameSession_factionWithRandomizedCPUProfile() {
     Faction faction;
@@ -29,31 +30,25 @@ void gameSession_initialize() {
     gameSession.colorSupport = deviceinfo_colorSupported();
 
     gameSession.state = GAMESTATE_DEFAULT;
+    gameSession.menuScreenType = MENUSCREEN_START;
     MemSet(&gameSession.lastPenInput, sizeof(InputPen), 0);
 
-    gameSession.pawns = NULL;
+    gameSession.level.pawns = NULL;
     gameSession.activePawn = NULL;
     gameSession.continueCPUPlay = false;
 
     gameSession.drawingState = (DrawingState){true, true, false, false, (Coordinate){0, 0}, (Coordinate){0, 0}};
 
-    if (gameSession.pawns != NULL) {
-        gameSession.pawnCount = 0;
-        MemPtrFree(gameSession.pawns);
+    level_destroy(&gameSession.level);
+
+    switch (gameSession.menuScreenType) {
+        case MENUSCREEN_START:
+            gameSession.level = level_startLevel();
+            break;
+        case MENUSCREEN_GAME:
+            gameSession.level = level_create();
+            break;
     }
-    gameSession.pawns = MemPtrNew(sizeof(Pawn) * 9);
-    MemSet(gameSession.pawns, sizeof(Pawn) * 9, 0);
-    gameSession.pawnCount = 9;
-    gameSession.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 0, false, false};
-    gameSession.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 0, false, false};
-    gameSession.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){9, 6}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 1, true, false};
-    gameSession.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){10, 7}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 1, false, false};
-    gameSession.pawns[4] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 9}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 2, false, false};
-    gameSession.pawns[5] = (Pawn){PAWNTYPE_SHIP, (Coordinate){2, 10}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 2, false, false};
-    
-    gameSession.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 0, 0, true}, 0, 0, false, false};
-    gameSession.pawns[7] = (Pawn){PAWNTYPE_BASE, (Coordinate){10, 6}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 1, 0, true}, 0, 1, false, false};
-    gameSession.pawns[8] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 10}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, 0, true}, 0, 2, false, false};
 
     // setup factions
 
@@ -63,8 +58,6 @@ void gameSession_initialize() {
     gameSession.factionCount = 3;
     gameSession.factionTurn = 0;
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
-
-    gameSession.activePawn = &gameSession.pawns[0];
 
     gameSession.highlightTiles = NULL;
     gameSession.highlightTileCount = 0;
@@ -77,13 +70,21 @@ void gameSession_initialize() {
     gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
 
     gameSession.viewportOffset = (Coordinate){0, 0};
+
+    switch (gameSession.menuScreenType) {
+        case MENUSCREEN_START:
+            gameSession.activePawn = &gameSession.level.pawns[gameSession.level.pawnCount - 1];
+            gameSession_updateViewPortOffset(true);
+            gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){3, gameSession.activePawn->position.y});
+            break;
+        case MENUSCREEN_GAME:
+            gameSession.activePawn = &gameSession.level.pawns[0];
+            break;
+    }
 }
 
 void gameSession_cleanup() {
-    if (gameSession.pawns) {
-        MemPtrFree(gameSession.pawns);
-        gameSession.pawns = NULL;
-    }
+    level_destroy(&gameSession.level);
     gameActionLogic_clearAttack();
     gameActionLogic_clearMovement();
     gameSession_resetHighlightTiles();
@@ -125,9 +126,9 @@ static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn) {
 
 static Pawn *gameSession_pawnAtTile(Coordinate tile) {
     int i;
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        if (gameSession.pawns[i].position.x == tile.x && gameSession.pawns[i].position.y == tile.y && !isInvalidCoordinate(gameSession.pawns[i].position)) {
-            return &gameSession.pawns[i];
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
+        if (gameSession.level.pawns[i].position.x == tile.x && gameSession.level.pawns[i].position.y == tile.y && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
+            return &gameSession.level.pawns[i];
         }
     }
     return NULL;
@@ -140,10 +141,10 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
     int coordinatesCount = 0;
     switch (targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
-            coordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.pawnCount);
-            for (i = 0; i < gameSession.pawnCount; i++) {
-                if (gameSession.pawns[i].type != PAWNTYPE_BASE && !isInvalidCoordinate(gameSession.pawns[i].position)) {
-                    coordinates[coordinatesCount] = gameSession.pawns[i].position;
+            coordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.level.pawnCount);
+            for (i = 0; i < gameSession.level.pawnCount; i++) {
+                if (gameSession.level.pawns[i].type != PAWNTYPE_BASE && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
+                    coordinates[coordinatesCount] = gameSession.level.pawns[i].position;
                     coordinatesCount++;
                 }
             }
@@ -190,17 +191,17 @@ static void gameSession_showPawnActions() {
 
 static void gameSession_enableActionsForFaction(int faction) {
     int i;
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        if (gameSession.pawns[i].faction == faction && gameSession.pawns[i].type == PAWNTYPE_SHIP && !isInvalidCoordinate(gameSession.pawns[i].position)) {
-            gameSession.pawns[i].turnComplete = false;
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
+        if (gameSession.level.pawns[i].faction == faction && gameSession.level.pawns[i].type == PAWNTYPE_SHIP && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
+            gameSession.level.pawns[i].turnComplete = false;
         }
     }
 }
 
 static Boolean gameSession_movesLeftForFaction(int faction) {
     int i;
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        if (gameSession.pawns[i].faction == faction && gameSession.pawns[i].type == PAWNTYPE_SHIP && !gameSession.pawns[i].turnComplete && !isInvalidCoordinate(gameSession.pawns[i].position)) {
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
+        if (gameSession.level.pawns[i].faction == faction && gameSession.level.pawns[i].type == PAWNTYPE_SHIP && !gameSession.level.pawns[i].turnComplete && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
             return true;
         }
     }
@@ -220,15 +221,15 @@ static Pawn *gameSession_nextPawn() {
     Pawn *currentPawn = gameSession.activePawn->faction == gameSession.factionTurn ? gameSession.activePawn : NULL;
     int i;
     int startMatching = false;
-    for (i = 0; i < gameSession.pawnCount; i++) {
-        if (gameSession.pawns[i].faction == gameSession.factionTurn && gameSession.pawns[i].type == PAWNTYPE_SHIP && !isInvalidCoordinate(gameSession.pawns[i].position)) {
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
+        if (gameSession.level.pawns[i].faction == gameSession.factionTurn && gameSession.level.pawns[i].type == PAWNTYPE_SHIP && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
             if (startMatching) {
-                return &gameSession.pawns[i];
+                return &gameSession.level.pawns[i];
             }
             if (firstPawn == NULL) {
-                firstPawn = &gameSession.pawns[i];
+                firstPawn = &gameSession.level.pawns[i];
             }
-            if (currentPawn == &gameSession.pawns[i]) {
+            if (currentPawn == &gameSession.level.pawns[i]) {
                 startMatching = true;
             }
         }
@@ -368,9 +369,9 @@ static void gameSession_handlePawnActionButtonSelection() {
             break;
         case MenuActionTypeWarp:
             gameSession.activePawn->turnComplete = true;
-            homeBase = movement_homeBase(gameSession.activePawn, gameSession.pawns, gameSession.pawnCount);
+            homeBase = movement_homeBase(gameSession.activePawn, gameSession.level.pawns, gameSession.level.pawnCount);
             gameSession.activePawn->warped = true;
-            closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.pawns, gameSession.pawnCount, false);
+            closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
             gameSession.state = GAMESTATE_DEFAULT;
             gameActionLogic_scheduleWarp(gameSession.activePawn, closestTile);
             gameSession.activePawn->position = closestTile;
@@ -558,7 +559,7 @@ static void gameSession_cpuTurn() {
     if (gameSession_animating() || gameSession.state != GAMESTATE_DEFAULT || gameSession.factions[gameSession.factionTurn].human) {
         return;
     }
-    for (i = 0; i < gameSession.pawnCount; i++) {
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
         UInt16 textId;
         char *text;
         MemHandle resourceHandle;
@@ -566,7 +567,7 @@ static void gameSession_cpuTurn() {
         Pawn *targetPawn;
         CPUStrategyResult strategy;
         Pawn *homeBase;
-        Pawn *pawn = &gameSession.pawns[i];
+        Pawn *pawn = &gameSession.level.pawns[i];
         if (pawn->faction != gameSession.factionTurn || gameSession.factions[pawn->faction].human || pawn->type != PAWNTYPE_SHIP || pawn->turnComplete || isInvalidCoordinate(pawn->position)) {
             continue;
         }
@@ -576,7 +577,7 @@ static void gameSession_cpuTurn() {
             gameSession.activePawn = pawn;
             return;
         }
-        strategy = cpuLogic_getStrategy(pawn, gameSession.pawns, gameSession.pawnCount, gameSession.factions[pawn->faction].profile);
+        strategy = cpuLogic_getStrategy(pawn, gameSession.level.pawns, gameSession.level.pawnCount, gameSession.factions[pawn->faction].profile);
         pawn->turnComplete = true;
         gameSession.activePawn = pawn;
         switch (strategy.CPUAction) {
@@ -596,9 +597,9 @@ static void gameSession_cpuTurn() {
                 textId = STRING_ATTACKING;
                 break;
             case CPUACTION_WARP:
-                homeBase = movement_homeBase(pawn, gameSession.pawns, gameSession.pawnCount);
+                homeBase = movement_homeBase(pawn, gameSession.level.pawns, gameSession.level.pawnCount);
                 pawn->warped = true;
-                closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.pawns, gameSession.pawnCount, false);
+                closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
                 textId = STRING_WARP;
                 gameActionLogic_scheduleWarp(pawn, closestTile);
                 pawn->position = closestTile;
@@ -639,17 +640,17 @@ void gameSession_progressLogic() {
             if (gameSession.lastPenInput.wasUpdatedFlag) {  // handle user actions
                 // Handle pen input
                 gameSession.lastPenInput.wasUpdatedFlag = false;
-                #ifdef DEBUG
-                    drawhelper_drawTextWithValue("X:", gameSession.lastPenInput.touchCoordinate.x, (Coordinate){gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y});
-                    drawhelper_drawTextWithValue("Y:", gameSession.lastPenInput.touchCoordinate.y, (Coordinate){gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y + 10});
-                #endif
+#ifdef DEBUG
+                drawhelper_drawTextWithValue("X:", gameSession.lastPenInput.touchCoordinate.x, (Coordinate){gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y});
+                drawhelper_drawTextWithValue("Y:", gameSession.lastPenInput.touchCoordinate.y, (Coordinate){gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y + 10});
+#endif
                 if (gameSession.lastPenInput.moving && gameSession.state == GAMESTATE_DEFAULT && gameSession_handleMiniMapTap()) {
                     gameSession.drawingState.awaitingEndMiniMapScrolling = true;
                 } else {
                     if ((gameSession.state == GAMESTATE_SELECTTARGET && gameSession.lastPenInput.moving || isInvalidCoordinate(gameSession.lastPenInput.touchCoordinate))) {
                         return;
                     }
-                    
+
                     switch (gameSession.state) {
                         case GAMESTATE_DEFAULT:
                             if (gameSession_handleMiniMapTap()) break;
