@@ -209,12 +209,11 @@ static void game_drawGridTexts() {
             currChar[1] = '\0';
             //drawhelper_applyForeColor(ALIZARIN);
             //hexgrid_fillTileAtPosition(position, true);
-            drawhelper_applyForeColor(EMERALD);
+            drawhelper_applyForeColor(BELIZEHOLE);
             hexgrid_drawTileAtPosition(position, true);
 
             drawhelper_drawText(&currChar, (Coordinate){drawPosition.x - 3, drawPosition.y - 7});
         }
-        //drawhelper_drawText(text, viewport_convertedCoordinate(hexgrid_tileCenterPosition(gameSession.level.gridTexts[i].position)));
         MemHandleUnlock(resourceHandle);
         DmReleaseResource(resourceHandle);    
     }
