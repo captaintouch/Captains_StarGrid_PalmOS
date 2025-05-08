@@ -371,12 +371,34 @@ static void game_drawStars() {
 }
 
 static void game_drawGameStartHeader() {
+    FontID oldFont;
+    MemHandle resourceHandle;
     RectangleType rect;
+    char *text;
     Coordinate screenSize = deviceinfo_screenSize();
     WinSetDrawWindow(screenBuffer);
     RctSetRectangle(&rect, 0, 0, screenSize.x, BOTTOMMENU_HEIGHT);
     drawhelper_applyForeColor(BELIZEHOLE);
+    drawhelper_applyBackgroundColor(BELIZEHOLE);
+    drawhelper_applyTextColor(CLOUDS);
     drawhelper_fillRectangle(&rect, 0);
+
+    resourceHandle = DmGetResource(strRsc, STRING_CAPTAINS);
+    text = (char *)MemHandleLock(resourceHandle);
+    oldFont = FntSetFont(stdFont);
+    drawhelper_drawText(text, (Coordinate){screenSize.x / 2 - FntCharsWidth(text, StrLen(text)) / 2, 2});
+    MemHandleUnlock(resourceHandle);
+    DmReleaseResource(resourceHandle);
+
+    resourceHandle = DmGetResource(strRsc, STRING_STARGRID);
+    text = (char *)MemHandleLock(resourceHandle);
+    FntSetFont(largeBoldFont);
+    drawhelper_drawText(text, (Coordinate){screenSize.x / 2 - FntCharsWidth(text, StrLen(text)) / 2, 12});
+    MemHandleUnlock(resourceHandle);
+    DmReleaseResource(resourceHandle);
+    
+    
+    FntSetFont(oldFont);
 }
 
 static void game_drawBackground() {
