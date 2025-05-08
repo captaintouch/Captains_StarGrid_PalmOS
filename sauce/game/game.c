@@ -195,7 +195,7 @@ static void game_drawGridTexts() {
         return;
     }
     drawhelper_applyTextColor(CLOUDS);
-    drawhelper_applyBackgroundColor(DRACULAORCHID);
+    drawhelper_applyBackgroundColor(BELIZEHOLE);
     oldFont = FntSetFont(boldFont);
     for (i = 0; i < gameSession.level.gridTextCount; i++) {
         GridText *gridText = &gameSession.level.gridTexts[i];
@@ -207,9 +207,9 @@ static void game_drawGridTexts() {
             char currChar[2];
             currChar[0] = text[j];
             currChar[1] = '\0';
-            //drawhelper_applyForeColor(ALIZARIN);
-            //hexgrid_fillTileAtPosition(position, true);
             drawhelper_applyForeColor(BELIZEHOLE);
+            hexgrid_fillTileAtPosition(position, true);
+            drawhelper_applyForeColor(CLOUDS);
             hexgrid_drawTileAtPosition(position, true);
 
             drawhelper_drawText(&currChar, (Coordinate){drawPosition.x - 3, drawPosition.y - 7});
@@ -368,6 +368,15 @@ static void game_drawStars() {
 
         drawhelper_drawPoint((Coordinate){SysRandom(0) % gridSize.x, SysRandom(0) % gridSize.y});
     }
+}
+
+static void game_drawGameStartHeader() {
+    RectangleType rect;
+    Coordinate screenSize = deviceinfo_screenSize();
+    WinSetDrawWindow(screenBuffer);
+    RctSetRectangle(&rect, 0, 0, screenSize.x, BOTTOMMENU_HEIGHT);
+    drawhelper_applyForeColor(BELIZEHOLE);
+    drawhelper_fillRectangle(&rect, 0);
 }
 
 static void game_drawBackground() {
@@ -576,10 +585,15 @@ static void game_drawLayout() {
     game_drawDynamicViews();
 
     WinSetDrawWindow(screenBuffer);
-    RctSetRectangle(&lamerect, 0, 0, screenSize.x, screenSize.y - BOTTOMMENU_HEIGHT);
-    WinCopyRectangle(overlayBuffer, screenBuffer, &lamerect, 0, 0, winPaint);
-
-    game_drawUserInterfaceElements();
+    if (gameSession.menuScreenType == MENUSCREEN_GAME) {
+        RctSetRectangle(&lamerect, 0, 0, screenSize.x, screenSize.y - BOTTOMMENU_HEIGHT);
+        WinCopyRectangle(overlayBuffer, screenBuffer, &lamerect, 0, 0, winPaint);
+        game_drawUserInterfaceElements();
+    } else {
+        game_drawGameStartHeader();
+        RctSetRectangle(&lamerect, 0, 0, screenSize.x, screenSize.y);
+        WinCopyRectangle(overlayBuffer, screenBuffer, &lamerect, 0, BOTTOMMENU_HEIGHT, winPaint);
+    }
 
     RctSetRectangle(&lamerect, 0, 0, screenSize.x, screenSize.y);
     WinCopyRectangle(screenBuffer, mainWindow, &lamerect, GAMEWINDOW_X,
