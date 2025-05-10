@@ -10,20 +10,32 @@
 #define HEXTILE_POINTS 6
 
 int hexgrid_tilePattern[HEXTILE_SIZE];
+#ifdef HIRESBUILD
+int hexgrid_tilePatternDouble[HEXTILE_SIZE * 2];
+#endif
 
-static void hexgrid_tileCoords(int startX, int startY, Coordinate coordinates[]) {
-    coordinates[0] = (Coordinate){startX + HEXTILE_SIZE / 2, startY};
-    coordinates[1] = (Coordinate){startX, startY + HEXTILE_SEGMENT_SIZE};
-    coordinates[2] = (Coordinate){startX, startY + HEXTILE_SIZE - HEXTILE_SEGMENT_SIZE};
-    coordinates[3] = (Coordinate){coordinates[0].x, startY + HEXTILE_SIZE};
-    coordinates[4] = (Coordinate){startX + HEXTILE_SIZE, coordinates[2].y};
-    coordinates[5] = (Coordinate){startX + HEXTILE_SIZE, coordinates[1].y};
+static void hexgrid_tileCoords(int startX, int startY, Coordinate coordinates[], Boolean doubleSize) {
+    if (doubleSize) {
+        coordinates[0] = (Coordinate){startX + HEXTILE_SIZE, startY};
+        coordinates[1] = (Coordinate){startX, startY + HEXTILE_SEGMENT_SIZE * 2};
+        coordinates[2] = (Coordinate){startX, startY + HEXTILE_SIZE * 2 - HEXTILE_SEGMENT_SIZE * 2};
+        coordinates[3] = (Coordinate){coordinates[0].x, startY + HEXTILE_SIZE * 2};
+        coordinates[4] = (Coordinate){startX + HEXTILE_SIZE * 2, coordinates[2].y};
+        coordinates[5] = (Coordinate){startX + HEXTILE_SIZE * 2, coordinates[1].y};
+    } else {
+        coordinates[0] = (Coordinate){startX + HEXTILE_SIZE / 2, startY};
+        coordinates[1] = (Coordinate){startX, startY + HEXTILE_SEGMENT_SIZE};
+        coordinates[2] = (Coordinate){startX, startY + HEXTILE_SIZE - HEXTILE_SEGMENT_SIZE};
+        coordinates[3] = (Coordinate){coordinates[0].x, startY + HEXTILE_SIZE};
+        coordinates[4] = (Coordinate){startX + HEXTILE_SIZE, coordinates[2].y};
+        coordinates[5] = (Coordinate){startX + HEXTILE_SIZE, coordinates[1].y};
+    }
 }
 
 static void hexgrid_drawTile(int startX, int startY) {
     int i;
     Coordinate coordinates[HEXTILE_POINTS];
-    hexgrid_tileCoords(startX, startY, coordinates);
+    hexgrid_tileCoords(startX, startY, coordinates, false);
 
     for (i = 0; i < HEXTILE_POINTS; i++) {
         int otherIndex = i == 0 ? HEXTILE_POINTS - 1 : i - 1;
@@ -48,7 +60,22 @@ static Boolean hexgrid_isInsideTile(Coordinate coordinates[], Coordinate p) {
 void hexgrid_initialize() {
     int y;
     Coordinate coordinates[HEXTILE_POINTS];
-    hexgrid_tileCoords(0, 0, coordinates);
+
+    #ifdef HIRESBUILD
+    hexgrid_tileCoords(0, 0, coordinates, true);
+    for (y = 0; y < HEXTILE_SIZE * 2; y++) {
+        int x;
+        hexgrid_tilePatternDouble[y] = HEXTILE_SIZE;
+        for (x = 0; x < HEXTILE_SIZE * 2; x++) {
+            if (hexgrid_isInsideTile(coordinates, (Coordinate){x, y})) {
+                hexgrid_tilePatternDouble[y] = x;
+                break;
+            }
+        }
+    }
+    #endif
+
+    hexgrid_tileCoords(0, 0, coordinates, false);
     for (y = 0; y < HEXTILE_SIZE; y++) {
         int x;
         hexgrid_tilePattern[y] = HEXTILE_SIZE / 2;
@@ -65,8 +92,21 @@ static void hexgrid_fillTile(int startX, int startY) {
     int y;
 
     Coordinate coordinates[HEXTILE_POINTS];
-    hexgrid_tileCoords(startX, startY, coordinates);
 
+#ifdef HIRESBUILD
+    WinSetCoordinateSystem(kCoordinatesDouble);
+    hexgrid_tileCoords(startX * 2, startY * 2, coordinates, true);
+    for (y = 0; y < HEXTILE_SIZE * 2; y++) {
+        int actualY = y + startY * 2;
+        int xOffset = hexgrid_tilePatternDouble[y];
+        if (xOffset < 0) {
+            continue;
+        }
+        drawhelper_drawLineBetweenCoordinates((Coordinate){startX * 2 + xOffset, actualY}, (Coordinate){startX * 2 + HEXTILE_SIZE * 2 - xOffset, actualY});
+    }
+    WinSetCoordinateSystem(kCoordinatesStandard);
+#else
+    hexgrid_tileCoords(startX, startY, coordinates, false);
     for (y = 0; y < HEXTILE_SIZE; y++) {
         int actualY = y + startY;
         int xOffset = hexgrid_tilePattern[y];
@@ -75,6 +115,7 @@ static void hexgrid_fillTile(int startX, int startY) {
         }
         drawhelper_drawLineBetweenCoordinates((Coordinate){startX + xOffset, actualY}, (Coordinate){startX + HEXTILE_SIZE - xOffset, actualY});
     }
+#endif
 }
 
 static Coordinate hexgrid_tileStartPosition(int column, int row) {
