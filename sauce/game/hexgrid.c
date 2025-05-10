@@ -15,21 +15,14 @@ int hexgrid_tilePatternDouble[HEXTILE_SIZE * 2];
 #endif
 
 static void hexgrid_tileCoords(int startX, int startY, Coordinate coordinates[], Boolean doubleSize) {
-    if (doubleSize) {
-        coordinates[0] = (Coordinate){startX + HEXTILE_SIZE, startY};
-        coordinates[1] = (Coordinate){startX, startY + HEXTILE_SEGMENT_SIZE * 2};
-        coordinates[2] = (Coordinate){startX, startY + HEXTILE_SIZE * 2 - HEXTILE_SEGMENT_SIZE * 2};
-        coordinates[3] = (Coordinate){coordinates[0].x, startY + HEXTILE_SIZE * 2};
-        coordinates[4] = (Coordinate){startX + HEXTILE_SIZE * 2, coordinates[2].y};
-        coordinates[5] = (Coordinate){startX + HEXTILE_SIZE * 2, coordinates[1].y};
-    } else {
-        coordinates[0] = (Coordinate){startX + HEXTILE_SIZE / 2, startY};
-        coordinates[1] = (Coordinate){startX, startY + HEXTILE_SEGMENT_SIZE};
-        coordinates[2] = (Coordinate){startX, startY + HEXTILE_SIZE - HEXTILE_SEGMENT_SIZE};
-        coordinates[3] = (Coordinate){coordinates[0].x, startY + HEXTILE_SIZE};
-        coordinates[4] = (Coordinate){startX + HEXTILE_SIZE, coordinates[2].y};
-        coordinates[5] = (Coordinate){startX + HEXTILE_SIZE, coordinates[1].y};
-    }
+    int hexTileSize = doubleSize ? HEXTILE_SIZE * 2 : HEXTILE_SIZE;
+    int hexTileSegmentSize = doubleSize ? HEXTILE_SEGMENT_SIZE * 2 : HEXTILE_SEGMENT_SIZE;
+    coordinates[0] = (Coordinate){startX + hexTileSize / 2, startY};
+    coordinates[1] = (Coordinate){startX, startY + hexTileSegmentSize};
+    coordinates[2] = (Coordinate){startX, startY + hexTileSize - hexTileSegmentSize};
+    coordinates[3] = (Coordinate){coordinates[0].x, startY + hexTileSize};
+    coordinates[4] = (Coordinate){startX + hexTileSize, coordinates[2].y};
+    coordinates[5] = (Coordinate){startX + hexTileSize, coordinates[1].y};
 }
 
 static void hexgrid_drawTile(int startX, int startY) {
@@ -61,7 +54,7 @@ void hexgrid_initialize() {
     int y;
     Coordinate coordinates[HEXTILE_POINTS];
 
-    #ifdef HIRESBUILD
+#ifdef HIRESBUILD
     hexgrid_tileCoords(0, 0, coordinates, true);
     for (y = 0; y < HEXTILE_SIZE * 2; y++) {
         int x;
@@ -73,7 +66,7 @@ void hexgrid_initialize() {
             }
         }
     }
-    #endif
+#endif
 
     hexgrid_tileCoords(0, 0, coordinates, false);
     for (y = 0; y < HEXTILE_SIZE; y++) {

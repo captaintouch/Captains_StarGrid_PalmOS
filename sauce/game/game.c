@@ -205,14 +205,16 @@ static void game_drawGridTexts() {
             Coordinate position = (Coordinate){gridText->position.x + j, gridText->position.y};
             Coordinate drawPosition = viewport_convertedCoordinate(hexgrid_tileCenterPosition(position));
             char currChar[2];
+            int charWidth;
             currChar[0] = text[j];
             currChar[1] = '\0';
+            charWidth = FntCharsWidth(currChar, StrLen(currChar));
             drawhelper_applyForeColor(BELIZEHOLE);
             hexgrid_fillTileAtPosition(position, true);
             drawhelper_applyForeColor(CLOUDS);
             hexgrid_drawTileAtPosition(position, true);
 
-            drawhelper_drawText(&currChar, (Coordinate){drawPosition.x - 3, drawPosition.y - 7});
+            drawhelper_drawText(&currChar, (Coordinate){drawPosition.x - charWidth / 2, drawPosition.y - 5});
         }
         MemHandleUnlock(resourceHandle);
         DmReleaseResource(resourceHandle);    
