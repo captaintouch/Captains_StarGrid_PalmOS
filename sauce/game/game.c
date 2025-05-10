@@ -376,6 +376,7 @@ static void game_drawGameStartHeader() {
     RectangleType rect;
     char *text;
     Coordinate screenSize = deviceinfo_screenSize();
+    int centerX;
     WinSetDrawWindow(screenBuffer);
     RctSetRectangle(&rect, 0, 0, screenSize.x, BOTTOMMENU_HEIGHT);
     drawhelper_applyForeColor(BELIZEHOLE);
@@ -386,19 +387,28 @@ static void game_drawGameStartHeader() {
     resourceHandle = DmGetResource(strRsc, STRING_CAPTAINS);
     text = (char *)MemHandleLock(resourceHandle);
     oldFont = FntSetFont(stdFont);
-    drawhelper_drawText(text, (Coordinate){screenSize.x / 2 - FntCharsWidth(text, StrLen(text)) / 2, 2});
+    centerX = screenSize.x / 2 - FntCharsWidth(text, StrLen(text)) / 2;
+    drawhelper_drawText(text, (Coordinate){centerX, 2});
     MemHandleUnlock(resourceHandle);
     DmReleaseResource(resourceHandle);
 
     resourceHandle = DmGetResource(strRsc, STRING_STARGRID);
     text = (char *)MemHandleLock(resourceHandle);
     FntSetFont(largeBoldFont);
-    drawhelper_drawText(text, (Coordinate){screenSize.x / 2 - FntCharsWidth(text, StrLen(text)) / 2, 12});
+    centerX = screenSize.x / 2 - FntCharsWidth(text, StrLen(text)) / 2;
+    drawhelper_drawText(text, (Coordinate){centerX, 12});
     MemHandleUnlock(resourceHandle);
     DmReleaseResource(resourceHandle);
-    
-    
     FntSetFont(oldFont);
+
+    drawhelper_applyForeColor(SUNFLOWER);
+    hexgrid_drawTileAtPosition((Coordinate){0, 0}, false);
+    hexgrid_fillTileAtPosition((Coordinate){1, 1}, false);
+
+    hexgrid_fillTileAtPosition((Coordinate){6, 0}, false);
+    hexgrid_drawTileAtPosition((Coordinate){6, 1}, false);
+
+    drawhelper_drawLineBetweenCoordinates((Coordinate){0, BOTTOMMENU_HEIGHT-1}, (Coordinate){screenSize.x, BOTTOMMENU_HEIGHT-1});
 }
 
 static void game_drawBackground() {
