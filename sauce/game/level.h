@@ -8,9 +8,15 @@ typedef struct GridText {
     Boolean alternateColor;
 } GridText;
 
+typedef enum ActionTileIdentifier {
+    ACTIONTILEIDENTIFIER_HUMANPLAYER,
+    ACTIONTILEIDENTIFIER_CPUPLAYER
+} ActionTileIdentifier;
+
 typedef struct ActionTile {
     Coordinate position;
     Boolean selected;
+    ActionTileIdentifier identifier;
 } ActionTile;
 
 typedef struct Level {

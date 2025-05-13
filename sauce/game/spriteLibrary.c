@@ -74,6 +74,20 @@ void spriteLibrary_initialize() {
     spriteLibrary.healthSprite.imageData =
         drawhelper_loadImage(spriteLibrary.healthSprite.resourceId);
 
+    spriteLibrary.humanSprite = (ImageSprite){
+        GFX_RES_HUMAN,
+        (Coordinate){16, 16},
+    };
+    spriteLibrary.humanSprite.imageData =
+        drawhelper_loadImage(spriteLibrary.humanSprite.resourceId);
+
+    spriteLibrary.cpuSprite = (ImageSprite){
+        GFX_RES_CPUPLAYER,
+        (Coordinate){16, 16},
+    };
+    spriteLibrary.cpuSprite.imageData =
+        drawhelper_loadImage(spriteLibrary.cpuSprite.resourceId);
+
     for (i = 0; i < GFX_FRAMECOUNT_TORP; i++) {
         spriteLibrary.torpedoAnimation[i] = (ImageSprite){
             GFX_RES_TORP_0 + i,
@@ -117,6 +131,7 @@ void spriteLibrary_clean() {
     }
     drawhelper_releaseImage(spriteLibrary.baseSprite.imageData);
     drawhelper_releaseImage(spriteLibrary.healthSprite.imageData);
+    drawhelper_releaseImage(spriteLibrary.humanSprite.imageData);
     spriteLibrary.initialized = false;
 }
 

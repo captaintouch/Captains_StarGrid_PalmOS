@@ -41,7 +41,7 @@
             }
         },
         {
-            "label": "makeLHiResBuild",
+            "label": "makeHiResBuild",
             "command": "make hires",
             "type": "shell",
             "options": {

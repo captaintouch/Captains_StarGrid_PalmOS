@@ -164,7 +164,7 @@ static ImageSprite *game_spriteForPawn(Pawn *pawn) {
     if (gameSession.colorSupport) {
         return &spriteLibrary_factionShipSprite(pawn->faction)[pawn->orientation];
     } else {
-        return &spriteLibrary.shipTwoSprite[pawn->orientation];
+        return &spriteLibrary.shipFourSprite[pawn->orientation];
     }
 }
 
@@ -201,6 +201,7 @@ static void game_drawActionTiles() {
         }
         drawhelper_applyForeColor(CLOUDS);
         hexgrid_drawTileAtPosition(actionTile->position, true);
+        hexgrid_drawSpriteAtTile(&spriteLibrary.humanSprite, actionTile->position);
     }
 }
 

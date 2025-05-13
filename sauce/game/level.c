@@ -51,8 +51,8 @@ void level_addPlayerConfigPawns(Level *level) {
     MemSet(level->actionTiles, sizeof(ActionTile) * level->actionTileCount, 0);
     index = 0;
     for (i = 4; i < level->pawnCount; i++) {
-        level->actionTiles[index] = (ActionTile){(Coordinate){level->pawns[i].position.x + 1, level->pawns[i].position.y}, i == 4}; // HUMAN PLAYER
-        level->actionTiles[index + 1] = (ActionTile){(Coordinate){level->pawns[i].position.x + 2, level->pawns[i].position.y}, i != 4}; // PALM PLAYER
+        level->actionTiles[index] = (ActionTile){(Coordinate){level->pawns[i].position.x + 1, level->pawns[i].position.y}, i == 4, ACTIONTILEIDENTIFIER_HUMANPLAYER}; // HUMAN PLAYER
+        level->actionTiles[index + 1] = (ActionTile){(Coordinate){level->pawns[i].position.x + 2, level->pawns[i].position.y}, i != 4, ACTIONTILEIDENTIFIER_CPUPLAYER}; // PALM PLAYER
         index = index + 2;
     }
 
