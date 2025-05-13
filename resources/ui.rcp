@@ -22,81 +22,81 @@ NOSAVEBEHIND NOFRAME
 BEGIN
 END
 
-ALERT ID 1000
+ALERT ID GAME_ALERT_GAMECOMPLETE_ALLFLAGSCAPTURED
 BEGIN
     TITLE "Victory!"
     MESSAGE "All enemy flags captured!"
     BUTTONS "Next level"
 END
 
-ALERT ID 1001
+ALERT ID GAME_ALERT_GAMECOMPLETE_TOTALDESTRUCTION
 BEGIN
     TITLE "Victory!"
     MESSAGE "All enemy ships destroyed!"
     BUTTONS "Next level"
 END
 
-ALERT ID 2000
+ALERT ID GAME_ALERT_GAMECOMPLETE_CPUALLFLAGSCAPTURED
 BEGIN
     TITLE "Game Over - Defeat!"
     MESSAGE "CPU captured all remaining flags!"
     BUTTONS "Next level"
 END
 
-ALERT ID 2001
+ALERT ID GAME_ALERT_GAMECOMPLETE_CPUTOTALDESTRUCTION
 BEGIN
     TITLE "Game Over - Defeat!"
     MESSAGE "CPU destroyed all enemy ships and bases!"
     BUTTONS "Next level"
 END
 
-ALERT ID 1002
+ALERT ID GAME_ALERT_FLAGCAPTURED
 BEGIN
     TITLE "Flag captured!"
     MESSAGE "The remaining enemy fleet has joined forces."
     BUTTONS "Ok"
 END
 
-ALERT ID 1003
+ALERT ID GAME_ALERT_BASEDESTROYED
 BEGIN
     TITLE "Base destroyed!"
     MESSAGE "The remaining enemy fleet has joined forces."
     BUTTONS "Ok"
 END
 
-ALERT ID 1004
+ALERT ID GAME_ALERT_NOMOREACTIONS
 BEGIN
     TITLE "Uh-oh"
     MESSAGE "This ship cannot take any more actions this turn."
     BUTTONS "Ok"
 END
 
-ALERT ID 1005
+ALERT ID GAME_ALERT_CPUCONTINUEPLAYING
 BEGIN
     TITLE "Game Over"
     MESSAGE "Continue watching the cpu players?"
     BUTTONS "Yes" "No"
 END
 
-ALERT ID 5555
+ALERT ID GAME_ALERT_ENDOFGAMETECHDEMO
 BEGIN
     TITLE "Thanks for playing!"
     MESSAGE "This game is a work in progress, more levels, scoring system and a smarter AI arriving soon! For progress updates, check out https://quarters.captaintouch.com or hang around the PalmDB discord."
     BUTTONS "Ok"
 END
 
-STRING 1000 "Move"
-STRING 1001 "Phaser"
-STRING 1002 "Torpedo"
-STRING 1003 "Warp home"
-STRING 1004 "Cancel"
+STRING STRING_MOVE "Move"
+STRING STRING_PHASER "Phaser"
+STRING STRING_TORPEDO "Torpedo"
+STRING STRING_WARP "Warp home"
+STRING STRING_CANCEL "Cancel"
 
-STRING 1010 "Moving"
-STRING 1011 "Attacking"
-STRING 1013 "No action"
+STRING STRING_MOVING "Moving"
+STRING STRING_ATTACKING "Attacking"
+STRING STRING_NOACTION "No action"
 
-STRING 1020 "next"
-STRING 1021 "end turn"
+STRING STRING_NEXT "next"
+STRING STRING_ENDTURN "end turn"
 
 STRING STRING_NEW "NEW"
 STRING STRING_RANK "RANK"
