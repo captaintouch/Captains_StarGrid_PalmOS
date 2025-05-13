@@ -188,6 +188,22 @@ static void game_drawHealthBar(Pawn *pawn, int maxWidth, int height, Coordinate 
     drawhelper_fillRectangle(&rect, 0);
 }
 
+static void game_drawActionTiles() {
+    int i;
+    if (gameSession.level.actionTiles == NULL) {
+        return;
+    }
+    for (i = 0; i < gameSession.level.actionTileCount; i++) {
+        ActionTile *actionTile = &gameSession.level.actionTiles[i];
+        if (actionTile->selected) {
+            drawhelper_applyForeColor(BELIZEHOLE);
+            hexgrid_fillTileAtPosition(actionTile->position, true);
+        }
+        drawhelper_applyForeColor(CLOUDS);
+        hexgrid_drawTileAtPosition(actionTile->position, true);
+    }
+}
+
 static void game_drawGridTexts() {
     int i, j;
     FontID oldFont;
@@ -477,6 +493,7 @@ static void game_drawDynamicViews() {  // ships, special tiles, etc.
     game_drawWarpAnimation();
     game_drawPawns();
     game_drawGridTexts();
+    game_drawActionTiles();
     game_drawAttackAnimation();
     game_drawDebugTrajectoryMovement();
 }

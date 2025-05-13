@@ -11,13 +11,15 @@ Level level_startLevel() {
 
     Level level;
     level.pawns = MemPtrNew(sizeof(Pawn) * 4);
+    level.actionTileCount = 0;
+    level.actionTiles = NULL;
     MemSet(level.pawns, sizeof(Pawn) * 4, 0);
     level.pawnCount = 4;
-    level.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 0, false, false};
-    level.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 1, false, false};
-    level.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 6}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 2, false, false};
-    level.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 3, false, false};
-
+    level.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 3, false, false};
+    level.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 0, false, false};
+    level.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 1, false, false};
+    level.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 6}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 2, false, false};
+    
     level.gridTexts = MemPtrNew(sizeof(GridText) * 3);
     MemSet(level.gridTexts, sizeof(GridText) * 3, 0);
     level.gridTextCount = 3;
@@ -26,6 +28,34 @@ Level level_startLevel() {
     level.gridTexts[2] = (GridText){STRING_ABOUT, (Coordinate){1, 6}, false};
 
     return level;
+}
+
+void level_addPlayerConfigPawns(Level *level) {
+    int i;
+    int index;
+    int pawnCount = level->pawnCount;
+    Pawn *updatedPawns = MemPtrNew(sizeof(Pawn) * (pawnCount + 4));
+    MemSet(updatedPawns, sizeof(Pawn) * (pawnCount + 4), 0);
+    MemMove(updatedPawns, level->pawns, sizeof(Pawn) * pawnCount);
+    MemPtrFree(level->pawns);
+    level->pawns = updatedPawns;
+
+    level->pawns[4] = (Pawn){PAWNTYPE_SHIP, (Coordinate){7, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 0, false, false};
+    level->pawns[5] = (Pawn){PAWNTYPE_SHIP, (Coordinate){7, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 1, false, false};
+    level->pawns[6] = (Pawn){PAWNTYPE_SHIP, (Coordinate){11, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 2, false, false};
+    level->pawns[7] = (Pawn){PAWNTYPE_SHIP, (Coordinate){11, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 3, false, false};
+    level->pawnCount = 8;
+
+    level->actionTileCount = 4 * 2;
+    level->actionTiles = MemPtrNew(sizeof(ActionTile) * level->actionTileCount);
+    MemSet(level->actionTiles, sizeof(ActionTile) * level->actionTileCount, 0);
+    index = 0;
+    for (i = 4; i < level->pawnCount; i++) {
+        level->actionTiles[index] = (ActionTile){(Coordinate){level->pawns[i].position.x + 1, level->pawns[i].position.y}, i == 4}; // HUMAN PLAYER
+        level->actionTiles[index + 1] = (ActionTile){(Coordinate){level->pawns[i].position.x + 2, level->pawns[i].position.y}, i != 4}; // PALM PLAYER
+        index = index + 2;
+    }
+
 }
 
 Level level_create() {

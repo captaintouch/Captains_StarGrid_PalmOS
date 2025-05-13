@@ -14,6 +14,7 @@ typedef enum CPUStrategy {
     CPUSTRATEGY_ATTACK
 } CPUStrategy;
 
+CPULOGIC_SECTION
 static Pawn *cpuLogic_enemyWithStolenFlag(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
     int i;
     for (i = 0; i < totalPawnCount; i++) {
@@ -24,6 +25,7 @@ static Pawn *cpuLogic_enemyWithStolenFlag(Pawn *pawn, Pawn *allPawns, int totalP
     return NULL;
 }
 
+CPULOGIC_SECTION
 static void cpuLogic_shuffledPawnsIndices(int *indices, int totalPawnCount) {
     int i;
     for (i = 0; i < totalPawnCount; i++) {
@@ -62,6 +64,7 @@ static void cpuLogic_shuffledPawnsIndices(int *indices, int totalPawnCount) {
     return closestHomeBase;
 }*/
 
+CPULOGIC_SECTION
 static int cpuLogic_defenseValueForBase(Pawn *base, Pawn *allPawns, int totalPawnCount) {
     int i;
     int defenseValue = 0;
@@ -84,6 +87,7 @@ static int cpuLogic_defenseValueForBase(Pawn *base, Pawn *allPawns, int totalPaw
     return defenseValue;
 }
 
+CPULOGIC_SECTION
 static Pawn *cpuLogic_weakestOtherFactionHomeBaseWithFlag(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
     int i;
     Pawn *weakestHomeBase = NULL;
@@ -104,6 +108,7 @@ static Pawn *cpuLogic_weakestOtherFactionHomeBaseWithFlag(Pawn *pawn, Pawn *allP
     return weakestHomeBase;
 }
 
+CPULOGIC_SECTION
 static int cpuLogic_damageAssementForTile(Coordinate position, Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
     int i;
     int damage = 0;
@@ -121,6 +126,7 @@ static int cpuLogic_damageAssementForTile(Coordinate position, Pawn *pawn, Pawn 
 }
 
 // This function is used to find a safe position for the pawn to move to, avoiding enemy ships
+CPULOGIC_SECTION
 static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPawnCount, Pawn *target) {
     int maxRange = GAMEMECHANICS_MAXTILEMOVERANGE;
     int dx, dy;
@@ -156,6 +162,7 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
     return safePosition;
 }
 
+CPULOGIC_SECTION
 static Pawn *cpuLogic_weakestEnemyInRange(Pawn *pawn, Pawn *allPawns, int totalPawnCount, Boolean includeBases, Boolean unlimitedRange, int range) {
     int i;
     Pawn *weakestEnemy = NULL;
@@ -181,6 +188,7 @@ static Pawn *cpuLogic_weakestEnemyInRange(Pawn *pawn, Pawn *allPawns, int totalP
     return weakestEnemy;
 }
 
+CPULOGIC_SECTION
 static Boolean cpuLogic_attackIfInRange(Pawn *pawn, Pawn *target, CPUStrategyResult *updateStrategy) {
     int distanceToEnemy;
     if (pawn == NULL || target == NULL) {
@@ -200,6 +208,7 @@ static Boolean cpuLogic_attackIfInRange(Pawn *pawn, Pawn *target, CPUStrategyRes
     }
 }
 
+CPULOGIC_SECTION
 static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int factionValue) {
     CPUStrategyResult strategyResult = {factionValue + random(-30, 30), CPUACTION_NONE, NULL};
     Pawn *homeBase = movement_homeBase(pawn, allPawns, totalPawnCount);
@@ -237,6 +246,7 @@ static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns,
     return strategyResult;
 }
 
+CPULOGIC_SECTION
 static CPUStrategyResult cpuLogic_captureTheFlagStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int factionValue) {
     CPUStrategyResult strategyResult = {factionValue + random(-30, 30), CPUACTION_NONE, NULL};
 
@@ -269,6 +279,7 @@ static CPUStrategyResult cpuLogic_captureTheFlagStrategy(Pawn *pawn, Pawn *allPa
     return strategyResult;
 }
 
+CPULOGIC_SECTION
 static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int factionValue) {
     CPUStrategyResult strategyResult = {factionValue + random(-40, 40), CPUACTION_NONE, NULL};
 
@@ -297,6 +308,7 @@ static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int
     return strategyResult;
 }
 
+CPULOGIC_SECTION
 CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, CPUFactionProfile factionProfile) {
     int i;
     CPUStrategyResult bestStrategy;

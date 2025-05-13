@@ -15,6 +15,7 @@
 
 static void gameSession_resetHighlightTiles();
 static void gameSession_moveCameraToPawn(Pawn *pawn);
+static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn);
 
 Faction gameSession_factionWithRandomizedCPUProfile() {
     Faction faction;
@@ -73,7 +74,7 @@ void gameSession_initialize() {
 
     switch (gameSession.menuScreenType) {
         case MENUSCREEN_START:
-            gameSession.activePawn = &gameSession.level.pawns[gameSession.level.pawnCount - 1];
+            gameSession.activePawn = &gameSession.level.pawns[0];
             gameSession_updateViewPortOffset(true);
             gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, gameSession.activePawn->position.y});
             break;
@@ -281,6 +282,9 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
                     switch (gameSession.level.gridTexts[i].textResource) {
                         case STRING_NEW:    
                         gameSession.menuScreenType = MENUSCREEN_PLAYERCONFIG;
+                        
+                        level_addPlayerConfigPawns(&gameSession.level);
+                        gameSession.activePawn = &gameSession.level.pawns[0];
                         gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, gameSession.activePawn->position.y});
                         break;
                     }

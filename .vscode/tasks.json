@@ -28,9 +28,35 @@
             }
         },
         {
+            "label": "makeLowResBuild",
+            "command": "make lowres",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "makeLHiResBuild",
+            "command": "make hires",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
             "label": "CP COLOR RELEASE",
             "dependsOn": [
-                "makeAllBuilds"
+                "makeLowResBuild"
             ],
             "command": "cloudpilot-emu emu/m505.image -s emu/cloudpilotStartRelease.cp",
             "type": "shell",
@@ -54,7 +80,7 @@
         {
             "label": "CP-UARM HIRES Release",
             "dependsOn": [
-                "makeAllBuilds"
+                "makeHiResBuild"
             ],
             "command": "emu/createsd.sh artifacts/StarGrid_hires.prc && cp-uarm emu/uarm.session -s emu/sdcard.image",
             "type": "shell",
@@ -66,7 +92,7 @@
         {
             "label": "CP BW RELEASE",
             "dependsOn": [
-                "makeAllBuilds"
+                "makeLowResBuild"
             ],
             "command": "cloudpilot-emu emu/m100.image -s emu/cloudpilotStartRelease.cp",
             "type": "shell",
@@ -102,7 +128,7 @@
         {
             "label": "Install RELEASE to Palm",
             "dependsOn": [
-                "makeAllBuilds"
+                "makeLowResBuild"
             ],
             "command": "pilot-xfer -pusb: -i artifacts/StarGrid_lowres.prc",
             "type": "shell",
@@ -114,7 +140,7 @@
         {
             "label": "Install HIRES to Palm",
             "dependsOn": [
-                "makeAllBuilds"
+                "makeHiResBuild"
             ],
             "command": "pilot-xfer -pusb: -i artifacts/StarGrid_hires.prc",
             "type": "shell",

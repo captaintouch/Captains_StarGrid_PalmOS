@@ -1,4 +1,5 @@
 # Makefile
+
 FILENAME = StarGrid
 APPDEFINITION = $(FILENAME).def
 SRCFILES = $(wildcard sauce/*.c) $(wildcard sauce/game/*.c)
@@ -35,9 +36,15 @@ PALMCFLAGS = -O2 -mshort -DPALMOS -DSDK_$(SDK_VERSION) \
 WARNINGFLAGS = -Wswitch -Wunused
 
 all:
-	$(MAKE) EXT="_lowres" HIRES=false build
-	$(MAKE) EXT="_hires" HIRES=true PILRCFLAGS="-D PALMHIRES" GCCFLAGS="-DHIRESBUILD" build
+	$(MAKE) lowres
+	$(MAKE) hires
 	$(MAKE) debug
+
+lowres:
+	$(MAKE) EXT="_lowres" HIRES=false build
+
+hires:
+	$(MAKE) EXT="_hires" HIRES=true PILRCFLAGS="-D PALMHIRES" GCCFLAGS="-DHIRESBUILD" build
 
 debug: 
 	$(MAKE) EXT="_debug" HIRES=false GCCFLAGS="-DDEBUG" build
@@ -56,13 +63,13 @@ endif
 
 $(SECTIONNAME).o:
 	$(MULTIGEN) --base $(SECTIONNAME) $(APPDEFINITION)
-	$(PALMCC) -c $(SECTIONNAME).s
+	@$(PALMCC) -c $(SECTIONNAME).s
 
 .c.o:
-	$(PALMCC) -c $(GCCFLAGS) $(PALMCFLAGS) ${WARNINGFLAGS} $<
+	@$(PALMCC) -c $(GCCFLAGS) $(PALMCFLAGS) ${WARNINGFLAGS} $<
 
 $(FILENAME).out: $(SECTIONNAME).o $(OBJS)
-	$(PALMCC) $(notdir $(OBJS)) $(SECTIONNAME).o $(SECTIONNAME).ld -o $(FILENAME).out
+	@$(PALMCC) $(notdir $(OBJS)) $(SECTIONNAME).o $(SECTIONNAME).ld -o $(FILENAME).out
 
 bin:
 	$(PILRC) $(PILRCFLAGS) resources/ui.rcp 
