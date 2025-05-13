@@ -93,5 +93,7 @@ void gameSession_progressLogic();
 Boolean gameSession_shouldShowHealthBar();
 Boolean gameSession_animating();
 AppColor gameSession_hightlightTilesColor();
+DmResID gameSession_menuTopTitleResource();
+DmResID gameSession_menuBottomTitleResource();
 
 #endif

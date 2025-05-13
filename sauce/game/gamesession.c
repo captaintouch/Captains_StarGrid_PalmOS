@@ -270,28 +270,76 @@ static Boolean gameSession_handleBarButtonsTap() {
     return false;
 }
 
+DmResID gameSession_menuTopTitleResource() {
+    switch (gameSession.menuScreenType) {
+        case MENUSCREEN_START:
+            return STRING_CAPTAINS;
+        case MENUSCREEN_PLAYERCONFIG:
+            return STRING_PLAYERCPU;
+        case MENUSCREEN_GAME:
+            return 0;
+    }
+    return 0;
+}
+
+DmResID gameSession_menuBottomTitleResource() {
+    switch (gameSession.menuScreenType) {
+        case MENUSCREEN_START:
+            return STRING_STARGRID;
+        case MENUSCREEN_PLAYERCONFIG:
+            return STRING_CONFIG;
+        case MENUSCREEN_GAME:
+            return 0;
+    }
+    return 0;
+}
+
 static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
+    int i;
+    for (i = 0; i < gameSession.level.gridTextCount; i++) {
+        if (gameSession.level.gridTexts[i].position.y == selectedTile.y) {
+            gameSession.level.gridTexts[i].alternateColor = true;
+            gameSession.drawingState.shouldRedrawOverlay = true;
+            switch (gameSession.level.gridTexts[i].textResource) {
+                case STRING_NEW:    
+                gameSession.menuScreenType = MENUSCREEN_PLAYERCONFIG;
+                
+                level_addPlayerConfigPawns(&gameSession.level);
+                gameSession.activePawn = &gameSession.level.pawns[0];
+                gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, gameSession.activePawn->position.y});
+                break;
+            }
+            return true;
+        }
+    }
+}
+
+static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
+    int i;
+    for (i = 0; i < gameSession.level.actionTileCount; i++) {
+        if (isEqualCoordinate(gameSession.level.actionTiles[i].position, selectedTile)) {
+            gameSession.level.actionTiles[i].selected = true;
+            gameSession.drawingState.shouldRedrawOverlay = true;
+            if (gameSession.level.actionTiles[i].identifier == ACTIONTILEIDENTIFIER_HUMANPLAYER) {
+                gameSession.level.actionTiles[i + 1].selected = false;
+            } else if (gameSession.level.actionTiles[i].identifier == ACTIONTILEIDENTIFIER_CPUPLAYER) {
+                gameSession.level.actionTiles[i - 1].selected = false;
+            }
+            return true;
+        }
+    }
+}
+
+
+static Boolean gameSession_handleNonGameMenuTap(Coordinate selectedTile) {
     int i;
     selectedTile.y -= 2; // offset for the top bar
     switch (gameSession.menuScreenType) {
         case MENUSCREEN_START:
-            for (i = 0; i < gameSession.level.gridTextCount; i++) {
-                if (gameSession.level.gridTexts[i].position.y == selectedTile.y) {
-                    gameSession.level.gridTexts[i].alternateColor = true;
-                    gameSession.drawingState.shouldRedrawOverlay = true;
-                    switch (gameSession.level.gridTexts[i].textResource) {
-                        case STRING_NEW:    
-                        gameSession.menuScreenType = MENUSCREEN_PLAYERCONFIG;
-                        
-                        level_addPlayerConfigPawns(&gameSession.level);
-                        gameSession.activePawn = &gameSession.level.pawns[0];
-                        gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, gameSession.activePawn->position.y});
-                        break;
-                    }
-                    return true;
-                }
-            }
+            return gameSession_handleStartMenuTap(selectedTile);
             break;
+        case MENUSCREEN_PLAYERCONFIG:
+            return gameSession_handlePlayerConfigTap(selectedTile);
         case MENUSCREEN_GAME:
             break;
     }
@@ -303,7 +351,7 @@ static Boolean gameSession_handleTileTap() {
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
     Pawn *selectedPawn = gameSession_pawnAtTile(selectedTile);
     if (gameSession.menuScreenType != MENUSCREEN_GAME) {
-        return gameSession_handleStartMenuTap(selectedTile);
+        return gameSession_handleNonGameMenuTap(selectedTile);
     }
     if (selectedPawn != NULL) {
         gameSession.activePawn = selectedPawn;

@@ -413,7 +413,7 @@ static void game_drawGameStartHeader() {
     drawhelper_applyTextColor(CLOUDS);
     drawhelper_fillRectangle(&rect, 0);
 
-    resourceHandle = DmGetResource(strRsc, STRING_CAPTAINS);
+    resourceHandle = DmGetResource(strRsc, gameSession_menuTopTitleResource());
     text = (char *)MemHandleLock(resourceHandle);
     oldFont = FntSetFont(stdFont);
     centerX = screenSize.x / 2 - FntCharsWidth(text, StrLen(text)) / 2;
@@ -421,7 +421,7 @@ static void game_drawGameStartHeader() {
     MemHandleUnlock(resourceHandle);
     DmReleaseResource(resourceHandle);
 
-    resourceHandle = DmGetResource(strRsc, STRING_STARGRID);
+    resourceHandle = DmGetResource(strRsc, gameSession_menuBottomTitleResource());
     text = (char *)MemHandleLock(resourceHandle);
     FntSetFont(largeBoldFont);
     centerX = screenSize.x / 2 - FntCharsWidth(text, StrLen(text)) / 2;
