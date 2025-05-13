@@ -16,14 +16,14 @@ Level level_startLevel() {
     level.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 0, false, false};
     level.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 1, false, false};
     level.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 6}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 2, false, false};
-    level.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){HEXGRID_COLS - HEXGRID_COLS / 3, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 3, false, false};
+    level.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 3, false, false};
 
     level.gridTexts = MemPtrNew(sizeof(GridText) * 3);
     MemSet(level.gridTexts, sizeof(GridText) * 3, 0);
     level.gridTextCount = 3;
-    level.gridTexts[0] = (GridText){STRING_NEW, (Coordinate){1, 2}};
-    level.gridTexts[1] = (GridText){STRING_RANK, (Coordinate){1, 4}};
-    level.gridTexts[2] = (GridText){STRING_ABOUT, (Coordinate){1, 6}};
+    level.gridTexts[0] = (GridText){STRING_NEW, (Coordinate){1, 2}, false};
+    level.gridTexts[1] = (GridText){STRING_RANK, (Coordinate){1, 4}, false};
+    level.gridTexts[2] = (GridText){STRING_ABOUT, (Coordinate){1, 6}, false};
 
     return level;
 }

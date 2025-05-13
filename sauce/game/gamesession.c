@@ -75,7 +75,7 @@ void gameSession_initialize() {
         case MENUSCREEN_START:
             gameSession.activePawn = &gameSession.level.pawns[gameSession.level.pawnCount - 1];
             gameSession_updateViewPortOffset(true);
-            gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){3, gameSession.activePawn->position.y});
+            gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, gameSession.activePawn->position.y});
             break;
         case MENUSCREEN_GAME:
             gameSession.activePawn = &gameSession.level.pawns[0];
@@ -269,10 +269,38 @@ static Boolean gameSession_handleBarButtonsTap() {
     return false;
 }
 
+static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
+    int i;
+    selectedTile.y -= 2; // offset for the top bar
+    switch (gameSession.menuScreenType) {
+        case MENUSCREEN_START:
+            for (i = 0; i < gameSession.level.gridTextCount; i++) {
+                if (gameSession.level.gridTexts[i].position.y == selectedTile.y) {
+                    gameSession.level.gridTexts[i].alternateColor = true;
+                    gameSession.drawingState.shouldRedrawOverlay = true;
+                    switch (gameSession.level.gridTexts[i].textResource) {
+                        case STRING_NEW:    
+                        gameSession.menuScreenType = MENUSCREEN_PLAYERCONFIG;
+                        gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, gameSession.activePawn->position.y});
+                        break;
+                    }
+                    return true;
+                }
+            }
+            break;
+        case MENUSCREEN_GAME:
+            break;
+    }
+    return false;
+}
+
 static Boolean gameSession_handleTileTap() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
     Pawn *selectedPawn = gameSession_pawnAtTile(selectedTile);
+    if (gameSession.menuScreenType != MENUSCREEN_GAME) {
+        return gameSession_handleStartMenuTap(selectedTile);
+    }
     if (selectedPawn != NULL) {
         gameSession.activePawn = selectedPawn;
         gameSession_updateViewPortOffset(true);

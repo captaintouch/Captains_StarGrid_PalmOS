@@ -5,6 +5,7 @@
 typedef struct GridText {
     int textResource;
     Coordinate position;
+    Boolean alternateColor;
 } GridText;
 
 typedef struct Level {
