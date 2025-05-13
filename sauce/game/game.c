@@ -195,13 +195,22 @@ static void game_drawActionTiles() {
     }
     for (i = 0; i < gameSession.level.actionTileCount; i++) {
         ActionTile *actionTile = &gameSession.level.actionTiles[i];
+        ImageSprite *sprite;
+        switch (actionTile->identifier) {
+            case ACTIONTILEIDENTIFIER_HUMANPLAYER:
+            sprite = &spriteLibrary.humanSprite;
+            break;
+            case ACTIONTILEIDENTIFIER_CPUPLAYER:
+            sprite = &spriteLibrary.cpuSprite;
+            break;
+        }
         if (actionTile->selected) {
             drawhelper_applyForeColor(BELIZEHOLE);
             hexgrid_fillTileAtPosition(actionTile->position, true);
         }
         drawhelper_applyForeColor(CLOUDS);
         hexgrid_drawTileAtPosition(actionTile->position, true);
-        hexgrid_drawSpriteAtTile(&spriteLibrary.humanSprite, actionTile->position);
+        hexgrid_drawSpriteAtTile(sprite, actionTile->position);
     }
 }
 
