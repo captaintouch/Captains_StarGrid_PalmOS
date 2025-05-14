@@ -78,6 +78,9 @@ Level level_create() {
 
     level.gridTexts = NULL;
     level.gridTextCount = 0;
+
+    level.actionTiles = NULL;
+    level.actionTileCount = 0;
     
     return level;
 }
@@ -90,5 +93,9 @@ void level_destroy(Level *level) {
     if (level->gridTexts != NULL) {
         level->gridTextCount = 0;
         MemPtrFree(level->gridTexts);
+    }
+    if (level->actionTiles != NULL) {
+        level->actionTileCount = 0;
+        MemPtrFree(level->actionTiles);
     }
 }
