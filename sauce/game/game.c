@@ -210,8 +210,8 @@ static void game_drawActionTiles() {
                 break;
             case ACTIONTILEIDENTIFIER_LAUNCHGAME:
                 sprite = NULL;
-                oldFont = FntSetFont(symbol11Font);
-                playChar[0] = 0x03;
+                oldFont = FntSetFont(symbolFont);
+                playChar[0] = 0x18;
                 playChar[1] = '\0';
                 drawhelper_applyTextColor(CLOUDS);
                 drawhelper_drawTextCentered(playChar, viewport_convertedCoordinate(hexgrid_tileCenterPosition(actionTile->position)), 1, 0);
@@ -334,9 +334,14 @@ static void game_drawPawns() {
             drawhelper_fillRectangle(&flagRect, 0);
             */
         } else {
+            char symbolChar[2];
+            FontID oldFont = FntSetFont(symbolFont);
             drawhelper_applyBackgroundColor(ASBESTOS);
             drawhelper_applyTextColor(CLOUDS);
-            drawhelper_drawTextWithValue("", pawn->faction + 1, viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 10}));
+            symbolChar[0] = 0x17 + pawn->faction;
+            symbolChar[1] = '\0';
+            drawhelper_drawText(symbolChar, viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 10}));
+            FntSetFont(oldFont);
         }
 
         if (gameSession_shouldShowHealthBar() && gameSession.factionTurn != gameSession.level.pawns[i].faction) {
