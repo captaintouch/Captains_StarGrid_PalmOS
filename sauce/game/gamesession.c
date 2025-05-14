@@ -78,6 +78,8 @@ void gameSession_initialize() {
             gameSession_updateViewPortOffset(true);
             gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, gameSession.activePawn->position.y});
             break;
+        case MENUSCREEN_PLAYERCONFIG:
+        break;
         case MENUSCREEN_GAME:
             gameSession.activePawn = &gameSession.level.pawns[0];
             break;
@@ -343,7 +345,6 @@ static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
 }
 
 static Boolean gameSession_handleNonGameMenuTap(Coordinate selectedTile) {
-    int i;
     selectedTile.y -= 2;  // offset for the top bar
     switch (gameSession.menuScreenType) {
         case MENUSCREEN_START:

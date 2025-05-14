@@ -14,6 +14,7 @@ void drawhelper_applyForeColor(AppColor color);
 void drawhelper_applyTextColor(AppColor color);
 void drawhelper_applyBackgroundColor(AppColor color);
 void drawhelper_drawText(char *text, Coordinate position);
+void drawhelper_drawTextCentered(char *text, Coordinate position, int offsetX, int offsetY);
 void drawhelper_drawTextWithValue(char *text, int value, Coordinate position);
 void drawhelper_drawSprite(ImageSprite *imageSprite, Coordinate coordinate);
 void drawhelper_drawAnimatedSprite(ImageSprite *imageSprite, UInt8 frameCount, Coordinate coordinate, Int32 launchTimestamp, float durationSeconds);

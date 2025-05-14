@@ -61,6 +61,11 @@ void drawhelper_drawText(char *text, Coordinate position) {
     WinDrawChars(text, StrLen(text), position.x, position.y);
 }
 
+void drawhelper_drawTextCentered(char *text, Coordinate position, int offsetX, int offsetY) {
+    int width = FntCharsWidth(text, StrLen(text));
+    WinDrawChars(text, StrLen(text), position.x - width / 2 + offsetX, position.y - FntCharHeight() / 2 + offsetY);
+}
+
 void drawhelper_drawTextWithValue(char *text, int value, Coordinate position) {
     char finalText[20];
     char valueText[20];

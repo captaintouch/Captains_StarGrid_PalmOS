@@ -189,26 +189,34 @@ static void game_drawHealthBar(Pawn *pawn, int maxWidth, int height, Coordinate 
 
 static void game_drawActionTiles() {
     int i;
+    Char playChar[2];
+    FontID oldFont;
     if (gameSession.level.actionTiles == NULL) {
         return;
     }
     for (i = 0; i < gameSession.level.actionTileCount; i++) {
         ActionTile *actionTile = &gameSession.level.actionTiles[i];
         ImageSprite *sprite;
-        switch (actionTile->identifier) {
-            case ACTIONTILEIDENTIFIER_HUMANPLAYER:
-            sprite = &spriteLibrary.humanSprite;
-            break;
-            case ACTIONTILEIDENTIFIER_CPUPLAYER:
-            sprite = &spriteLibrary.cpuSprite;
-            break;
-            case ACTIONTILEIDENTIFIER_LAUNCHGAME:
-            sprite = NULL;
-            break;
-        }
         if (actionTile->selected) {
             drawhelper_applyForeColor(BELIZEHOLE);
             hexgrid_fillTileAtPosition(actionTile->position, true);
+        }
+        switch (actionTile->identifier) {
+            case ACTIONTILEIDENTIFIER_HUMANPLAYER:
+                sprite = &spriteLibrary.humanSprite;
+                break;
+            case ACTIONTILEIDENTIFIER_CPUPLAYER:
+                sprite = &spriteLibrary.cpuSprite;
+                break;
+            case ACTIONTILEIDENTIFIER_LAUNCHGAME:
+                sprite = NULL;
+                oldFont = FntSetFont(symbol11Font);
+                playChar[0] = 0x03;
+                playChar[1] = '\0';
+                drawhelper_applyTextColor(CLOUDS);
+                drawhelper_drawTextCentered(playChar, viewport_convertedCoordinate(hexgrid_tileCenterPosition(actionTile->position)), 1, 0);
+                FntSetFont(oldFont);
+                break;
         }
         drawhelper_applyForeColor(CLOUDS);
         hexgrid_drawTileAtPosition(actionTile->position, true);
@@ -236,19 +244,17 @@ static void game_drawGridTexts() {
             Coordinate position = (Coordinate){gridText->position.x + j, gridText->position.y};
             Coordinate drawPosition = viewport_convertedCoordinate(hexgrid_tileCenterPosition(position));
             char currChar[2];
-            int charWidth;
             currChar[0] = text[j];
             currChar[1] = '\0';
-            charWidth = FntCharsWidth(currChar, StrLen(currChar));
             drawhelper_applyForeColor(color);
             hexgrid_fillTileAtPosition(position, true);
             drawhelper_applyForeColor(CLOUDS);
             hexgrid_drawTileAtPosition(position, true);
 
-            drawhelper_drawText(&currChar, (Coordinate){drawPosition.x - charWidth / 2, drawPosition.y - 5});
+            drawhelper_drawTextCentered(currChar, (Coordinate){drawPosition.x, drawPosition.y}, 0, 0);
         }
         MemHandleUnlock(resourceHandle);
-        DmReleaseResource(resourceHandle);    
+        DmReleaseResource(resourceHandle);
     }
     FntSetFont(oldFont);
 }
@@ -441,7 +447,7 @@ static void game_drawGameStartHeader() {
     hexgrid_fillTileAtPosition((Coordinate){6, 0}, false);
     hexgrid_drawTileAtPosition((Coordinate){6, 1}, false);
 
-    drawhelper_drawLineBetweenCoordinates((Coordinate){0, BOTTOMMENU_HEIGHT-1}, (Coordinate){screenSize.x, BOTTOMMENU_HEIGHT-1});
+    drawhelper_drawLineBetweenCoordinates((Coordinate){0, BOTTOMMENU_HEIGHT - 1}, (Coordinate){screenSize.x, BOTTOMMENU_HEIGHT - 1});
 }
 
 static void game_drawBackground() {

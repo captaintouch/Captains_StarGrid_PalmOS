@@ -214,7 +214,7 @@ void gameActionLogic_afterAttack() {
     }
 
     if (gameActionLogic_checkForGameOver()) {
-        return false;
+        return;
     }
 
     // Check for game over if no enemy units left
