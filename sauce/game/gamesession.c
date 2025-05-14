@@ -301,13 +301,13 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
             gameSession.level.gridTexts[i].alternateColor = true;
             gameSession.drawingState.shouldRedrawOverlay = true;
             switch (gameSession.level.gridTexts[i].textResource) {
-                case STRING_NEW:    
-                gameSession.menuScreenType = MENUSCREEN_PLAYERCONFIG;
-                
-                level_addPlayerConfigPawns(&gameSession.level);
-                gameSession.activePawn = &gameSession.level.pawns[0];
-                gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, gameSession.activePawn->position.y});
-                break;
+                case STRING_NEW:
+                    gameSession.menuScreenType = MENUSCREEN_PLAYERCONFIG;
+
+                    level_addPlayerConfigPawns(&gameSession.level);
+                    gameSession.activePawn = &gameSession.level.pawns[0];
+                    gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, gameSession.activePawn->position.y});
+                    break;
             }
             return true;
         }
@@ -320,20 +320,31 @@ static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
         if (isEqualCoordinate(gameSession.level.actionTiles[i].position, selectedTile)) {
             gameSession.level.actionTiles[i].selected = true;
             gameSession.drawingState.shouldRedrawOverlay = true;
-            if (gameSession.level.actionTiles[i].identifier == ACTIONTILEIDENTIFIER_HUMANPLAYER) {
-                gameSession.level.actionTiles[i + 1].selected = false;
-            } else if (gameSession.level.actionTiles[i].identifier == ACTIONTILEIDENTIFIER_CPUPLAYER) {
-                gameSession.level.actionTiles[i - 1].selected = false;
+            switch (gameSession.level.actionTiles[i].identifier) {
+                case ACTIONTILEIDENTIFIER_HUMANPLAYER:
+                    gameSession.level.actionTiles[i + 1].selected = false;
+                    break;
+                case ACTIONTILEIDENTIFIER_CPUPLAYER:
+                    gameSession.level.actionTiles[i - 1].selected = false;
+                    break;
+                case ACTIONTILEIDENTIFIER_LAUNCHGAME:
+                    level_destroy(&gameSession.level);
+                    gameSession.menuScreenType = MENUSCREEN_GAME;
+                    gameSession.level = level_create();
+                    gameSession.activePawn = &gameSession.level.pawns[0];
+                    gameSession_updateViewPortOffset(true);
+                    gameSession.drawingState.shouldRedrawBackground = true;
+                    gameSession.drawingState.shouldRedrawOverlay = true;
+                    break;
             }
             return true;
         }
     }
 }
 
-
 static Boolean gameSession_handleNonGameMenuTap(Coordinate selectedTile) {
     int i;
-    selectedTile.y -= 2; // offset for the top bar
+    selectedTile.y -= 2;  // offset for the top bar
     switch (gameSession.menuScreenType) {
         case MENUSCREEN_START:
             return gameSession_handleStartMenuTap(selectedTile);

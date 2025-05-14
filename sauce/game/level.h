@@ -10,7 +10,8 @@ typedef struct GridText {
 
 typedef enum ActionTileIdentifier {
     ACTIONTILEIDENTIFIER_HUMANPLAYER,
-    ACTIONTILEIDENTIFIER_CPUPLAYER
+    ACTIONTILEIDENTIFIER_CPUPLAYER,
+    ACTIONTILEIDENTIFIER_LAUNCHGAME,
 } ActionTileIdentifier;
 
 typedef struct ActionTile {

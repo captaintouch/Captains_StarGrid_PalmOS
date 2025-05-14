@@ -16,7 +16,6 @@
 WinHandle backgroundBuffer = NULL;
 WinHandle overlayBuffer = NULL;
 WinHandle screenBuffer = NULL;
-Boolean shouldRedrawBackground = true;
 Coordinate lastScreenSize;
 
 static void game_windowCleanup() {
@@ -52,7 +51,7 @@ static void game_resetForm() {
             PINSetInputTriggerState(pinInputTriggerDisabled);
         }
         game_windowCleanup();
-        shouldRedrawBackground = true;
+        gameSession.drawingState.shouldRedrawBackground = true;
         gameSession.drawingState.shouldRedrawOverlay = true;
     }
 }
@@ -203,6 +202,9 @@ static void game_drawActionTiles() {
             case ACTIONTILEIDENTIFIER_CPUPLAYER:
             sprite = &spriteLibrary.cpuSprite;
             break;
+            case ACTIONTILEIDENTIFIER_LAUNCHGAME:
+            sprite = NULL;
+            break;
         }
         if (actionTile->selected) {
             drawhelper_applyForeColor(BELIZEHOLE);
@@ -210,7 +212,9 @@ static void game_drawActionTiles() {
         }
         drawhelper_applyForeColor(CLOUDS);
         hexgrid_drawTileAtPosition(actionTile->position, true);
-        hexgrid_drawSpriteAtTile(sprite, actionTile->position);
+        if (sprite != NULL) {
+            hexgrid_drawSpriteAtTile(sprite, actionTile->position);
+        }
     }
 }
 
@@ -443,10 +447,10 @@ static void game_drawGameStartHeader() {
 static void game_drawBackground() {
     Err err = errNone;
     Coordinate gridSize;
-    if (!shouldRedrawBackground && backgroundBuffer != NULL) {
+    if (!gameSession.drawingState.shouldRedrawBackground && backgroundBuffer != NULL) {
         return;
     }
-    shouldRedrawBackground = false;
+    gameSession.drawingState.shouldRedrawBackground = false;
     gridSize = hexgrid_size();
     if (backgroundBuffer == NULL) {
         backgroundBuffer = WinCreateOffscreenWindow(gridSize.x, gridSize.y, nativeFormat, &err);

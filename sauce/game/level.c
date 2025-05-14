@@ -47,7 +47,7 @@ void level_addPlayerConfigPawns(Level *level) {
     level->pawns[level->pawnCount + 3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){11, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 3, false, false};
     level->pawnCount += additionalPawnCount;
 
-    level->actionTileCount = additionalPawnCount * 2;
+    level->actionTileCount = additionalPawnCount * 2 + 1;
     level->actionTiles = MemPtrNew(sizeof(ActionTile) * level->actionTileCount);
     MemSet(level->actionTiles, sizeof(ActionTile) * level->actionTileCount, 0);
     index = 0;
@@ -56,7 +56,7 @@ void level_addPlayerConfigPawns(Level *level) {
         level->actionTiles[index + 1] = (ActionTile){(Coordinate){level->pawns[i].position.x + 2, level->pawns[i].position.y}, i != additionalPawnCount, ACTIONTILEIDENTIFIER_CPUPLAYER}; // PALM PLAYER
         index = index + 2;
     }
-
+    level->actionTiles[level->actionTileCount - 1] = (ActionTile){(Coordinate){13, 7}, true, ACTIONTILEIDENTIFIER_LAUNCHGAME}; // Start the game
 }
 
 Level level_create() {
