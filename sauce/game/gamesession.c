@@ -79,7 +79,7 @@ void gameSession_initialize() {
             gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, gameSession.activePawn->position.y});
             break;
         case MENUSCREEN_PLAYERCONFIG:
-        break;
+            break;
         case MENUSCREEN_GAME:
             gameSession.activePawn = &gameSession.level.pawns[0];
             break;
@@ -296,6 +296,16 @@ DmResID gameSession_menuBottomTitleResource() {
     return 0;
 }
 
+static NewGameConfig gameSession_defaultNewGameConfig() {
+    NewGameConfig config;
+    int i;
+    for (i = 0; i < MAXPLAYERCOUNT; i++) {
+        config.playerConfig[i].active = true;
+        config.playerConfig[i].isHuman = i == 0;
+    }
+    return config;
+}
+
 static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
     int i;
     for (i = 0; i < gameSession.level.gridTextCount; i++) {
@@ -305,8 +315,7 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
             switch (gameSession.level.gridTexts[i].textResource) {
                 case STRING_NEW:
                     gameSession.menuScreenType = MENUSCREEN_PLAYERCONFIG;
-
-                    level_addPlayerConfigPawns(&gameSession.level);
+                    level_addPlayerConfigPawns(&gameSession.level, gameSession_defaultNewGameConfig());
                     gameSession.activePawn = &gameSession.level.pawns[0];
                     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, gameSession.activePawn->position.y});
                     break;
@@ -320,14 +329,16 @@ static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
     int i;
     for (i = 0; i < gameSession.level.actionTileCount; i++) {
         if (isEqualCoordinate(gameSession.level.actionTiles[i].position, selectedTile)) {
+            NewGameConfig config = level_getNewGameConfig(&gameSession.level);
             gameSession.level.actionTiles[i].selected = true;
             gameSession.drawingState.shouldRedrawOverlay = true;
             switch (gameSession.level.actionTiles[i].identifier) {
                 case ACTIONTILEIDENTIFIER_HUMANPLAYER:
-                    gameSession.level.actionTiles[i + 1].selected = false;
+                    config.playerConfig[gameSession.level.actionTiles[i].tag].isHuman = true;
+                    //gameSession.level.actionTiles[i + 1].selected = false;
                     break;
                 case ACTIONTILEIDENTIFIER_CPUPLAYER:
-                    gameSession.level.actionTiles[i - 1].selected = false;
+                    config.playerConfig[gameSession.level.actionTiles[i].tag].isHuman = false;
                     break;
                 case ACTIONTILEIDENTIFIER_LAUNCHGAME:
                     level_destroy(&gameSession.level);
@@ -337,21 +348,28 @@ static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
                     gameSession_updateViewPortOffset(true);
                     gameSession.drawingState.shouldRedrawBackground = true;
                     gameSession.drawingState.shouldRedrawOverlay = true;
+                    return true;
                     break;
                 case ACTIONTILEIDENTIFIER_TWOPLAYERS:
-                    gameSession.level.actionTiles[i + 1].selected = false;
-                    gameSession.level.actionTiles[i + 2].selected = false;
+                    // gameSession.level.actionTiles[i + 1].selected = false;
+                    // gameSession.level.actionTiles[i + 2].selected = false;
+                    config.playerConfig[2].active = false;
+                    config.playerConfig[3].active = false;
                     break;
                 case ACTIONTILEIDENTIFIER_THREEPLAYERS:
-                    gameSession.level.actionTiles[i + 1].selected = false;
-                    gameSession.level.actionTiles[i - 1].selected = false;
+                    config.playerConfig[2].active = true;
+                    config.playerConfig[3].active = false;
+                    // gameSession.level.actionTiles[i + 1].selected = false;
+                    // gameSession.level.actionTiles[i - 1].selected = false;
                     break;
                 case ACTIONTILEIDENTIFIER_FOURPLAYERS:
-                    gameSession.level.actionTiles[i - 1].selected = false;
-                    gameSession.level.actionTiles[i - 2].selected = false;
+                    config.playerConfig[2].active = true;
+                    config.playerConfig[3].active = true;
+                    // gameSession.level.actionTiles[i - 1].selected = false;
+                    // gameSession.level.actionTiles[i - 2].selected = false;
                     break;
-                
             }
+            level_applyNewGameConfig(config, &gameSession.level);
             return true;
         }
     }

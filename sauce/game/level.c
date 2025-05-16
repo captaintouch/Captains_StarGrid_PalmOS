@@ -1,9 +1,10 @@
-#include <PalmOS.h>
 #include "level.h"
+
+#include <PalmOS.h>
+
 #include "../constants.h"
 
 Level level_startLevel() {
-
     // Start screen options:
     // - New
     // - Rank
@@ -19,7 +20,7 @@ Level level_startLevel() {
     level.pawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 0, false, false};
     level.pawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 1, false, false};
     level.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 6}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 2, false, false};
-    
+
     level.gridTexts = MemPtrNew(sizeof(GridText) * 3);
     MemSet(level.gridTexts, sizeof(GridText) * 3, 0);
     level.gridTextCount = 3;
@@ -30,7 +31,66 @@ Level level_startLevel() {
     return level;
 }
 
-void level_addPlayerConfigPawns(Level *level) {
+void level_applyNewGameConfig(NewGameConfig config, Level *level) {
+    int i;
+    int activePlayers = 0;
+    for (i = 0; i < MAXPLAYERCOUNT; i++) {
+        if (config.playerConfig[i].active) {
+            activePlayers++;
+        }
+    }
+
+    for (i = 0; i < level->actionTileCount; i++) {
+        switch (level->actionTiles[i].identifier) {
+            case ACTIONTILEIDENTIFIER_HUMANPLAYER:
+                level->actionTiles[i].selected = config.playerConfig[level->actionTiles[i].tag].isHuman;
+                break;
+            case ACTIONTILEIDENTIFIER_CPUPLAYER:
+                level->actionTiles[i].selected = !config.playerConfig[level->actionTiles[i].tag].isHuman;
+                break;
+            case ACTIONTILEIDENTIFIER_LAUNCHGAME:
+                break;
+            case ACTIONTILEIDENTIFIER_TWOPLAYERS:
+            case ACTIONTILEIDENTIFIER_THREEPLAYERS:
+            case ACTIONTILEIDENTIFIER_FOURPLAYERS:
+                level->actionTiles[i].selected = level->actionTiles[i].tag == activePlayers;
+                break;
+        }
+    }
+}
+
+NewGameConfig level_getNewGameConfig(Level *level) {
+    NewGameConfig config;
+    int i, activePlayers;
+    for (i = 0; i < level->actionTileCount; i++) {
+        if (!level->actionTiles[i].selected) {
+            continue;
+        }
+        switch (level->actionTiles[i].identifier) {
+            case ACTIONTILEIDENTIFIER_HUMANPLAYER:
+                config.playerConfig[level->actionTiles[i].tag].isHuman = true;
+                break;
+            case ACTIONTILEIDENTIFIER_CPUPLAYER:
+                config.playerConfig[level->actionTiles[i].tag].isHuman = false;
+                break;
+            case ACTIONTILEIDENTIFIER_LAUNCHGAME:
+                break;
+            case ACTIONTILEIDENTIFIER_TWOPLAYERS:
+            case ACTIONTILEIDENTIFIER_THREEPLAYERS:
+            case ACTIONTILEIDENTIFIER_FOURPLAYERS:
+                activePlayers = level->actionTiles[i].tag;
+                break;
+        }
+    }
+
+    for (i = 0; i < MAXPLAYERCOUNT; i++) {
+        config.playerConfig[i].active = i < activePlayers;
+    }
+
+    return config;
+}
+
+void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
     int i;
     int index;
     int pawnCount = level->pawnCount;
@@ -52,17 +112,19 @@ void level_addPlayerConfigPawns(Level *level) {
     MemSet(level->actionTiles, sizeof(ActionTile) * level->actionTileCount, 0);
     index = 0;
     for (i = additionalPawnCount; i < level->pawnCount; i++) {
-        level->actionTiles[index] = (ActionTile){(Coordinate){level->pawns[i].position.x + 1, level->pawns[i].position.y}, i == additionalPawnCount, ACTIONTILEIDENTIFIER_HUMANPLAYER, 0}; // HUMAN PLAYER
-        level->actionTiles[index + 1] = (ActionTile){(Coordinate){level->pawns[i].position.x + 2, level->pawns[i].position.y}, i != additionalPawnCount, ACTIONTILEIDENTIFIER_CPUPLAYER, 0}; // PALM PLAYER
+        level->actionTiles[index] = (ActionTile){(Coordinate){level->pawns[i].position.x + 1, level->pawns[i].position.y}, i == additionalPawnCount, ACTIONTILEIDENTIFIER_HUMANPLAYER, i - additionalPawnCount};    // HUMAN PLAYER
+        level->actionTiles[index + 1] = (ActionTile){(Coordinate){level->pawns[i].position.x + 2, level->pawns[i].position.y}, i != additionalPawnCount, ACTIONTILEIDENTIFIER_CPUPLAYER, i - additionalPawnCount};  // PALM PLAYER
         index = index + 2;
     }
 
     index = level->actionTileCount - 4;
-    level->actionTiles[index] = (ActionTile){(Coordinate){8, 7}, false, ACTIONTILEIDENTIFIER_TWOPLAYERS, 0}; // 2 player config
-    level->actionTiles[index + 1] = (ActionTile){(Coordinate){9, 7}, false, ACTIONTILEIDENTIFIER_THREEPLAYERS, 0}; // 3 player config
-    level->actionTiles[index + 2] = (ActionTile){(Coordinate){10, 7}, true, ACTIONTILEIDENTIFIER_FOURPLAYERS, 0}; // 4 player config
+    level->actionTiles[index] = (ActionTile){(Coordinate){8, 7}, false, ACTIONTILEIDENTIFIER_TWOPLAYERS, 2};        // 2 player config
+    level->actionTiles[index + 1] = (ActionTile){(Coordinate){9, 7}, false, ACTIONTILEIDENTIFIER_THREEPLAYERS, 3};  // 3 player config
+    level->actionTiles[index + 2] = (ActionTile){(Coordinate){10, 7}, true, ACTIONTILEIDENTIFIER_FOURPLAYERS, 4};   // 4 player config
 
-    level->actionTiles[index + 3] = (ActionTile){(Coordinate){13, 7}, true, ACTIONTILEIDENTIFIER_LAUNCHGAME, 0}; // Start the game
+    level->actionTiles[index + 3] = (ActionTile){(Coordinate){13, 7}, true, ACTIONTILEIDENTIFIER_LAUNCHGAME, 0};  // Start the game
+
+    level_applyNewGameConfig(newGameConfig, level);
 }
 
 Level level_create() {
@@ -77,7 +139,7 @@ Level level_create() {
     level.pawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){10, 7}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 1, false, false};
     level.pawns[4] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1, 9}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 2, false, false};
     level.pawns[5] = (Pawn){PAWNTYPE_SHIP, (Coordinate){2, 10}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 0, 2, false, false};
-    
+
     level.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 0, 0, true}, 0, 0, false, false};
     level.pawns[7] = (Pawn){PAWNTYPE_BASE, (Coordinate){10, 6}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 1, 0, true}, 0, 1, false, false};
     level.pawns[8] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 10}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, 0, true}, 0, 2, false, false};
@@ -87,7 +149,7 @@ Level level_create() {
 
     level.actionTiles = NULL;
     level.actionTileCount = 0;
-    
+
     return level;
 }
 

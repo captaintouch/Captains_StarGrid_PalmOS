@@ -2,6 +2,17 @@
 #define LEVEL_H_
 #include "models.h"
 
+#define MAXPLAYERCOUNT 4
+
+typedef struct PlayerConfig {
+    Boolean active;
+    Boolean isHuman;
+} PlayerConfig;
+
+typedef struct NewGameConfig {
+    PlayerConfig playerConfig[MAXPLAYERCOUNT];
+} NewGameConfig;
+
 typedef struct GridText {
     int textResource;
     Coordinate position;
@@ -35,7 +46,9 @@ typedef struct Level {
 
 // START SCREEN SPECIFIC
 Level level_startLevel();
-void level_addPlayerConfigPawns(Level *level);
+void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig);
+void level_applyNewGameConfig(NewGameConfig config, Level *level);
+NewGameConfig level_getNewGameConfig(Level *level);
 
 Level level_create();
 

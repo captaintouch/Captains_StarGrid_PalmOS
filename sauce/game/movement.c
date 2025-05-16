@@ -13,6 +13,7 @@ typedef struct Cube {
     int s;
 } Cube;
 
+MOVEMENT_SECTION
 static Cube movement_cubeFromCoordinates(Coordinate a) {
     int q = a.x - (a.y + (a.y & 1)) / 2;
     int r = a.y;
@@ -20,10 +21,12 @@ static Cube movement_cubeFromCoordinates(Coordinate a) {
     return (Cube){q, r, s};
 }
 
+MOVEMENT_SECTION
 static Cube movement_cubeSubtract(Cube a, Cube b) {
     return (Cube){a.q - b.q, a.r - b.r, a.s - b.s};
 }
 
+MOVEMENT_SECTION
 int movement_distance(Coordinate axialA, Coordinate axialB) {
     Cube a = movement_cubeFromCoordinates(axialA);
     Cube b = movement_cubeFromCoordinates(axialB);
@@ -31,6 +34,7 @@ int movement_distance(Coordinate axialA, Coordinate axialB) {
     return (abs(vec.q) + abs(vec.r) + abs(vec.s)) / 2;
 }
 
+MOVEMENT_SECTION
 UInt8 movement_orientationBetween(Coordinate coordA, Coordinate coordB) {
     int dx = coordB.x - coordA.x;
     int dy = coordB.y - coordA.y;
@@ -60,6 +64,7 @@ UInt8 movement_orientationBetween(Coordinate coordA, Coordinate coordB) {
     return direction;
 }
 
+MOVEMENT_SECTION
 Coordinate movement_coordinateAtPercentageOfLine(Line line, float percentage) {
     Coordinate coordinate;
     coordinate.x = line.startpoint.x + percentage * (line.endpoint.x - line.startpoint.x);
@@ -67,6 +72,7 @@ Coordinate movement_coordinateAtPercentageOfLine(Line line, float percentage) {
     return coordinate;
 }
 
+MOVEMENT_SECTION
 Coordinate movement_coordinateAtPercentageOfTrajectory(Trajectory trajectory, float percentage, UInt8 *orientation) {
     float easingPercentage = 1.0 - (1.0 - percentage) * (1.0 - percentage);  // Use easing to make progress faster at the start and slower at the end
     float totalDistance = trajectory.tileCount - 1;
@@ -81,6 +87,7 @@ Coordinate movement_coordinateAtPercentageOfTrajectory(Trajectory trajectory, fl
         diffDistance);
 }
 
+MOVEMENT_SECTION
 static Coordinate movement_hexRound(float q, float r) {
     float z = -q - r;
     int rq = round(q);
@@ -100,6 +107,7 @@ static Coordinate movement_hexRound(float q, float r) {
     return (Coordinate){rq, rr};
 }
 
+MOVEMENT_SECTION
 static Boolean movement_isInvalid(Coordinate originCoordinate, Coordinate interCoordinate) {
     int deltaX = interCoordinate.x - originCoordinate.x;
     int deltaY = interCoordinate.y - originCoordinate.y;
@@ -121,6 +129,7 @@ static Boolean movement_isInvalid(Coordinate originCoordinate, Coordinate interC
     return false;
 }
 
+MOVEMENT_SECTION
 static Boolean movement_isAdjacent(Coordinate coordA, Coordinate coordB) {
     int dx = abs(coordA.x - coordB.x);
     int dy = abs(coordA.y - coordB.y);
@@ -128,6 +137,7 @@ static Boolean movement_isAdjacent(Coordinate coordA, Coordinate coordB) {
     return !movement_isInvalid(coordA, coordB) && (dx <= 1 && dy <= 1);
 }
 
+MOVEMENT_SECTION
 static Coordinate movement_nextManualCoordinate(Coordinate originCoordinate, Coordinate invalidCoordinate, Coordinate endCoordinate) {
     int i, j;
     Coordinate closestCoordinate = originCoordinate;
@@ -161,6 +171,7 @@ static Coordinate movement_nextManualCoordinate(Coordinate originCoordinate, Coo
     return closestCoordinate;
 }
 
+MOVEMENT_SECTION
 Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate endCoordinate) {
     Trajectory trajectory;
     int i, j;
@@ -230,6 +241,7 @@ Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate end
     return trajectory;
 }
 
+MOVEMENT_SECTION
 static Boolean movement_positionInCoordinates(Coordinate referenceCoordinate, Coordinate *invalidCoordinates, int invalidCoordinatesCount) {
     int i;
     if (invalidCoordinates == NULL) {
@@ -243,6 +255,7 @@ static Boolean movement_positionInCoordinates(Coordinate referenceCoordinate, Co
     return false;
 }
 
+MOVEMENT_SECTION
 void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coordinate *invalidCoordinates, int invalidCoordinatesCount, Coordinate **results, int *numberOfPositions) {
     int i, j;
     int positionCount = 0;
@@ -270,6 +283,7 @@ void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coo
     *numberOfPositions = positionCount;
 }
 
+MOVEMENT_SECTION
 Boolean movement_shipAtTarget(Coordinate targetCoordinate, Pawn *allPawns, int totalPawnCount) {
     int i;
     for (i = 0; i < totalPawnCount; i++) {
@@ -280,6 +294,7 @@ Boolean movement_shipAtTarget(Coordinate targetCoordinate, Pawn *allPawns, int t
     return false;
 }
 
+MOVEMENT_SECTION
 static Boolean movement_shipOrBaseAtTarget(Coordinate targetCoordinate, Pawn *allPawns, int totalPawnCount) {
     int i;
     for (i = 0; i < totalPawnCount; i++) {
@@ -290,6 +305,7 @@ static Boolean movement_shipOrBaseAtTarget(Coordinate targetCoordinate, Pawn *al
     return false;
 }
 
+MOVEMENT_SECTION
 Pawn *movement_homeBase(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
     int i;
     for (i = 0; i < totalPawnCount; i++) {
@@ -300,6 +316,7 @@ Pawn *movement_homeBase(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
     return NULL;
 }
 
+MOVEMENT_SECTION
 Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Coordinate targetPosition, Pawn *allPawns, int totalPawnCount, Boolean allowBase) {
     Coordinate closestTile = pawn->position;
     int minDistance = 9999;
