@@ -12,12 +12,16 @@ typedef enum ActionTileIdentifier {
     ACTIONTILEIDENTIFIER_HUMANPLAYER,
     ACTIONTILEIDENTIFIER_CPUPLAYER,
     ACTIONTILEIDENTIFIER_LAUNCHGAME,
+    ACTIONTILEIDENTIFIER_TWOPLAYERS,
+    ACTIONTILEIDENTIFIER_THREEPLAYERS,
+    ACTIONTILEIDENTIFIER_FOURPLAYERS
 } ActionTileIdentifier;
 
 typedef struct ActionTile {
     Coordinate position;
     Boolean selected;
     ActionTileIdentifier identifier;
+    UInt8 tag;
 } ActionTile;
 
 typedef struct Level {

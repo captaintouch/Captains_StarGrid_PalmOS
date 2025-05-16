@@ -338,6 +338,19 @@ static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
                     gameSession.drawingState.shouldRedrawBackground = true;
                     gameSession.drawingState.shouldRedrawOverlay = true;
                     break;
+                case ACTIONTILEIDENTIFIER_TWOPLAYERS:
+                    gameSession.level.actionTiles[i + 1].selected = false;
+                    gameSession.level.actionTiles[i + 2].selected = false;
+                    break;
+                case ACTIONTILEIDENTIFIER_THREEPLAYERS:
+                    gameSession.level.actionTiles[i + 1].selected = false;
+                    gameSession.level.actionTiles[i - 1].selected = false;
+                    break;
+                case ACTIONTILEIDENTIFIER_FOURPLAYERS:
+                    gameSession.level.actionTiles[i - 1].selected = false;
+                    gameSession.level.actionTiles[i - 2].selected = false;
+                    break;
+                
             }
             return true;
         }
