@@ -32,7 +32,8 @@ typedef struct ActionTile {
     Coordinate position;
     Boolean selected;
     ActionTileIdentifier identifier;
-    UInt8 tag;
+    Boolean hidden;
+    int tag;
 } ActionTile;
 
 typedef struct Level {

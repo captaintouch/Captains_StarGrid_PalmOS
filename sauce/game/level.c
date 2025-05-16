@@ -44,9 +44,11 @@ void level_applyNewGameConfig(NewGameConfig config, Level *level) {
         switch (level->actionTiles[i].identifier) {
             case ACTIONTILEIDENTIFIER_HUMANPLAYER:
                 level->actionTiles[i].selected = config.playerConfig[level->actionTiles[i].tag].isHuman;
+                level->actionTiles[i].hidden = level->actionTiles[i].tag > activePlayers - 1;
                 break;
             case ACTIONTILEIDENTIFIER_CPUPLAYER:
                 level->actionTiles[i].selected = !config.playerConfig[level->actionTiles[i].tag].isHuman;
+                level->actionTiles[i].hidden = level->actionTiles[i].tag > activePlayers - 1;
                 break;
             case ACTIONTILEIDENTIFIER_LAUNCHGAME:
                 break;
@@ -112,17 +114,17 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
     MemSet(level->actionTiles, sizeof(ActionTile) * level->actionTileCount, 0);
     index = 0;
     for (i = additionalPawnCount; i < level->pawnCount; i++) {
-        level->actionTiles[index] = (ActionTile){(Coordinate){level->pawns[i].position.x + 1, level->pawns[i].position.y}, i == additionalPawnCount, ACTIONTILEIDENTIFIER_HUMANPLAYER, i - additionalPawnCount};    // HUMAN PLAYER
-        level->actionTiles[index + 1] = (ActionTile){(Coordinate){level->pawns[i].position.x + 2, level->pawns[i].position.y}, i != additionalPawnCount, ACTIONTILEIDENTIFIER_CPUPLAYER, i - additionalPawnCount};  // PALM PLAYER
+        level->actionTiles[index] = (ActionTile){(Coordinate){level->pawns[i].position.x + 1, level->pawns[i].position.y}, i == additionalPawnCount, ACTIONTILEIDENTIFIER_HUMANPLAYER, false, i - additionalPawnCount};    // HUMAN PLAYER
+        level->actionTiles[index + 1] = (ActionTile){(Coordinate){level->pawns[i].position.x + 2, level->pawns[i].position.y}, i != additionalPawnCount, ACTIONTILEIDENTIFIER_CPUPLAYER, false, i - additionalPawnCount};  // PALM PLAYER
         index = index + 2;
     }
 
     index = level->actionTileCount - 4;
-    level->actionTiles[index] = (ActionTile){(Coordinate){8, 7}, false, ACTIONTILEIDENTIFIER_TWOPLAYERS, 2};        // 2 player config
-    level->actionTiles[index + 1] = (ActionTile){(Coordinate){9, 7}, false, ACTIONTILEIDENTIFIER_THREEPLAYERS, 3};  // 3 player config
-    level->actionTiles[index + 2] = (ActionTile){(Coordinate){10, 7}, true, ACTIONTILEIDENTIFIER_FOURPLAYERS, 4};   // 4 player config
+    level->actionTiles[index] = (ActionTile){(Coordinate){8, 7}, false, ACTIONTILEIDENTIFIER_TWOPLAYERS, false, 2};        // 2 player config
+    level->actionTiles[index + 1] = (ActionTile){(Coordinate){9, 7}, false, ACTIONTILEIDENTIFIER_THREEPLAYERS, false, 3};  // 3 player config
+    level->actionTiles[index + 2] = (ActionTile){(Coordinate){10, 7}, true, ACTIONTILEIDENTIFIER_FOURPLAYERS, false, 4};   // 4 player config
 
-    level->actionTiles[index + 3] = (ActionTile){(Coordinate){13, 7}, true, ACTIONTILEIDENTIFIER_LAUNCHGAME, 0};  // Start the game
+    level->actionTiles[index + 3] = (ActionTile){(Coordinate){13, 7}, true, ACTIONTILEIDENTIFIER_LAUNCHGAME, false, 0};  // Start the game
 
     level_applyNewGameConfig(newGameConfig, level);
 }

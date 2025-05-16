@@ -197,48 +197,55 @@ static void game_drawActionTiles() {
     for (i = 0; i < gameSession.level.actionTileCount; i++) {
         ActionTile *actionTile = &gameSession.level.actionTiles[i];
         ImageSprite *sprite;
-        if (actionTile->selected) {
-            drawhelper_applyBackgroundColor(BELIZEHOLE);
-            drawhelper_applyForeColor(BELIZEHOLE);
-            hexgrid_fillTileAtPosition(actionTile->position, true);
-        } else {
-            drawhelper_applyBackgroundColor(DRACULAORCHID);
-        }
+        Coordinate tileCenterCoordinate = viewport_convertedCoordinate(hexgrid_tileCenterPosition(actionTile->position));
         drawhelper_applyTextColor(CLOUDS);
         oldFont = FntSetFont(largeBoldFont);
-        switch (actionTile->identifier) {
-            case ACTIONTILEIDENTIFIER_HUMANPLAYER:
-                sprite = &spriteLibrary.humanSprite;
-                break;
-            case ACTIONTILEIDENTIFIER_CPUPLAYER:
-                sprite = &spriteLibrary.cpuSprite;
-                break;
-            case ACTIONTILEIDENTIFIER_LAUNCHGAME:
-                sprite = NULL;
-                FntSetFont(symbolFont);
-                playChar[0] = 0x04;
-                playChar[1] = '\0';
-                drawhelper_drawTextCentered(playChar, viewport_convertedCoordinate(hexgrid_tileCenterPosition(actionTile->position)), 1, 0);
-                break;
-            case ACTIONTILEIDENTIFIER_TWOPLAYERS:
-                sprite = NULL;
-                drawhelper_drawTextCentered("2", viewport_convertedCoordinate(hexgrid_tileCenterPosition(actionTile->position)), 0, 0);
-                break;
-            case ACTIONTILEIDENTIFIER_THREEPLAYERS:
-                sprite = NULL;
-                drawhelper_drawTextCentered("3", viewport_convertedCoordinate(hexgrid_tileCenterPosition(actionTile->position)), 0, 0);
-                break;
-            case ACTIONTILEIDENTIFIER_FOURPLAYERS:
-                sprite = NULL;
-                drawhelper_drawTextCentered("4", viewport_convertedCoordinate(hexgrid_tileCenterPosition(actionTile->position)), 0, 0);
-                break;
+        if (actionTile->hidden) {
+            drawhelper_applyBackgroundColor(DRACULAORCHID);
+            drawhelper_applyTextColor(ALIZARIN);
+            drawhelper_drawTextCentered("x", tileCenterCoordinate, 0, 0);
+        } else {
+            if (actionTile->selected) {
+                drawhelper_applyBackgroundColor(BELIZEHOLE);
+                drawhelper_applyForeColor(BELIZEHOLE);
+                hexgrid_fillTileAtPosition(actionTile->position, true);
+            } else {
+                drawhelper_applyBackgroundColor(DRACULAORCHID);
+            }
+            switch (actionTile->identifier) {
+                case ACTIONTILEIDENTIFIER_HUMANPLAYER:
+                    sprite = &spriteLibrary.humanSprite;
+                    break;
+                case ACTIONTILEIDENTIFIER_CPUPLAYER:
+                    sprite = &spriteLibrary.cpuSprite;
+                    break;
+                case ACTIONTILEIDENTIFIER_LAUNCHGAME:
+                    sprite = NULL;
+                    FntSetFont(symbolFont);
+                    playChar[0] = 0x04;
+                    playChar[1] = '\0';
+                    drawhelper_drawTextCentered(playChar, tileCenterCoordinate, 1, 0);
+                    break;
+                case ACTIONTILEIDENTIFIER_TWOPLAYERS:
+                    sprite = NULL;
+                    drawhelper_drawTextCentered("2", tileCenterCoordinate, 0, 0);
+                    break;
+                case ACTIONTILEIDENTIFIER_THREEPLAYERS:
+                    sprite = NULL;
+                    drawhelper_drawTextCentered("3", tileCenterCoordinate, 0, 0);
+                    break;
+                case ACTIONTILEIDENTIFIER_FOURPLAYERS:
+                    sprite = NULL;
+                    drawhelper_drawTextCentered("4", tileCenterCoordinate, 0, 0);
+                    break;
+            }
+            drawhelper_applyForeColor(CLOUDS);
+            hexgrid_drawTileAtPosition(actionTile->position, true);
+            if (sprite != NULL) {
+                hexgrid_drawSpriteAtTile(sprite, actionTile->position);
+            }
         }
         FntSetFont(oldFont);
-        drawhelper_applyForeColor(CLOUDS);
-        hexgrid_drawTileAtPosition(actionTile->position, true);
-        if (sprite != NULL) {
-            hexgrid_drawSpriteAtTile(sprite, actionTile->position);
-        }
     }
 }
 
