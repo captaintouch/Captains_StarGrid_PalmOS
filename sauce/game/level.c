@@ -37,9 +37,9 @@ Level level_startLevel() {
     level.gridTexts = MemPtrNew(sizeof(GridText) * 3);
     MemSet(level.gridTexts, sizeof(GridText) * 3, 0);
     level.gridTextCount = 3;
-    level.gridTexts[0] = (GridText){STRING_NEW, (Coordinate){1, 2}, false};
-    level.gridTexts[1] = (GridText){STRING_RANK, (Coordinate){1, 4}, false};
-    level.gridTexts[2] = (GridText){STRING_ABOUT, (Coordinate){1, 6}, false};
+    level.gridTexts[0] = (GridText){STRING_NEW, (Coordinate){1, 2}, false, false};
+    level.gridTexts[1] = (GridText){STRING_RANK, (Coordinate){1, 4}, false, false};
+    level.gridTexts[2] = (GridText){STRING_ABOUT, (Coordinate){1, 6}, false, false};
 
     return level;
 }
@@ -107,6 +107,8 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
     int index;
     int pawnCount = level->pawnCount;
     int additionalPawnCount = 4;
+    int additionalGridTexts = 1;
+    GridText *updatedGridTexts;
     Pawn *updatedPawns = MemPtrNew(sizeof(Pawn) * (pawnCount + additionalPawnCount));
     MemSet(updatedPawns, sizeof(Pawn) * (pawnCount + additionalPawnCount), 0);
     MemMove(updatedPawns, level->pawns, sizeof(Pawn) * pawnCount);
@@ -135,6 +137,15 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
     level->actionTiles[index + 2] = (ActionTile){(Coordinate){10, 7}, true, ACTIONTILEIDENTIFIER_FOURPLAYERS, false, 4};   // 4 player config
 
     level->actionTiles[index + 3] = (ActionTile){(Coordinate){13, 7}, true, ACTIONTILEIDENTIFIER_LAUNCHGAME, false, 0};  // Start the game
+
+    updatedGridTexts = MemPtrNew(sizeof(GridText) * (level->gridTextCount + additionalGridTexts));
+    MemSet(updatedGridTexts, sizeof(GridText) * (level->gridTextCount + additionalGridTexts), 0);
+    MemMove(updatedGridTexts, level->gridTexts, sizeof(GridText) * level->gridTextCount);
+    MemPtrFree(level->gridTexts);
+    level->gridTexts = updatedGridTexts;
+
+    level->gridTexts[level->gridTextCount] = (GridText){STRING_PLAYERS, (Coordinate){8, 6}, false, true};
+    level->gridTextCount = level->gridTextCount + 1;
 
     level_applyNewGameConfig(newGameConfig, level);
 }

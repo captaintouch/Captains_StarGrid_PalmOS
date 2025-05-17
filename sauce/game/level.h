@@ -23,6 +23,7 @@ typedef struct GridText {
     int textResource;
     Coordinate position;
     Boolean alternateColor;
+    Boolean simpleText;
 } GridText;
 
 typedef enum ActionTileIdentifier {

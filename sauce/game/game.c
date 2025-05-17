@@ -262,20 +262,29 @@ static void game_drawGridTexts() {
         AppColor color = gridText->alternateColor ? ALIZARIN : BELIZEHOLE;
         MemHandle resourceHandle = DmGetResource(strRsc, gridText->textResource);
         Char *text = (char *)MemHandleLock(resourceHandle);
-        drawhelper_applyBackgroundColor(color);
-        for (j = 0; text[j] != '\0'; j++) {
-            Coordinate position = (Coordinate){gridText->position.x + j, gridText->position.y};
-            Coordinate drawPosition = viewport_convertedCoordinate(hexgrid_tileCenterPosition(position));
-            char currChar[2];
-            currChar[0] = text[j];
-            currChar[1] = '\0';
-            drawhelper_applyForeColor(color);
-            hexgrid_fillTileAtPosition(position, true);
-            drawhelper_applyForeColor(CLOUDS);
-            hexgrid_drawTileAtPosition(position, true);
 
-            drawhelper_drawTextCentered(currChar, (Coordinate){drawPosition.x, drawPosition.y}, 0, 0);
+        if (gridText->simpleText) {
+            Coordinate drawPosition = viewport_convertedCoordinate(hexgrid_tileCenterPosition(gridText->position));
+            drawhelper_applyTextColor(CLOUDS);
+            drawhelper_applyBackgroundColor(DRACULAORCHID);
+            drawhelper_drawText(text, (Coordinate){drawPosition.x - HEXTILE_SIZE / 2 - 10, drawPosition.y - HEXTILE_SIZE / 2});
+        } else {
+            drawhelper_applyBackgroundColor(color);
+            for (j = 0; text[j] != '\0'; j++) {
+                Coordinate position = (Coordinate){gridText->position.x + j, gridText->position.y};
+                Coordinate drawPosition = viewport_convertedCoordinate(hexgrid_tileCenterPosition(position));
+                char currChar[2];
+                currChar[0] = text[j];
+                currChar[1] = '\0';
+                drawhelper_applyForeColor(color);
+                hexgrid_fillTileAtPosition(position, true);
+                drawhelper_applyForeColor(CLOUDS);
+                hexgrid_drawTileAtPosition(position, true);
+
+                drawhelper_drawTextCentered(currChar, (Coordinate){drawPosition.x, drawPosition.y}, 0, 0);
+            }
         }
+
         MemHandleUnlock(resourceHandle);
         DmReleaseResource(resourceHandle);
     }
