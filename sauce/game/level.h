@@ -9,8 +9,14 @@ typedef struct PlayerConfig {
     Boolean isHuman;
 } PlayerConfig;
 
+typedef enum PlayerPlacementStrategy {
+    PLAYERPLACEMENTSTRATEGY_CORNERS
+} PlayerPlacementStrategy;
+
 typedef struct NewGameConfig {
     PlayerConfig playerConfig[MAXPLAYERCOUNT];
+    PlayerPlacementStrategy placementStrategy;
+    int shipCount;
 } NewGameConfig;
 
 typedef struct GridText {
@@ -49,9 +55,9 @@ typedef struct Level {
 Level level_startLevel();
 void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig);
 void level_applyNewGameConfig(NewGameConfig config, Level *level);
-NewGameConfig level_getNewGameConfig(Level *level);
+NewGameConfig level_getNewGameConfig(Level *level, NewGameConfig oldConfig);
 
-Level level_create();
+Level level_create(NewGameConfig config);
 
 void level_destroy(Level *level);
 

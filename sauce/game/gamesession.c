@@ -26,6 +26,18 @@ Faction gameSession_factionWithRandomizedCPUProfile() {
     return faction;
 }
 
+static NewGameConfig gameSession_defaultNewGameConfig() {
+    NewGameConfig config;
+    int i;
+    for (i = 0; i < MAXPLAYERCOUNT; i++) {
+        config.playerConfig[i].active = true;
+        config.playerConfig[i].isHuman = i == 0;
+    }
+    config.placementStrategy = PLAYERPLACEMENTSTRATEGY_CORNERS;
+    config.shipCount = 2;
+    return config;
+}
+
 void gameSession_initialize() {
     gameSession.diaSupport = deviceinfo_diaSupported();
     gameSession.colorSupport = deviceinfo_colorSupported();
@@ -47,7 +59,7 @@ void gameSession_initialize() {
             gameSession.level = level_startLevel();
             break;
         case MENUSCREEN_GAME:
-            gameSession.level = level_create();
+            gameSession.level = level_create(gameSession_defaultNewGameConfig());
             break;
     }
 
@@ -296,16 +308,6 @@ DmResID gameSession_menuBottomTitleResource() {
     return 0;
 }
 
-static NewGameConfig gameSession_defaultNewGameConfig() {
-    NewGameConfig config;
-    int i;
-    for (i = 0; i < MAXPLAYERCOUNT; i++) {
-        config.playerConfig[i].active = true;
-        config.playerConfig[i].isHuman = i == 0;
-    }
-    return config;
-}
-
 static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
     int i;
     for (i = 0; i < gameSession.level.gridTextCount; i++) {
@@ -329,7 +331,7 @@ static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
     int i;
     for (i = 0; i < gameSession.level.actionTileCount; i++) {
         if (isEqualCoordinate(gameSession.level.actionTiles[i].position, selectedTile)) {
-            NewGameConfig config = level_getNewGameConfig(&gameSession.level);
+            NewGameConfig config = level_getNewGameConfig(&gameSession.level, gameSession_defaultNewGameConfig());
             gameSession.level.actionTiles[i].selected = true;
             gameSession.drawingState.shouldRedrawOverlay = true;
             switch (gameSession.level.actionTiles[i].identifier) {
@@ -343,7 +345,7 @@ static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
                 case ACTIONTILEIDENTIFIER_LAUNCHGAME:
                     level_destroy(&gameSession.level);
                     gameSession.menuScreenType = MENUSCREEN_GAME;
-                    gameSession.level = level_create();
+                    gameSession.level = level_create(config);
                     gameSession.activePawn = &gameSession.level.pawns[0];
                     gameSession_updateViewPortOffset(true);
                     gameSession.drawingState.shouldRedrawBackground = true;

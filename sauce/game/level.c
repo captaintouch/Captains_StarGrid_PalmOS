@@ -3,6 +3,19 @@
 #include <PalmOS.h>
 
 #include "../constants.h"
+#include "../graphicResources.h"
+#include "mathIsFun.h"
+#include "movement.h"
+
+static UInt8 level_factionCount(NewGameConfig config) {
+    int i, activePlayers = 0;
+    for (i = 0; i < MAXPLAYERCOUNT; i++) {
+        if (config.playerConfig[i].active) {
+            activePlayers++;
+        }
+    }
+    return activePlayers;
+}
 
 Level level_startLevel() {
     // Start screen options:
@@ -33,12 +46,7 @@ Level level_startLevel() {
 
 void level_applyNewGameConfig(NewGameConfig config, Level *level) {
     int i;
-    int activePlayers = 0;
-    for (i = 0; i < MAXPLAYERCOUNT; i++) {
-        if (config.playerConfig[i].active) {
-            activePlayers++;
-        }
-    }
+    int activePlayers = level_factionCount(config);
 
     for (i = 0; i < level->actionTileCount; i++) {
         switch (level->actionTiles[i].identifier) {
@@ -61,7 +69,7 @@ void level_applyNewGameConfig(NewGameConfig config, Level *level) {
     }
 }
 
-NewGameConfig level_getNewGameConfig(Level *level) {
+NewGameConfig level_getNewGameConfig(Level *level, NewGameConfig oldConfig) {
     NewGameConfig config;
     int i, activePlayers;
     for (i = 0; i < level->actionTileCount; i++) {
@@ -89,6 +97,8 @@ NewGameConfig level_getNewGameConfig(Level *level) {
         config.playerConfig[i].active = i < activePlayers;
     }
 
+    config.placementStrategy = oldConfig.placementStrategy;
+    config.shipCount = oldConfig.shipCount;
     return config;
 }
 
@@ -129,9 +139,57 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
     level_applyNewGameConfig(newGameConfig, level);
 }
 
-Level level_create() {
-    Level level;
+static void level_applyPlacementCorners(Level *level, NewGameConfig config) {
+    int faction;
+    int i, j;
+    int pawnIndex = 0;
+    Coordinate baseCoordinates[] = {
+        (Coordinate){1, 1}, (Coordinate){HEXGRID_COLS - 2, HEXGRID_ROWS - 2}, (Coordinate){1, HEXGRID_ROWS - 2}, (Coordinate){HEXGRID_COLS - 2, 1}
+    };
 
+    // Set the bases
+    for (i = 0; i < MAXPLAYERCOUNT; i++) {
+        int faction = i; // TODO: shuffle the indexes
+        Coordinate baseCoordinate = baseCoordinates[i];
+        Pawn *basePawn;
+        if (!config.playerConfig[faction].active) {
+            continue;
+        }
+        level->pawns[pawnIndex] = (Pawn){PAWNTYPE_BASE, baseCoordinate, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, faction, 0, true}, 0, faction, false, false};
+        basePawn = &level->pawns[pawnIndex];
+        pawnIndex++;
+        // Add ships around the bases
+        for (j = 0; j < config.shipCount; j++) {
+            Coordinate shipCoordinate = movement_closestTileToTargetInRange(basePawn, basePawn->position, level->pawns, pawnIndex, false);
+            level->pawns[pawnIndex] = (Pawn){PAWNTYPE_SHIP, shipCoordinate, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, ((i + 1) * TimGetTicks()) % GFX_FRAMECOUNT_SHIPA , faction, false, false};
+            pawnIndex++;
+        }
+    }
+
+    
+}
+
+Level level_create(NewGameConfig config) {
+    Level level;
+    int factionCount = level_factionCount(config);
+    
+    level.gridTexts = NULL;
+    level.gridTextCount = 0;
+
+    level.actionTiles = NULL;
+    level.actionTileCount = 0;
+
+    level.pawnCount = factionCount + factionCount * config.shipCount; // Bases + ships
+    level.pawns = MemPtrNew(sizeof(Pawn) * level.pawnCount);
+    MemSet(level.pawns, sizeof(Pawn) * level.pawnCount, 0);
+
+    switch (config.placementStrategy) {
+        case PLAYERPLACEMENTSTRATEGY_CORNERS:
+        level_applyPlacementCorners(&level, config);
+        break;
+    }
+
+    /*
     level.pawns = MemPtrNew(sizeof(Pawn) * 9);
     MemSet(level.pawns, sizeof(Pawn) * 9, 0);
     level.pawnCount = 9;
@@ -144,13 +202,9 @@ Level level_create() {
 
     level.pawns[6] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 1}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 0, 0, true}, 0, 0, false, false};
     level.pawns[7] = (Pawn){PAWNTYPE_BASE, (Coordinate){10, 6}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 1, 0, true}, 0, 1, false, false};
-    level.pawns[8] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 10}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, 0, true}, 0, 2, false, false};
+    level.pawns[8] = (Pawn){PAWNTYPE_BASE, (Coordinate){1, 10}, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, 2, 0, true}, 0, 2, false, false};*/
 
-    level.gridTexts = NULL;
-    level.gridTextCount = 0;
-
-    level.actionTiles = NULL;
-    level.actionTileCount = 0;
+    
 
     return level;
 }
