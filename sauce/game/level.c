@@ -7,7 +7,7 @@
 #include "mathIsFun.h"
 #include "movement.h"
 
-static UInt8 level_factionCount(NewGameConfig config) {
+UInt8 level_factionCount(NewGameConfig config) {
     int i, activePlayers = 0;
     for (i = 0; i < MAXPLAYERCOUNT; i++) {
         if (config.playerConfig[i].active) {
@@ -24,9 +24,9 @@ Level level_startLevel() {
     // - About
 
     Level level;
-    level.pawns = MemPtrNew(sizeof(Pawn) * 4);
     level.actionTileCount = 0;
     level.actionTiles = NULL;
+    level.pawns = MemPtrNew(sizeof(Pawn) * 4);
     MemSet(level.pawns, sizeof(Pawn) * 4, 0);
     level.pawnCount = 4;
     level.pawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 3, false, false};
@@ -37,9 +37,9 @@ Level level_startLevel() {
     level.gridTexts = MemPtrNew(sizeof(GridText) * 3);
     MemSet(level.gridTexts, sizeof(GridText) * 3, 0);
     level.gridTextCount = 3;
-    level.gridTexts[0] = (GridText){STRING_NEW, (Coordinate){1, 2}, false, false};
-    level.gridTexts[1] = (GridText){STRING_RANK, (Coordinate){1, 4}, false, false};
-    level.gridTexts[2] = (GridText){STRING_ABOUT, (Coordinate){1, 6}, false, false};
+    level.gridTexts[0] = (GridText){(Coordinate){1, 2}, STRING_NEW, false, false};
+    level.gridTexts[1] = (GridText){(Coordinate){1, 4}, STRING_RANK, false, false};
+    level.gridTexts[2] = (GridText){(Coordinate){1, 6}, STRING_ABOUT, false, false};
 
     return level;
 }
@@ -144,7 +144,7 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
     MemPtrFree(level->gridTexts);
     level->gridTexts = updatedGridTexts;
 
-    level->gridTexts[level->gridTextCount] = (GridText){STRING_PLAYERS, (Coordinate){8, 6}, false, true};
+    level->gridTexts[level->gridTextCount] = (GridText){(Coordinate){8, 6}, STRING_PLAYERS, false, true};
     level->gridTextCount = level->gridTextCount + 1;
 
     level_applyNewGameConfig(newGameConfig, level);

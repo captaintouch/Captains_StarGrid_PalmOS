@@ -20,10 +20,11 @@ typedef struct NewGameConfig {
 } NewGameConfig;
 
 typedef struct GridText {
-    int textResource;
     Coordinate position;
+    int textResource;
     Boolean alternateColor;
     Boolean simpleText;
+    Boolean filler;
 } GridText;
 
 typedef enum ActionTileIdentifier {
@@ -52,14 +53,12 @@ typedef struct Level {
     int actionTileCount;
 } Level;
 
-// START SCREEN SPECIFIC
 Level level_startLevel();
 void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig);
 void level_applyNewGameConfig(NewGameConfig config, Level *level);
 NewGameConfig level_getNewGameConfig(Level *level, NewGameConfig oldConfig);
-
+UInt8 level_factionCount(NewGameConfig config);
 Level level_create(NewGameConfig config);
-
 void level_destroy(Level *level);
 
 #endif
