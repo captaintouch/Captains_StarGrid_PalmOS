@@ -68,6 +68,7 @@ void game_setup() {
 }
 
 void game_cleanup() {
+    hexgrid_cleanup();
     game_windowCleanup();
     gameSession_cleanup();
 }

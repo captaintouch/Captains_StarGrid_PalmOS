@@ -29,7 +29,8 @@
         "palmtypes.h": "c",
         "gameactionlogic.h": "c",
         "deviceinfo.h": "c",
-        "level.h": "c"
+        "level.h": "c",
+        "*.rh": "c"
     },
     "C_Cpp.default.includePath": [
         "/opt/palmdev/sdk-5r3/include"

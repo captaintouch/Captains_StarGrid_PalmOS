@@ -1,3 +1,5 @@
+#define ALLOW_ACCESS_TO_INTERNALS_OF_WINDOWS
+#define ALLOW_ACCESS_TO_INTERNALS_OF_BITMAPS
 #include "hexgrid.h"
 
 #include "../constants.h"
@@ -9,10 +11,20 @@
 #include "viewport.h"
 #define HEXTILE_POINTS 6
 
+WinHandle hexgrid_filledTileCacheWindow = NULL;
+IndexedColorType hexgrid_filledTileCacheWindowColor = 99;
+
 int hexgrid_tilePattern[HEXTILE_SIZE];
 #ifdef HIRESBUILD
 int hexgrid_tilePatternDouble[HEXTILE_SIZE * 2];
 #endif
+
+void hexgrid_cleanup() {
+    if (hexgrid_filledTileCacheWindow != NULL) {
+        WinDeleteWindow(hexgrid_filledTileCacheWindow, false);
+        hexgrid_filledTileCacheWindow = NULL;
+    }
+}
 
 static void hexgrid_tileCoords(int startX, int startY, Coordinate coordinates[], Boolean doubleSize) {
     int hexTileSize = doubleSize ? HEXTILE_SIZE * 2 : HEXTILE_SIZE;
@@ -23,6 +35,32 @@ static void hexgrid_tileCoords(int startX, int startY, Coordinate coordinates[],
     coordinates[3] = (Coordinate){coordinates[0].x, startY + hexTileSize};
     coordinates[4] = (Coordinate){startX + hexTileSize, coordinates[2].y};
     coordinates[5] = (Coordinate){startX + hexTileSize, coordinates[1].y};
+}
+
+static Boolean hexgrid_drawTileFromCache(int startX, int startY, WinHandle drawWindow, WinHandle tileWindow, IndexedColorType cacheColor) {
+    RectangleType rect;
+    if (tileWindow == NULL || tileWindow->drawStateP->foreColor != cacheColor) {
+        return false;
+    }
+    RctSetRectangle(&rect, 0, 0, HEXTILE_SIZE + 1, HEXTILE_SIZE + 1);
+    WinCopyRectangle(tileWindow, drawWindow, &rect, startX, startY, winPaint);
+    return true;
+}
+
+static Boolean hexgrid_createFilledTileCache(WinHandle drawWindow) {
+    Err err = errNone;
+    if (hexgrid_filledTileCacheWindow != NULL) {
+        WinDeleteWindow(hexgrid_filledTileCacheWindow, false);
+    }
+    hexgrid_filledTileCacheWindow = WinCreateOffscreenWindow(HEXTILE_SIZE + 1, HEXTILE_SIZE + 1, nativeFormat, &err);
+    if (err != errNone) {
+        hexgrid_filledTileCacheWindow = NULL;
+    } else {
+        WinSetDrawWindow(hexgrid_filledTileCacheWindow);
+        hexgrid_filledTileCacheWindow->bitmapP->flags.hasTransparency = true;
+        hexgrid_filledTileCacheWindowColor = hexgrid_filledTileCacheWindow->drawStateP->foreColor;
+    }
+    return hexgrid_filledTileCacheWindow != NULL;;
 }
 
 static void hexgrid_drawTile(int startX, int startY) {
@@ -99,15 +137,30 @@ static void hexgrid_fillTile(int startX, int startY) {
     }
     WinSetCoordinateSystem(kCoordinatesStandard);
 #else
-    hexgrid_tileCoords(startX, startY, coordinates, false);
+    WinHandle drawWindow = WinGetDrawWindow();
+    int drawX = startX;
+    int drawY = startY;
+    if (hexgrid_drawTileFromCache(startX, startY, drawWindow, hexgrid_filledTileCacheWindow, hexgrid_filledTileCacheWindowColor)) {
+        return;
+    }
+    if (hexgrid_createFilledTileCache(drawWindow)) {
+        drawX = 0;
+        drawY = 0;
+    }
+
+    hexgrid_tileCoords(drawX, drawY, coordinates, false);
     for (y = 0; y < HEXTILE_SIZE; y++) {
-        int actualY = y + startY;
+        int actualY = y + drawY;
         int xOffset = hexgrid_tilePattern[y];
         if (xOffset < 0) {
             continue;
         }
-        drawhelper_drawLineBetweenCoordinates((Coordinate){startX + xOffset, actualY}, (Coordinate){startX + HEXTILE_SIZE - xOffset, actualY});
+        drawhelper_drawLineBetweenCoordinates((Coordinate){drawX + xOffset, actualY}, (Coordinate){drawX + HEXTILE_SIZE - xOffset, actualY});
     }
+
+    hexgrid_drawTileFromCache(startX, startY, drawWindow, hexgrid_filledTileCacheWindow, hexgrid_filledTileCacheWindowColor);
+    WinSetDrawWindow(drawWindow);
+
 #endif
 }
 

@@ -27,18 +27,15 @@ void drawhelper_borderRectangle(RectangleType *rect) {
     WinDrawRectangleFrame(roundFrame, rect);
 }
 
-void drawhelper_drawLine(Line *line) {
-    WinDrawLine(line->startpoint.x,
-                line->startpoint.y,
-                line->endpoint.x,
-                line->endpoint.y);
-}
-
 void drawhelper_drawLineBetweenCoordinates(Coordinate startpoint, Coordinate endpoint) {
     WinDrawLine(startpoint.x,
                 startpoint.y,
                 endpoint.x,
                 endpoint.y);
+}
+
+void drawhelper_drawLine(Line *line) {
+    drawhelper_drawLineBetweenCoordinates(line->startpoint, line->endpoint);
 }
 
 void drawhelper_drawPoint(Coordinate point) {
