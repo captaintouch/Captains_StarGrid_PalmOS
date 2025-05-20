@@ -172,7 +172,7 @@ static void level_applyPlacementCorners(Level *level, NewGameConfig config) {
         // Add ships around the bases
         for (j = 0; j < config.shipCount; j++) {
             Coordinate shipCoordinate = movement_closestTileToTargetInRange(basePawn, basePawn->position, level->pawns, pawnIndex, false);
-            level->pawns[pawnIndex] = (Pawn){PAWNTYPE_SHIP, shipCoordinate, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, ((i + 1) * TimGetTicks()) % GFX_FRAMECOUNT_SHIPA , faction, false, false};
+            level->pawns[pawnIndex] = (Pawn){PAWNTYPE_SHIP, shipCoordinate, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, (i + i * TimGetTicks()) % GFX_FRAMECOUNT_SHIPA , faction, false, false};
             pawnIndex++;
         }
     }

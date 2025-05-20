@@ -320,7 +320,7 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
 }
 
 static void gameSession_launchGame(NewGameConfig config) {
-    int faction;
+    int faction, previousFaction = 0;
     level_destroy(&gameSession.level);
     gameSession.menuScreenType = MENUSCREEN_GAME;
     gameSession.level = level_create(config);
@@ -331,17 +331,17 @@ static void gameSession_launchGame(NewGameConfig config) {
             continue;
         }
         if (config.playerConfig[faction].isHuman) {
-            gameSession.factionTurn = faction;
+            gameSession.factionTurn = previousFaction;
             gameSession.factions[faction] = (Faction){(CPUFactionProfile){0, 0, 0}, true};
         } else {
             gameSession.factions[faction] = gameSession_factionWithRandomizedCPUProfile();
         }
+        previousFaction = faction;
     }
-    gameSession.activePawn = gameSession_nextPawn();
-    gameSession_updateViewPortOffset(true);
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
     gameSession.drawingState.shouldRedrawBackground = true;
     gameSession.drawingState.shouldRedrawOverlay = true;
+    gameSession_startTurnForNextFaction();
 }
 
 static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
