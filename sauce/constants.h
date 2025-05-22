@@ -1,6 +1,10 @@
 #ifndef CONSTANTS_H_
 #define CONSTANTS_H_
 
+#define APP_CREATOR_ID 'CSTG'
+#define FEATUREMEM_SAVESTATE_SESSIONDATA 0x1001
+#define FEATUREMEM_SAVESTATE_PAWNS 0x1002
+
 // Define size and origin for the playing field
 #define GAMEWINDOW_X 0
 #define GAMEWINDOW_Y 0

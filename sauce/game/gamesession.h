@@ -45,6 +45,13 @@ typedef struct Faction {
     Boolean human;
 } Faction;
 
+typedef struct GameRestorableSessionData {
+    int pawnCount;
+    Faction factions[MAXPLAYERCOUNT];
+    int factionCount;
+    int factionTurn;
+} GameRestorableSessionData;
+
 typedef struct GameSession {
     GameState state;
     MenuScreenType menuScreenType;

@@ -16,6 +16,7 @@
 static void gameSession_resetHighlightTiles();
 static void gameSession_moveCameraToPawn(Pawn *pawn);
 static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn);
+static Boolean gameSession_restoreGameState();
 
 Faction gameSession_factionWithRandomizedCPUProfile() {
     Faction faction;
@@ -39,11 +40,11 @@ static NewGameConfig gameSession_defaultNewGameConfig() {
 }
 
 void gameSession_initialize() {
+    gameSession_restoreGameState();
     gameSession.diaSupport = deviceinfo_diaSupported();
     gameSession.colorSupport = deviceinfo_colorSupported();
 
     gameSession.state = GAMESTATE_DEFAULT;
-    gameSession.menuScreenType = MENUSCREEN_START;
     MemSet(&gameSession.lastPenInput, sizeof(InputPen), 0);
 
     gameSession.level.pawns = NULL;
@@ -52,16 +53,6 @@ void gameSession_initialize() {
 
     gameSession.drawingState = (DrawingState){true, true, false, false, (Coordinate){0, 0}, (Coordinate){0, 0}};
 
-    level_destroy(&gameSession.level);
-
-    switch (gameSession.menuScreenType) {
-        case MENUSCREEN_START:
-            gameSession.level = level_startLevel();
-            break;
-        case MENUSCREEN_GAME:
-            gameSession.level = level_create(gameSession_defaultNewGameConfig());
-            break;
-    }
     gameSession.highlightTiles = NULL;
     gameSession.highlightTileCount = 0;
     gameSession.secondaryHighlightTiles = NULL;
@@ -74,23 +65,84 @@ void gameSession_initialize() {
 
     gameSession.viewportOffset = (Coordinate){0, 0};
 
-    switch (gameSession.menuScreenType) {
-        case MENUSCREEN_START:
+    level_destroy(&gameSession.level);
+    if (gameSession_restoreGameState()) {
+        gameSession.menuScreenType = MENUSCREEN_GAME;
+        gameSession.activePawn = &gameSession.level.pawns[0];
+            gameSession_updateViewPortOffset(true);
+        //gameSession.level = level_create(gameSession_defaultNewGameConfig());
+    } else {
+        gameSession.menuScreenType = MENUSCREEN_START;
+        gameSession.level = level_startLevel();
             gameSession.factions[0] = (Faction){(CPUFactionProfile){0, 0, 0}, true};
             gameSession.factionCount = 1;
             gameSession.factionTurn = 0;
             gameSession.activePawn = &gameSession.level.pawns[0];
             gameSession_updateViewPortOffset(true);
             gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, gameSession.activePawn->position.y});
-            break;
-        case MENUSCREEN_PLAYERCONFIG:
-            break;
-        case MENUSCREEN_GAME:
-            break;
     }
 }
 
+static void gameSession_clearSavedGameState() {
+    FtrUnregister(APP_CREATOR_ID, FEATUREMEM_SAVESTATE_SESSIONDATA);
+    FtrUnregister(APP_CREATOR_ID, FEATUREMEM_SAVESTATE_PAWNS);
+}
+
+static void gameSession_saveGameState() {
+    void *sessionDataPtr;
+    void *pawnDataPtr;
+    Err err;
+    int i;
+    GameRestorableSessionData sessionData;
+    gameSession_clearSavedGameState();
+    if (gameSession.menuScreenType != MENUSCREEN_GAME) {
+        return;
+    }
+    sessionData.pawnCount = gameSession.level.pawnCount;
+    sessionData.factionCount = gameSession.factionCount;
+    sessionData.factionTurn = gameSession.factionTurn;
+    for (i = 0; i < MAXPLAYERCOUNT; i++) {
+        sessionData.factions[i] = gameSession.factions[i];
+    }
+
+    FtrPtrNew(APP_CREATOR_ID, FEATUREMEM_SAVESTATE_SESSIONDATA, sizeof(GameRestorableSessionData), &sessionDataPtr);
+    FtrPtrNew(APP_CREATOR_ID, FEATUREMEM_SAVESTATE_PAWNS, sizeof(Pawn) * gameSession.level.pawnCount, &pawnDataPtr);
+    DmWrite(sessionDataPtr, 0, &sessionData, sizeof(GameRestorableSessionData));
+    DmWrite(pawnDataPtr, 0, gameSession.level.pawns, sizeof(Pawn) * gameSession.level.pawnCount); 
+}
+
+
+static Boolean gameSession_restoreGameState() {
+    UInt32 sessionDataPtr, pawnDataPtr;
+    GameRestorableSessionData *sessionData;
+    Pawn *pawnData;
+    int i;
+    if (FtrGet(APP_CREATOR_ID, FEATUREMEM_SAVESTATE_SESSIONDATA, &sessionDataPtr) != errNone || FtrGet(APP_CREATOR_ID, FEATUREMEM_SAVESTATE_PAWNS, &pawnDataPtr) != errNone) {
+        gameSession_clearSavedGameState();
+        return false;
+    }
+
+    sessionData = (GameRestorableSessionData *)sessionDataPtr;
+    pawnData = (Pawn *)pawnDataPtr;
+
+    gameSession.factionCount = sessionData->factionCount;
+    gameSession.factionTurn = sessionData->factionTurn;
+    //MemSet(gameSession.factions, sizeof(Faction) * 4, 0);
+    for (i = 0; i < 4; i++) {
+        gameSession.factions[i] = sessionData->factions[i];
+    }
+
+    gameSession.level.pawnCount = sessionData->pawnCount;
+    gameSession.level.pawns = (Pawn *)MemPtrNew(sizeof(Pawn) * sessionData->pawnCount);
+    MemSet(gameSession.level.pawns, sizeof(Pawn) * sessionData->pawnCount, 0);
+    for (i = 0; i < sessionData->pawnCount; i++) {
+        MemMove(&gameSession.level.pawns[i], &pawnData[i], sizeof(Pawn));
+    }
+    return true;
+}
+
 void gameSession_cleanup() {
+    gameSession_saveGameState();
     level_destroy(&gameSession.level);
     gameActionLogic_clearAttack();
     gameActionLogic_clearMovement();
