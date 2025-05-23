@@ -19,6 +19,7 @@ int hexgrid_tilePattern[HEXTILE_SIZE];
 int hexgrid_tilePatternDouble[HEXTILE_SIZE * 2];
 #endif
 
+HEXGRID_SECTION
 void hexgrid_cleanup() {
     if (hexgrid_filledTileCacheWindow != NULL) {
         WinDeleteWindow(hexgrid_filledTileCacheWindow, false);
@@ -26,6 +27,7 @@ void hexgrid_cleanup() {
     }
 }
 
+HEXGRID_SECTION
 static void hexgrid_tileCoords(int startX, int startY, Coordinate coordinates[], Boolean doubleSize) {
     int hexTileSize = doubleSize ? HEXTILE_SIZE * 2 : HEXTILE_SIZE;
     int hexTileSegmentSize = doubleSize ? HEXTILE_SEGMENT_SIZE * 2 : HEXTILE_SEGMENT_SIZE;
@@ -37,6 +39,7 @@ static void hexgrid_tileCoords(int startX, int startY, Coordinate coordinates[],
     coordinates[5] = (Coordinate){startX + hexTileSize, coordinates[1].y};
 }
 
+HEXGRID_SECTION
 static Boolean hexgrid_drawTileFromCache(int startX, int startY, WinHandle drawWindow, WinHandle tileWindow, IndexedColorType cacheColor) {
     RectangleType rect;
     if (tileWindow == NULL || tileWindow->drawStateP->foreColor != cacheColor) {
@@ -47,6 +50,7 @@ static Boolean hexgrid_drawTileFromCache(int startX, int startY, WinHandle drawW
     return true;
 }
 
+HEXGRID_SECTION
 static Boolean hexgrid_createFilledTileCache(WinHandle drawWindow) {
     Err err = errNone;
     if (hexgrid_filledTileCacheWindow != NULL) {
@@ -63,6 +67,7 @@ static Boolean hexgrid_createFilledTileCache(WinHandle drawWindow) {
     return hexgrid_filledTileCacheWindow != NULL;;
 }
 
+HEXGRID_SECTION
 static void hexgrid_drawTile(int startX, int startY) {
     int i;
     Coordinate coordinates[HEXTILE_POINTS];
@@ -74,6 +79,7 @@ static void hexgrid_drawTile(int startX, int startY) {
     }
 }
 
+HEXGRID_SECTION
 static Boolean hexgrid_isInsideTile(Coordinate coordinates[], Coordinate p) {
     int i, j;
     int isInside = 0;
@@ -88,6 +94,7 @@ static Boolean hexgrid_isInsideTile(Coordinate coordinates[], Coordinate p) {
     return isInside;
 }
 
+HEXGRID_SECTION
 void hexgrid_initialize() {
     int y;
     Coordinate coordinates[HEXTILE_POINTS];
@@ -119,6 +126,7 @@ void hexgrid_initialize() {
     }
 }
 
+HEXGRID_SECTION
 static void hexgrid_fillTile(int startX, int startY) {
     int y;
 
@@ -164,6 +172,7 @@ static void hexgrid_fillTile(int startX, int startY) {
 #endif
 }
 
+HEXGRID_SECTION
 static Coordinate hexgrid_tileStartPosition(int column, int row) {
     if (row % 2 != 0) {
         return (Coordinate){column * HEXTILE_SIZE, row * HEXTILE_SIZE - (row * HEXTILE_SEGMENT_SIZE)};
@@ -172,11 +181,13 @@ static Coordinate hexgrid_tileStartPosition(int column, int row) {
     }
 }
 
+HEXGRID_SECTION
 Coordinate hexgrid_tileCenterPosition(Coordinate tilePosition) {
     Coordinate position = hexgrid_tileStartPosition(tilePosition.x, tilePosition.y);
     return (Coordinate){position.x + HEXTILE_SIZE / 2, position.y + HEXTILE_SIZE / 2};
 }
 
+HEXGRID_SECTION
 void hexgrid_drawTileAtPosition(Coordinate hexPosition, Boolean adjustForViewport) {
     Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
     if (adjustForViewport) {
@@ -185,6 +196,7 @@ void hexgrid_drawTileAtPosition(Coordinate hexPosition, Boolean adjustForViewpor
     hexgrid_drawTile(startPosition.x, startPosition.y);
 }
 
+HEXGRID_SECTION
 void hexgrid_fillTileAtPosition(Coordinate hexPosition, Boolean adjustForViewport) {
     Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
     if (adjustForViewport) {
@@ -193,6 +205,7 @@ void hexgrid_fillTileAtPosition(Coordinate hexPosition, Boolean adjustForViewpor
     hexgrid_fillTile(startPosition.x, startPosition.y);
 }
 
+HEXGRID_SECTION
 void hexgrid_drawEntireGrid(Boolean adjustForViewport) {
     Coordinate screenSize = deviceinfo_screenSize();
     Coordinate center = viewport_convertedCoordinateInverted((Coordinate){screenSize.x / 2, screenSize.y / 2});
@@ -226,6 +239,7 @@ void hexgrid_drawEntireGrid(Boolean adjustForViewport) {
     }
 }
 
+HEXGRID_SECTION
 static int hexgrid_estimatedRow(float y) {
     int row = 0;
     double offset = 0;
@@ -239,6 +253,7 @@ static int hexgrid_estimatedRow(float y) {
     return row;
 }
 
+HEXGRID_SECTION
 Coordinate hexgrid_tileAtPixel(int x, int y) {
     int r, c;
     int estimatedRow = hexgrid_estimatedRow(y);
@@ -257,11 +272,13 @@ Coordinate hexgrid_tileAtPixel(int x, int y) {
     return (Coordinate){-1, -1};
 }
 
+HEXGRID_SECTION
 Coordinate hexgrid_size() {
     Coordinate lastPosition = hexgrid_tileCenterPosition((Coordinate){HEXGRID_COLS - 1, HEXGRID_ROWS - 1});
     return (Coordinate){lastPosition.x + HEXTILE_SIZE + 5, lastPosition.y + HEXTILE_SIZE + 5};
 }
 
+HEXGRID_SECTION
 void hexgrid_drawSpriteAtTile(ImageSprite* imageSprite, Coordinate hexPosition) {
     Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
     Coordinate centerPosition = (Coordinate){startPosition.x + HEXTILE_SIZE / 2, startPosition.y + HEXTILE_SIZE / 2};

@@ -26,12 +26,8 @@ static UInt8 gameActionLogic_nonCapturedFlagsLeft(UInt8 faction) {
 }
 
 static void gameActionLogic_restartGame() {
-    EventType event;
     FrmCustomAlert(GAME_ALERT_ENDOFGAMETECHDEMO, NULL, NULL, NULL);
-    MemSet(&event, sizeof(EventType), 0);
-    event.eType = appStopEvent;
-    EvtAddEventToQueue(&event);
-    // gameSession_initialize();
+    gameSession_reset(false);
 }
 
 static Boolean gameActionLogic_humanShipsLeft() {

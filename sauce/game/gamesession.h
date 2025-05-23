@@ -82,6 +82,7 @@ typedef struct GameSession {
     Boolean colorSupport; // Support for color screens
 
     Boolean continueCPUPlay;
+    Boolean paused;
 
     Button *displayButtons;
     UInt8 displayButtonCount;
@@ -93,10 +94,11 @@ typedef struct GameSession {
 
 GameSession gameSession;
 
-void gameSession_initialize();
+void gameSession_reset(Boolean newGame);
 void gameSession_cleanup();
 void gameSession_registerPenInput(EventPtr eventptr);
 void gameSession_progressLogic();
+Boolean gameSession_handleMenu(UInt16 menuItemID);
 Boolean gameSession_shouldShowHealthBar();
 Boolean gameSession_animating();
 AppColor gameSession_hightlightTilesColor();

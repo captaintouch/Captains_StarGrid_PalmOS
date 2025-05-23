@@ -38,6 +38,7 @@ static void game_resetForm() {
     Coordinate screenSize = deviceinfo_screenSize();
     FormType *updatedForm = FrmNewForm(GAME_FORM, NULL, 0, 0, screenSize.x, screenSize.y, true, 0, 0, 0);
     lastScreenSize = screenSize;
+    FrmSetMenu(updatedForm, GAME_MENU);
     FrmSetActiveForm(updatedForm);
     if (frmP != NULL) {
         FrmDeleteForm(frmP);
@@ -57,12 +58,12 @@ static void game_resetForm() {
 }
 
 int game_eventDelayTime() {
-    return 0;
+    return gameSession.paused ? evtWaitForever : 0;
 }
 
 void game_setup() {
     spriteLibrary_initialize();
-    gameSession_initialize();
+    gameSession_reset(false);
     hexgrid_initialize();
     game_resetForm();
 }
@@ -452,9 +453,10 @@ static void game_drawGameStartHeader() {
     MemHandle resourceHandle;
     RectangleType rect;
     char *text;
-    Coordinate screenSize = deviceinfo_screenSize();
+    Coordinate screenSize;
     int centerX;
     WinSetDrawWindow(screenBuffer);
+    screenSize = deviceinfo_screenSize();
     RctSetRectangle(&rect, 0, 0, screenSize.x, BOTTOMMENU_HEIGHT);
     drawhelper_applyForeColor(BELIZEHOLE);
     drawhelper_applyBackgroundColor(BELIZEHOLE);
@@ -510,6 +512,9 @@ static void game_drawBackground() {
         hexgrid_drawEntireGrid(false);
     }
     game_drawStars();
+    if (gameSession.menuScreenType != MENUSCREEN_GAME) {
+        game_drawGameStartHeader();
+    }
 }
 
 static void game_drawLowMemBackground(Coordinate screenSize) {
@@ -700,7 +705,6 @@ static void game_drawLayout() {
         WinCopyRectangle(overlayBuffer, screenBuffer, &lamerect, 0, 0, winPaint);
         game_drawUserInterfaceElements();
     } else {
-        game_drawGameStartHeader();
         RctSetRectangle(&lamerect, 0, 0, screenSize.x, screenSize.y);
         WinCopyRectangle(overlayBuffer, screenBuffer, &lamerect, 0, BOTTOMMENU_HEIGHT, winPaint);
     }
@@ -717,11 +721,34 @@ static void game_drawLayout() {
     }
 }
 
+static Boolean game_checkIfGameIsPaused(EventType *eventptr) {
+    if (eventptr->eType == winExitEvent) {
+        if (eventptr->data.winExit.exitWindow ==
+            (WinHandle)FrmGetFormPtr(GAME_FORM)) {
+            gameSession.paused = true;
+        }
+    } else if (eventptr->eType == winEnterEvent) {
+        if (eventptr->data.winEnter.enterWindow ==
+                (WinHandle)FrmGetFormPtr(GAME_FORM) &&
+            eventptr->data.winEnter.enterWindow == (WinHandle)FrmGetFirstForm()) {
+            gameSession.paused = false;
+        }
+    }
+
+    return gameSession.paused;
+}
+
 Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu) {
     gameSession_registerPenInput(eventptr);
     if (eventptr->eType == winDisplayChangedEvent) {
         game_resetForm();
         return true;
+    }
+    if ((eventptr->eType == menuEvent)) {
+        return gameSession_handleMenu(eventptr->data.menu.itemID);
+    }
+    if (game_checkIfGameIsPaused(eventptr)) {
+        return false;
     }
     if (eventptr->eType != nilEvent) {
         return false;

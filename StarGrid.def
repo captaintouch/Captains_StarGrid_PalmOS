@@ -1,2 +1,2 @@
 application { "StarGrid" CSTG }
-multiple code { "movement" "cpulogic" }
+multiple code { "movement" "cpulogic" "hexgrid" }
