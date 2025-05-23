@@ -370,11 +370,19 @@ static void game_drawPawns() {
         } else {
             char symbolChar[2];
             FontID oldFont = FntSetFont(symbolFont);
-            drawhelper_applyBackgroundColor(ASBESTOS);
-            drawhelper_applyTextColor(CLOUDS);
+            Coordinate position = viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 12});
+            RectangleType *rect;
+            int width;
             symbolChar[0] = 0x17 + pawn->faction;
             symbolChar[1] = '\0';
-            drawhelper_drawText(symbolChar, viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 10}));
+            width = FntCharsWidth(symbolChar, StrLen(symbolChar));
+            RctSetRectangle(&rect, position.x - 2, position.y, width + 2, 11);
+            drawhelper_applyForeColor(ASBESTOS);
+            drawhelper_applyBackgroundColor(ASBESTOS);
+            drawhelper_applyTextColor(CLOUDS);
+            
+            drawhelper_fillRectangle(&rect, 0);
+            drawhelper_drawText(symbolChar, position);
             FntSetFont(oldFont);
         }
 
@@ -554,9 +562,9 @@ static void game_drawDynamicViews() {  // ships, special tiles, etc.
 
     game_drawHighlightTiles();
     game_drawWarpAnimation();
-    game_drawPawns();
     game_drawGridTexts();
     game_drawActionTiles();
+    game_drawPawns();
     game_drawAttackAnimation();
     game_drawDebugTrajectoryMovement();
 }
