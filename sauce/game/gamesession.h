@@ -99,6 +99,7 @@ void gameSession_cleanup();
 void gameSession_registerPenInput(EventPtr eventptr);
 void gameSession_progressLogic();
 Boolean gameSession_handleMenu(UInt16 menuItemID);
+Boolean gameSession_handleFormButtonTap(UInt16 buttonID);
 Boolean gameSession_shouldShowHealthBar();
 Boolean gameSession_animating();
 AppColor gameSession_hightlightTilesColor();

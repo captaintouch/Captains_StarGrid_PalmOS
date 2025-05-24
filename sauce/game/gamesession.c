@@ -10,6 +10,7 @@
 #include "movement.h"
 #include "pawnActionMenuViewModel.h"
 #include "viewport.h"
+#include "../about.h"
 
 #define WARPINITIALTIME 0.4
 
@@ -376,15 +377,18 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
     int i;
     for (i = 0; i < gameSession.level.gridTextCount; i++) {
         if (gameSession.level.gridTexts[i].position.y == selectedTile.y) {
-            gameSession.level.gridTexts[i].alternateColor = true;
-            gameSession.drawingState.shouldRedrawOverlay = true;
             switch (gameSession.level.gridTexts[i].textResource) {
                 case STRING_NEW:
+                    gameSession.level.gridTexts[i].alternateColor = true;
+                    gameSession.drawingState.shouldRedrawOverlay = true;
                     gameSession.drawingState.shouldRedrawBackground = true;
                     gameSession.menuScreenType = MENUSCREEN_PLAYERCONFIG;
                     level_addPlayerConfigPawns(&gameSession.level, gameSession_defaultNewGameConfig());
                     gameSession.activePawn = &gameSession.level.pawns[0];
                     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, gameSession.activePawn->position.y});
+                    break;
+                case STRING_ABOUT:
+                    about_show();
                     break;
             }
             return true;
@@ -828,9 +832,14 @@ Boolean gameSession_handleMenu(UInt16 menuItemID) {
             gameSession_reset(false);
             return true;
         case GAME_MENUITEM_ABOUT:
+            about_show();
             return true;
     }
     return false;
+}
+
+Boolean gameSession_handleFormButtonTap(UInt16 buttonID) {
+    return about_buttonHandler(buttonID);
 }
 
 void gameSession_progressLogic() {
@@ -866,7 +875,7 @@ void gameSession_progressLogic() {
                     switch (gameSession.state) {
                         case GAMESTATE_DEFAULT:
                             if (gameSession_handleMiniMapTap()) break;
-                            if (gameSession_handleTileTap()) break;
+                            if (gameSession_handleTileTap()) return;
                             if (gameSession_handleBarButtonsTap()) break;
                             break;
                         case GAMESTATE_CHOOSEPAWNACTION:

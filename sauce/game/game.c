@@ -371,7 +371,7 @@ static void game_drawPawns() {
             char symbolChar[2];
             FontID oldFont = FntSetFont(symbolFont);
             Coordinate position = viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 12});
-            RectangleType *rect;
+            RectangleType rect;
             int width;
             symbolChar[0] = 0x17 + pawn->faction;
             symbolChar[1] = '\0';
@@ -755,6 +755,9 @@ Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu)
     if ((eventptr->eType == menuEvent)) {
         return gameSession_handleMenu(eventptr->data.menu.itemID);
     }
+    if ((eventptr->eType == ctlSelectEvent)) {
+        return gameSession_handleFormButtonTap(eventptr->data.ctlSelect.controlID);
+    }
     if (game_checkIfGameIsPaused(eventptr)) {
         return false;
     }
@@ -763,7 +766,9 @@ Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu)
     }
 
     gameSession_progressLogic();
-    game_drawLayout();
+    if (FrmGetActiveFormID() == GAME_FORM) {
+        game_drawLayout();
+    }
 
     return true;
 }
