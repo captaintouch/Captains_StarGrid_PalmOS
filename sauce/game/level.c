@@ -153,14 +153,17 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
 static void level_applyPlacementCorners(Level *level, NewGameConfig config) {
     int faction;
     int i, j;
+    int indices[MAXPLAYERCOUNT];
     int pawnIndex = 0;
     Coordinate baseCoordinates[] = {
         (Coordinate){1, 1}, (Coordinate){HEXGRID_COLS - 2, HEXGRID_ROWS - 2}, (Coordinate){1, HEXGRID_ROWS - 2}, (Coordinate){HEXGRID_COLS - 2, 1}
     };
 
+    mathIsFun_shuffleIndices(indices, MAXPLAYERCOUNT);
+
     // Set the bases
     for (i = 0; i < MAXPLAYERCOUNT; i++) {
-        int faction = i; // TODO: shuffle the indexes
+        int faction = indices[i];
         Coordinate baseCoordinate = baseCoordinates[i];
         Pawn *basePawn;
         if (!config.playerConfig[faction].active) {

@@ -25,25 +25,6 @@ static Pawn *cpuLogic_enemyWithStolenFlag(Pawn *pawn, Pawn *allPawns, int totalP
     return NULL;
 }
 
-CPULOGIC_SECTION
-static void cpuLogic_shuffledPawnsIndices(int *indices, int totalPawnCount) {
-    int i;
-    for (i = 0; i < totalPawnCount; i++) {
-        indices[i] = i;
-    }
-
-    for (i = 0; i < totalPawnCount; i++) {
-        int t;
-        int j = random(0, totalPawnCount - 1);
-        if (j == i) {
-            continue;
-        }
-        t = indices[j];
-        indices[j] = indices[i];
-        indices[i] = t;
-    }
-}
-
 /*static Pawn *cpuLogic_closestOtherFactionHomeBaseWithFlag(Pawn *pawn, Pawn *allPawns, int totalPawnCount) {
     int i;
     Pawn *closestHomeBase = NULL;
@@ -93,7 +74,7 @@ static Pawn *cpuLogic_weakestOtherFactionHomeBaseWithFlag(Pawn *pawn, Pawn *allP
     Pawn *weakestHomeBase = NULL;
     int weakestDefence = 9999;
     int indices[totalPawnCount];
-    cpuLogic_shuffledPawnsIndices(indices, totalPawnCount);
+    mathIsFun_shuffleIndices(indices, totalPawnCount);
 
     for (i = 0; i < totalPawnCount; i++) {
         int index = indices[i];
@@ -167,7 +148,7 @@ static Pawn *cpuLogic_weakestEnemyInRange(Pawn *pawn, Pawn *allPawns, int totalP
     int i;
     Pawn *weakestEnemy = NULL;
     int indices[totalPawnCount];
-    cpuLogic_shuffledPawnsIndices(indices, totalPawnCount);
+    mathIsFun_shuffleIndices(indices, totalPawnCount);
 
     for (i = 0; i < totalPawnCount; i++) {
         int index = indices[i];

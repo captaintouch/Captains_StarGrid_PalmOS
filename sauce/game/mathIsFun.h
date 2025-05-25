@@ -9,4 +9,5 @@ double fabs(double a);
 int round(float a);
 float remapToMax(float a, float maxValue);
 int random(int min, int max);
+void mathIsFun_shuffleIndices(int *indices, int totalCount);
 #endif

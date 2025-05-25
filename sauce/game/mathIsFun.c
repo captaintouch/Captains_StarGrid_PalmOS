@@ -67,3 +67,21 @@ int random(int min, int max) {
     value = min + (seed % (max - min + 1));
     return fmin(fmax(value, min), max);
 }
+
+void mathIsFun_shuffleIndices(int *indices, int totalCount) {
+    int i;
+    for (i = 0; i < totalCount; i++) {
+        indices[i] = i;
+    }
+
+    for (i = 0; i < totalCount; i++) {
+        int t;
+        int j = random(0, totalCount - 1);
+        if (j == i) {
+            continue;
+        }
+        t = indices[j];
+        indices[j] = indices[i];
+        indices[i] = t;
+    }
+}
