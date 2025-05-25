@@ -52,6 +52,7 @@ static void gameSession_loadStartMenu() {
     gameSession_updateViewPortOffset(true);
     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, gameSession.activePawn->position.y});
     gameSession.drawingState.shouldRedrawBackground = true;
+    gameSession.drawingState.shouldRedrawHeader = true;
     gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
@@ -69,7 +70,7 @@ void gameSession_reset(Boolean newGame) {
     gameSession.continueCPUPlay = false;
     gameSession.paused = false;
 
-    gameSession.drawingState = (DrawingState){true, true, false, false, (Coordinate){0, 0}, (Coordinate){0, 0}};
+    gameSession.drawingState = (DrawingState){true, true, true, false, false, (Coordinate){0, 0}, (Coordinate){0, 0}};
 
     gameSession.highlightTiles = NULL;
     gameSession.highlightTileCount = 0;
@@ -381,7 +382,7 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
                 case STRING_NEW:
                     gameSession.level.gridTexts[i].alternateColor = true;
                     gameSession.drawingState.shouldRedrawOverlay = true;
-                    gameSession.drawingState.shouldRedrawBackground = true;
+                    gameSession.drawingState.shouldRedrawHeader = true;
                     gameSession.menuScreenType = MENUSCREEN_PLAYERCONFIG;
                     level_addPlayerConfigPawns(&gameSession.level, gameSession_defaultNewGameConfig());
                     gameSession.activePawn = &gameSession.level.pawns[0];

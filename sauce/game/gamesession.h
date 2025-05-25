@@ -28,6 +28,7 @@ typedef enum GameState {
 
 typedef struct DrawingState {
     Boolean shouldRedrawBackground;
+    Boolean shouldRedrawHeader;
     Boolean shouldRedrawOverlay;
     Boolean shouldDrawButtons;
     Boolean requiresPauseAfterLayout;

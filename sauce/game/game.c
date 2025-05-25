@@ -463,6 +463,11 @@ static void game_drawGameStartHeader() {
     char *text;
     Coordinate screenSize;
     int centerX;
+
+    if (gameSession.menuScreenType == MENUSCREEN_GAME || !gameSession.drawingState.shouldRedrawHeader) {
+        return;
+    }
+
     WinSetDrawWindow(screenBuffer);
     screenSize = deviceinfo_screenSize();
     RctSetRectangle(&rect, 0, 0, screenSize.x, BOTTOMMENU_HEIGHT);
@@ -520,9 +525,6 @@ static void game_drawBackground() {
         hexgrid_drawEntireGrid(false);
     }
     game_drawStars();
-    if (gameSession.menuScreenType != MENUSCREEN_GAME) {
-        game_drawGameStartHeader();
-    }
 }
 
 static void game_drawLowMemBackground(Coordinate screenSize) {
@@ -705,6 +707,7 @@ static void game_drawLayout() {
         screenBuffer = WinCreateOffscreenWindow(screenSize.x, screenSize.y, nativeFormat, &err);
     }
     game_drawBackground();
+    game_drawGameStartHeader();
     game_drawDynamicViews();
 
     WinSetDrawWindow(screenBuffer);
