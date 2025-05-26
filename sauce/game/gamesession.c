@@ -70,7 +70,7 @@ void gameSession_reset(Boolean newGame) {
     gameSession.continueCPUPlay = false;
     gameSession.paused = false;
 
-    gameSession.drawingState = (DrawingState){true, true, true, false, false, (Coordinate){0, 0}, (Coordinate){0, 0}};
+    gameSession.drawingState = (DrawingState){true, true, false, true, false, false, (Coordinate){0, 0}, (Coordinate){0, 0}};
 
     gameSession.highlightTiles = NULL;
     gameSession.highlightTileCount = 0;

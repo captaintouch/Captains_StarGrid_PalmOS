@@ -54,6 +54,7 @@ static void game_resetForm() {
         game_windowCleanup();
         gameSession.drawingState.shouldRedrawBackground = true;
         gameSession.drawingState.shouldRedrawOverlay = true;
+        gameSession.drawingState.shouldRedrawHeader = true;
     }
 }
 
@@ -380,7 +381,7 @@ static void game_drawPawns() {
             drawhelper_applyForeColor(ASBESTOS);
             drawhelper_applyBackgroundColor(ASBESTOS);
             drawhelper_applyTextColor(CLOUDS);
-            
+
             drawhelper_fillRectangle(&rect, 0);
             drawhelper_drawText(symbolChar, position);
             FntSetFont(oldFont);
@@ -468,6 +469,7 @@ static void game_drawGameStartHeader() {
         return;
     }
 
+    gameSession.drawingState.shouldRedrawHeader = false;
     WinSetDrawWindow(screenBuffer);
     screenSize = deviceinfo_screenSize();
     RctSetRectangle(&rect, 0, 0, screenSize.x, BOTTOMMENU_HEIGHT);
@@ -752,6 +754,16 @@ static Boolean game_checkIfGameIsPaused(EventType *eventptr) {
 Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu) {
     gameSession_registerPenInput(eventptr);
     if (eventptr->eType == winDisplayChangedEvent) {
+        if ( FrmGetActiveFormID() == GAME_FORM) {
+            game_resetForm();
+        } else {
+            gameSession.drawingState.shouldResetGameForm = true;
+        }
+        
+        return true;
+    }
+    if (gameSession.drawingState.shouldResetGameForm && FrmGetActiveFormID() == GAME_FORM) {
+        gameSession.drawingState.shouldResetGameForm = false;
         game_resetForm();
         return true;
     }
