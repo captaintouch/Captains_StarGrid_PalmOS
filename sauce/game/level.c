@@ -151,7 +151,6 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
 }
 
 static void level_applyPlacementCorners(Level *level, NewGameConfig config) {
-    int faction;
     int i, j;
     int indices[MAXPLAYERCOUNT];
     int pawnIndex = 0;

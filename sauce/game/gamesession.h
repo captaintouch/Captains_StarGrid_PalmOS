@@ -52,6 +52,7 @@ typedef struct GameRestorableSessionData {
     Faction factions[MAXPLAYERCOUNT];
     int factionCount;
     int factionTurn;
+    int currentTurn;
 } GameRestorableSessionData;
 
 typedef struct GameSession {
@@ -60,6 +61,7 @@ typedef struct GameSession {
     InputPen lastPenInput;
 
     Level level;
+    UInt8 currentTurn;
     Pawn *activePawn;
     Pawn cameraPawn;
 

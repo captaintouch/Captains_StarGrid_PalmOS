@@ -1,7 +1,9 @@
 #include "pawnActionMenuViewModel.h"
+
 #include "../constants.h"
 
-const MenuActionType allActions[] = {MenuActionTypeCancel, MenuActionTypeWarp, MenuActionTypeTorpedo, MenuActionTypePhaser, MenuActionTypeMove};
+MenuActionType shipActions[] = {MenuActionTypeCancel, MenuActionTypeWarp, MenuActionTypeTorpedo, MenuActionTypePhaser, MenuActionTypeMove};
+MenuActionType baseActions[] = {MenuActionTypeCancel, MenuActionTypeShockwave, MenuActionTypeBuildShip};
 
 static UInt16 pawnActionMenuViewModel_textForActionType(MenuActionType actionType) {
     switch (actionType) {
@@ -13,12 +15,20 @@ static UInt16 pawnActionMenuViewModel_textForActionType(MenuActionType actionTyp
             return STRING_TORPEDO;
         case MenuActionTypeWarp:
             return STRING_WARP;
+        case MenuActionTypeShockwave:
+            return STRING_SHOCKWAVE;
+        case MenuActionTypeBuildShip:
+            return STRING_BUILDSHIP;
         case MenuActionTypeCancel:
             return STRING_CANCEL;
     }
 }
 
-static Boolean pawnActionMenuViewModel_isDisabled(MenuActionType actionType, Pawn *pawn) {
+static UInt8 pawnActionMenuViewModel_baseTurnsLeft(UInt8 currentTurn, UInt8 lastActionTurn) {
+    return lastActionTurn + GAMEMECHANICS_BASEACTIONREQUIREDTURNS - currentTurn - 1;
+}
+
+static Boolean pawnActionMenuViewModel_isDisabled(MenuActionType actionType, Pawn *pawn, UInt8 currentTurn) {
     switch (actionType) {
         case MenuActionTypeMove:
         case MenuActionTypePhaser:
@@ -28,29 +38,60 @@ static Boolean pawnActionMenuViewModel_isDisabled(MenuActionType actionType, Paw
             return pawn->inventory.torpedoCount == 0;
         case MenuActionTypeWarp:
             return pawn->warped || pawn->inventory.carryingFlag;
+        case MenuActionTypeShockwave:
+        case MenuActionTypeBuildShip:
+            return pawnActionMenuViewModel_baseTurnsLeft(currentTurn, pawn->inventory.baseActionLastActionTurn) > 0;
     }
 }
 
-void pawnActionMenuViewModel_setupMenuForPawn(Pawn *pawn, Button **displayButtons, UInt8 *displayButtonCount) {
+static void appendTurnsRequiredForAction(MenuActionType actionType, char *text, UInt8 currentTurn, Pawn *pawn) {
+    int turnsRequired;
+    char valueText[20];
+    if (actionType != MenuActionTypeShockwave && actionType != MenuActionTypeBuildShip && !pawnActionMenuViewModel_isDisabled(actionType, pawn, currentTurn)) {
+        return;
+    }
+    turnsRequired = pawnActionMenuViewModel_baseTurnsLeft(currentTurn, pawn->inventory.baseActionLastActionTurn);
+    if (turnsRequired > 0) {
+        StrCat(text, " (in ");
+        StrIToA(valueText, turnsRequired);
+        StrCat(text, valueText);
+        StrCat(text, " turns)");
+    }
+}
+
+void pawnActionMenuViewModel_setupMenuForPawn(Pawn *pawn, Button **displayButtons, UInt8 *displayButtonCount, UInt8 currentTurn) {
     int i;
-    MenuActionType *actions = allActions;
-    int actionCount = sizeof(allActions) / sizeof(allActions[0]);
-    Button *buttons = (Button *)MemPtrNew(sizeof(Button) * actionCount);
+    MenuActionType *actions;
+    int actionCount;
+    Button *buttons;
+    switch (pawn->type) {
+        case PAWNTYPE_SHIP:
+            actions = shipActions;
+            actionCount = sizeof(shipActions) / sizeof(shipActions[0]);
+            break;
+        case PAWNTYPE_BASE:
+            actions = baseActions;
+            actionCount = sizeof(baseActions) / sizeof(baseActions[0]);
+            break;
+    }
+    buttons = (Button *)MemPtrNew(sizeof(Button) * actionCount);
 
     for (i = 0; i < actionCount; i++) {
         MemHandle resourceHandle = DmGetResource(strRsc, pawnActionMenuViewModel_textForActionType(actions[i]));
         char *text = (char *)MemHandleLock(resourceHandle);
-        buttons[i].text = (char *)MemPtrNew(StrLen(text) + 1);
+        buttons[i].text = (char *)MemPtrNew(StrLen(text) + 15);
         MemHandleUnlock(resourceHandle);
         DmReleaseResource(resourceHandle);
         StrCopy(buttons[i].text, text);
-        buttons[i].length = StrLen(text);
-        buttons[i].disabled = pawnActionMenuViewModel_isDisabled(actions[i], pawn);
+        appendTurnsRequiredForAction(actions[i], buttons[i].text, currentTurn, pawn);
+        MemPtrResize(buttons[i].text, StrLen(buttons[i].text) + 1);
+        buttons[i].length = StrLen(buttons[i].text);
+        buttons[i].disabled = pawnActionMenuViewModel_isDisabled(actions[i], pawn, currentTurn);
     }
     *displayButtons = buttons;
     *displayButtonCount = actionCount;
 }
 
 MenuActionType pawnActionMenuViewModel_actionAtIndex(UInt8 index, Pawn *pawn) {
-    return allActions[index];
+    return pawn->type == PAWNTYPE_SHIP ? shipActions[index] : baseActions[index];
 }

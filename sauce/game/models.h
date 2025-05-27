@@ -28,6 +28,7 @@ typedef struct Inventory {
     int health;
     UInt8 flagOfFaction;
     UInt8 torpedoCount;
+    UInt8 baseActionLastActionTurn; // last round when shockwave or build ship was used
     Boolean carryingFlag;
 } Inventory;
 

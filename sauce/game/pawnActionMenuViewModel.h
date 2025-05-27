@@ -8,9 +8,11 @@ typedef enum {
     MenuActionTypePhaser,
     MenuActionTypeTorpedo,
     MenuActionTypeWarp,
+    MenuActionTypeShockwave,
+    MenuActionTypeBuildShip,
     MenuActionTypeCancel
 } MenuActionType;
 
-void pawnActionMenuViewModel_setupMenuForPawn(Pawn *pawn, Button **displayButtons, UInt8 *displayButtonCount);
+void pawnActionMenuViewModel_setupMenuForPawn(Pawn *pawn, Button **displayButtons, UInt8 *displayButtonCount, UInt8 currentTurn);
 MenuActionType pawnActionMenuViewModel_actionAtIndex(UInt8 index, Pawn *pawn);
 #endif

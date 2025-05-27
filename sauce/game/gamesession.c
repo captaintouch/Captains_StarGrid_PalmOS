@@ -1,5 +1,6 @@
 #include "gamesession.h"
 
+#include "../about.h"
 #include "../constants.h"
 #include "../deviceinfo.h"
 #include "drawhelper.h"
@@ -10,7 +11,6 @@
 #include "movement.h"
 #include "pawnActionMenuViewModel.h"
 #include "viewport.h"
-#include "../about.h"
 
 #define WARPINITIALTIME 0.4
 
@@ -69,6 +69,7 @@ void gameSession_reset(Boolean newGame) {
     gameSession.activePawn = NULL;
     gameSession.continueCPUPlay = false;
     gameSession.paused = false;
+    gameSession.currentTurn = 0;
 
     gameSession.drawingState = (DrawingState){true, true, false, true, false, false, (Coordinate){0, 0}, (Coordinate){0, 0}};
 
@@ -107,13 +108,13 @@ static void gameSession_clearSavedGameState() {
 static void gameSession_saveGameState() {
     void *sessionDataPtr;
     void *pawnDataPtr;
-    Err err;
     int i;
     GameRestorableSessionData sessionData;
     gameSession_clearSavedGameState();
     if (gameSession.menuScreenType != MENUSCREEN_GAME) {
         return;
     }
+    sessionData.currentTurn = gameSession.currentTurn;
     sessionData.pawnCount = gameSession.level.pawnCount;
     sessionData.factionCount = gameSession.factionCount;
     sessionData.factionTurn = gameSession.factionTurn;
@@ -140,6 +141,7 @@ static Boolean gameSession_restoreGameState() {
     sessionData = (GameRestorableSessionData *)sessionDataPtr;
     pawnData = (Pawn *)pawnDataPtr;
 
+    gameSession.currentTurn = sessionData->currentTurn;
     gameSession.factionCount = sessionData->factionCount;
     gameSession.factionTurn = sessionData->factionTurn;
     for (i = 0; i < MAXPLAYERCOUNT; i++) {
@@ -253,7 +255,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
 }
 
 static void gameSession_showPawnActions() {
-    if (!gameSession.factions[gameSession.activePawn->faction].human || gameSession.activePawn->type != PAWNTYPE_SHIP) {
+    if (!gameSession.factions[gameSession.activePawn->faction].human) {
         gameSession.drawingState.shouldRedrawOverlay = true;
         return;
     }
@@ -261,7 +263,7 @@ static void gameSession_showPawnActions() {
         FrmCustomAlert(GAME_ALERT_NOMOREACTIONS, NULL, NULL, NULL);
         return;
     }
-    pawnActionMenuViewModel_setupMenuForPawn(gameSession.activePawn, &gameSession.displayButtons, &gameSession.displayButtonCount);
+    pawnActionMenuViewModel_setupMenuForPawn(gameSession.activePawn, &gameSession.displayButtons, &gameSession.displayButtonCount, gameSession.currentTurn);
     gameSession.drawingState.shouldRedrawOverlay = true;
     gameSession.state = GAMESTATE_CHOOSEPAWNACTION;
 }
@@ -332,6 +334,9 @@ static void gameSession_startTurn() {
 static void gameSession_startTurnForNextFaction() {
     gameSession_enableActionsForFaction(gameSession.factionTurn);
     gameSession.factionTurn = gameSession_nextAvailableFaction(gameSession.factionTurn);
+    if (gameSession.factionTurn == 0) {
+        gameSession.currentTurn++;
+    }
     gameSession_startTurn();
 }
 
@@ -593,6 +598,11 @@ static void gameSession_handlePawnActionButtonSelection() {
         case MenuActionTypeMove:
             gameSession.state = GAMESTATE_SELECTTARGET;
             gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
+            break;
+        case MenuActionTypeShockwave:
+        case MenuActionTypeBuildShip:
+            // TODO: implement shockwave and build ship actions
+            gameSession.state = GAMESTATE_DEFAULT;
             break;
     }
 
