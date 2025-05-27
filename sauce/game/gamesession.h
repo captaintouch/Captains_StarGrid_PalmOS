@@ -94,6 +94,7 @@ typedef struct GameSession {
     Movement *movement;
     AttackAnimation *attackAnimation;
     WarpAnimation warpAnimation;
+    ShockWaveAnimation *shockWaveAnimation;
 } GameSession;
 
 GameSession gameSession;

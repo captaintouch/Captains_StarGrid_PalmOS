@@ -59,6 +59,7 @@ static void gameSession_loadStartMenu() {
 void gameSession_reset(Boolean newGame) {
     gameActionLogic_clearAttack();
     gameActionLogic_clearMovement();
+    gameActionLogic_clearShockwave();
     gameSession.diaSupport = deviceinfo_diaSupported();
     gameSession.colorSupport = deviceinfo_colorSupported();
 
@@ -163,6 +164,7 @@ void gameSession_cleanup() {
     level_destroy(&gameSession.level);
     gameActionLogic_clearAttack();
     gameActionLogic_clearMovement();
+    gameActionLogic_clearShockwave();
     gameSession_resetHighlightTiles();
     spriteLibrary_clean();
 }
@@ -600,9 +602,10 @@ static void gameSession_handlePawnActionButtonSelection() {
             gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
             break;
         case MenuActionTypeShockwave:
-        case MenuActionTypeBuildShip:
-            // TODO: implement shockwave and build ship actions
+            gameActionLogic_scheduleShockwave(gameSession.activePawn);
             gameSession.activePawn->inventory.baseActionLastActionTurn = gameSession.currentTurn;
+        case MenuActionTypeBuildShip:
+            // TODO: implement build ship action
             gameSession.state = GAMESTATE_DEFAULT;
             break;
     }
@@ -716,6 +719,31 @@ static void gameSession_progressUpdateAttack() {
             gameActionLogic_clearAttack();
             gameSession.state = GAMESTATE_DEFAULT;
         }
+    }
+}
+
+static void gameSession_progressUpdateShockWave() {
+    Int32 timeSinceLaunch;
+    float timePassedScale;
+    int i;
+    if (gameSession.shockWaveAnimation == NULL) {
+        return;
+    }
+    gameSession.drawingState.shouldRedrawOverlay = true;
+    timeSinceLaunch = TimGetTicks() - gameSession.shockWaveAnimation->launchTimestamp;
+    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * 2);
+    for (i = 0; i < gameSession.shockWaveAnimation->affectedPawnCount; i++) {
+        int nextOrientation = ((i + (int)(timePassedScale * 2 * GFX_FRAMECOUNT_SHIPA)) % GFX_FRAMECOUNT_SHIPA);
+        if (i % 2 == 0) {
+            nextOrientation = GFX_FRAMECOUNT_SHIPA - 1 - nextOrientation;
+        }
+        gameSession.level.pawns[gameSession.shockWaveAnimation->affectedPawnIndices[i]].orientation = nextOrientation;
+    }
+
+    if (timePassedScale >= 1) {
+        FrmCustomAlert(GAME_ALERT_BASEDESTROYED, NULL, NULL, NULL);
+        gameActionLogic_clearShockwave();
+        gameSession.state = GAMESTATE_DEFAULT;
     }
 }
 
@@ -905,4 +933,5 @@ void gameSession_progressLogic() {
     gameSession_progressUpdateMovement();
     gameSession_progressUpdateAttack();
     gameSession_progressUpdateWarp();
+    gameSession_progressUpdateShockWave();
 }

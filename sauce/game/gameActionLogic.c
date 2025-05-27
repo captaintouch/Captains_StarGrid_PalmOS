@@ -70,6 +70,24 @@ void gameActionLogic_scheduleWarp(Pawn *sourcePawn, Coordinate target) {
     gameSession.warpAnimation.shipVisible = true;
 }
 
+void gameActionLogic_scheduleShockwave(Pawn *basePawn) {
+    int i, affectedPawnCount = 0;
+    gameSession.shockWaveAnimation = (ShockWaveAnimation *)MemPtrNew(sizeof(ShockWaveAnimation));
+    MemSet(gameSession.shockWaveAnimation, sizeof(ShockWaveAnimation), 0);
+    gameSession.shockWaveAnimation->launchTimestamp = TimGetTicks();
+    gameSession.shockWaveAnimation->basePawn = basePawn;
+    gameSession.shockWaveAnimation->affectedPawnIndices = (int *)MemPtrNew(sizeof(int) * gameSession.level.pawnCount);
+    
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
+        if (!isInvalidCoordinate(gameSession.level.pawns[i].position) && gameSession.level.pawns[i].type == PAWNTYPE_SHIP && movement_distance(basePawn->position, gameSession.level.pawns[i].position) <= GAMEMECHANICS_SHOCKWAVERANGE) {
+            gameSession.shockWaveAnimation->affectedPawnIndices[affectedPawnCount] = i;
+            affectedPawnCount++;
+        }
+    }
+    gameSession.shockWaveAnimation->affectedPawnCount = affectedPawnCount;
+    MemPtrResize(gameSession.shockWaveAnimation->affectedPawnIndices, sizeof(int) * affectedPawnCount);
+}
+
 void gameActionLogic_scheduleMovement(Pawn *sourcePawn, Pawn *targetPawn, Coordinate selectedTile) {
     gameActionLogic_clearMovement();
 
@@ -260,6 +278,17 @@ static float gameActionLogic_attackDuration(Coordinate source, Coordinate target
         case TARGETSELECTIONTYPE_TORPEDO:
             distance = movement_distance(source, target) + 1;
             return (float)distance * 0.35;
+    }
+}
+
+void gameActionLogic_clearShockwave() {
+    if (gameSession.shockWaveAnimation != NULL) {
+        if (gameSession.shockWaveAnimation->affectedPawnIndices != NULL) {
+            MemPtrFree(gameSession.shockWaveAnimation->affectedPawnIndices);
+            gameSession.shockWaveAnimation->affectedPawnIndices = NULL;
+        }
+        MemPtrFree(gameSession.shockWaveAnimation);
+        gameSession.shockWaveAnimation = NULL;
     }
 }
 

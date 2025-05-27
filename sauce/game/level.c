@@ -7,6 +7,7 @@
 #include "mathIsFun.h"
 #include "movement.h"
 
+LEVEL_SECTION
 UInt8 level_factionCount(NewGameConfig config) {
     int i, activePlayers = 0;
     for (i = 0; i < MAXPLAYERCOUNT; i++) {
@@ -17,6 +18,7 @@ UInt8 level_factionCount(NewGameConfig config) {
     return activePlayers;
 }
 
+LEVEL_SECTION
 Level level_startLevel() {
     // Start screen options:
     // - New
@@ -44,6 +46,7 @@ Level level_startLevel() {
     return level;
 }
 
+LEVEL_SECTION
 void level_applyNewGameConfig(NewGameConfig config, Level *level) {
     int i;
     int activePlayers = level_factionCount(config);
@@ -69,6 +72,7 @@ void level_applyNewGameConfig(NewGameConfig config, Level *level) {
     }
 }
 
+LEVEL_SECTION
 NewGameConfig level_getNewGameConfig(Level *level, NewGameConfig oldConfig) {
     NewGameConfig config;
     int i, activePlayers;
@@ -102,6 +106,7 @@ NewGameConfig level_getNewGameConfig(Level *level, NewGameConfig oldConfig) {
     return config;
 }
 
+LEVEL_SECTION
 void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
     int i;
     int index;
@@ -150,6 +155,7 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
     level_applyNewGameConfig(newGameConfig, level);
 }
 
+LEVEL_SECTION
 static void level_applyPlacementCorners(Level *level, NewGameConfig config) {
     int i, j;
     int indices[MAXPLAYERCOUNT];
@@ -182,6 +188,7 @@ static void level_applyPlacementCorners(Level *level, NewGameConfig config) {
     
 }
 
+LEVEL_SECTION
 Level level_create(NewGameConfig config) {
     Level level;
     int factionCount = level_factionCount(config);
@@ -222,6 +229,7 @@ Level level_create(NewGameConfig config) {
     return level;
 }
 
+LEVEL_SECTION
 void level_destroy(Level *level) {
     if (level->pawns != NULL) {
         level->pawnCount = 0;

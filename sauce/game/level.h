@@ -1,5 +1,6 @@
 #ifndef LEVEL_H_
 #define LEVEL_H_
+#define LEVEL_SECTION  __attribute__ ((section ("level")))
 #include "models.h"
 
 #define MAXPLAYERCOUNT 4
@@ -53,12 +54,12 @@ typedef struct Level {
     int actionTileCount;
 } Level;
 
-Level level_startLevel();
-void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig);
-void level_applyNewGameConfig(NewGameConfig config, Level *level);
-NewGameConfig level_getNewGameConfig(Level *level, NewGameConfig oldConfig);
-UInt8 level_factionCount(NewGameConfig config);
-Level level_create(NewGameConfig config);
-void level_destroy(Level *level);
+Level level_startLevel() LEVEL_SECTION;
+void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) LEVEL_SECTION;
+void level_applyNewGameConfig(NewGameConfig config, Level *level) LEVEL_SECTION;
+NewGameConfig level_getNewGameConfig(Level *level, NewGameConfig oldConfig) LEVEL_SECTION;
+UInt8 level_factionCount(NewGameConfig config) LEVEL_SECTION;
+Level level_create(NewGameConfig config) LEVEL_SECTION;
+void level_destroy(Level *level) LEVEL_SECTION;
 
 #endif

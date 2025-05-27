@@ -66,6 +66,14 @@ typedef struct WarpAnimation {
     Boolean shipVisible;
 } WarpAnimation;
 
+typedef struct ShockWaveAnimation {
+    int *affectedPawnIndices;
+    int affectedPawnCount;
+    Pawn *basePawn;
+    int circleDiameter[WARPCIRCLECOUNT];
+    Int32 launchTimestamp;
+} ShockWaveAnimation;
+
 typedef struct Movement {
     Pawn *pawn;
     Pawn *targetPawn;
