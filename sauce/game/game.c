@@ -75,20 +75,33 @@ void game_cleanup() {
     gameSession_cleanup();
 }
 
-static void game_drawWarpAnimation() {
+static void game_drawWarpAndShockwaveAnimation() {
     int i;
     Coordinate targetPosition;
-    if (!gameSession.warpAnimation.isWarping) {
+    AppColor foreColor;
+    int *circleDiameter;
+    if (!gameSession.warpAnimation.isWarping && gameSession.shockWaveAnimation == NULL) {
         return;
     }
-    targetPosition = hexgrid_tileCenterPosition(gameSession.warpAnimation.currentPosition);
+    if (gameSession.warpAnimation.isWarping) {
+        circleDiameter = gameSession.warpAnimation.circleDiameter;
+        targetPosition = hexgrid_tileCenterPosition(gameSession.warpAnimation.currentPosition);
+        foreColor = BELIZEHOLE;
+    } else if (gameSession.shockWaveAnimation != NULL) {
+        circleDiameter = gameSession.shockWaveAnimation->circleDiameter;
+        targetPosition = hexgrid_tileCenterPosition(gameSession.shockWaveAnimation->basePawn->position);
+        foreColor = pawn_factionColor(gameSession.shockWaveAnimation->basePawn->faction, gameSession.colorSupport);
+    } else {
+        return;
+    }
+
     for (i = 0; i < WARPCIRCLECOUNT; i++) {
         if (i % 2 == 0) {
-            drawhelper_applyForeColor(BELIZEHOLE);
+            drawhelper_applyForeColor(foreColor);
         } else {
             drawhelper_applyForeColor(CLOUDS);
         }
-        drawhelper_drawCircle(viewport_convertedCoordinate(targetPosition), gameSession.warpAnimation.circleDiameter[i]);
+        drawhelper_drawCircle(viewport_convertedCoordinate(targetPosition), circleDiameter[i]);
     }
 }
 
@@ -565,7 +578,7 @@ static void game_drawDynamicViews() {  // ships, special tiles, etc.
     }
 
     game_drawHighlightTiles();
-    game_drawWarpAnimation();
+    game_drawWarpAndShockwaveAnimation();
     game_drawGridTexts();
     game_drawActionTiles();
     game_drawPawns();

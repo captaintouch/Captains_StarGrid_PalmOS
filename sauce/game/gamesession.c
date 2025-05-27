@@ -731,17 +731,26 @@ static void gameSession_progressUpdateShockWave() {
     }
     gameSession.drawingState.shouldRedrawOverlay = true;
     timeSinceLaunch = TimGetTicks() - gameSession.shockWaveAnimation->launchTimestamp;
-    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * 2);
-    for (i = 0; i < gameSession.shockWaveAnimation->affectedPawnCount; i++) {
+    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * 2.0);
+    if (timePassedScale > 0.2) {
+        for (i = 0; i < gameSession.shockWaveAnimation->affectedPawnCount; i++) {
         int nextOrientation = ((i + (int)(timePassedScale * 2 * GFX_FRAMECOUNT_SHIPA)) % GFX_FRAMECOUNT_SHIPA);
         if (i % 2 == 0) {
             nextOrientation = GFX_FRAMECOUNT_SHIPA - 1 - nextOrientation;
         }
         gameSession.level.pawns[gameSession.shockWaveAnimation->affectedPawnIndices[i]].orientation = nextOrientation;
     }
+    }
+    
+    for (i = 0; i < WARPCIRCLECOUNT; i++) {
+        if (timePassedScale < 0.6) {
+            gameSession.shockWaveAnimation->circleDiameter[i] = (float)(timePassedScale) * (float)(WARPCIRCLECOUNT - i) * 30.0;
+        } else {
+            gameSession.shockWaveAnimation->circleDiameter[i] = (float)(1.0 - timePassedScale) * (float)(WARPCIRCLECOUNT - i) * 30.0;
+        }
+    }
 
     if (timePassedScale >= 1) {
-        FrmCustomAlert(GAME_ALERT_BASEDESTROYED, NULL, NULL, NULL);
         gameActionLogic_clearShockwave();
         gameSession.state = GAMESTATE_DEFAULT;
     }
