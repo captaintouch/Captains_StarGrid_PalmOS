@@ -602,6 +602,7 @@ static void gameSession_handlePawnActionButtonSelection() {
         case MenuActionTypeShockwave:
         case MenuActionTypeBuildShip:
             // TODO: implement shockwave and build ship actions
+            gameSession.activePawn->inventory.baseActionLastActionTurn = gameSession.currentTurn;
             gameSession.state = GAMESTATE_DEFAULT;
             break;
     }

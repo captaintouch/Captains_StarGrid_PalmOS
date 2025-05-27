@@ -115,10 +115,10 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
     MemPtrFree(level->pawns);
     level->pawns = updatedPawns;
 
-    level->pawns[level->pawnCount] = (Pawn){PAWNTYPE_SHIP, (Coordinate){7, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 0, false, false};
-    level->pawns[level->pawnCount + 1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){7, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 1, false, false};
-    level->pawns[level->pawnCount + 2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){11, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 2, false, false};
-    level->pawns[level->pawnCount + 3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){11, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, 4, 3, false, false};
+    level->pawns[level->pawnCount] = (Pawn){PAWNTYPE_SHIP, (Coordinate){7, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, false}, 4, 0, false, false};
+    level->pawns[level->pawnCount + 1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){7, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, false}, 4, 1, false, false};
+    level->pawns[level->pawnCount + 2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){11, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, false}, 4, 2, false, false};
+    level->pawns[level->pawnCount + 3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){11, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, false}, 4, 3, false, false};
     level->pawnCount += additionalPawnCount;
 
     level->actionTileCount = additionalPawnCount * 2 + 4;
@@ -168,13 +168,13 @@ static void level_applyPlacementCorners(Level *level, NewGameConfig config) {
         if (!config.playerConfig[faction].active) {
             continue;
         }
-        level->pawns[pawnIndex] = (Pawn){PAWNTYPE_BASE, baseCoordinate, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, faction, 0, true}, 0, faction, false, false};
+        level->pawns[pawnIndex] = (Pawn){PAWNTYPE_BASE, baseCoordinate, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, faction, 0, 0, true}, 0, faction, false, false};
         basePawn = &level->pawns[pawnIndex];
         pawnIndex++;
         // Add ships around the bases
         for (j = 0; j < config.shipCount; j++) {
             Coordinate shipCoordinate = movement_closestTileToTargetInRange(basePawn, basePawn->position, level->pawns, pawnIndex, false);
-            level->pawns[pawnIndex] = (Pawn){PAWNTYPE_SHIP, shipCoordinate, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, false}, (i + i * TimGetTicks()) % GFX_FRAMECOUNT_SHIPA , faction, false, false};
+            level->pawns[pawnIndex] = (Pawn){PAWNTYPE_SHIP, shipCoordinate, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, false}, (i + i * TimGetTicks()) % GFX_FRAMECOUNT_SHIPA , faction, false, false};
             pawnIndex++;
         }
     }

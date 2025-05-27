@@ -24,8 +24,8 @@ static UInt16 pawnActionMenuViewModel_textForActionType(MenuActionType actionTyp
     }
 }
 
-static UInt8 pawnActionMenuViewModel_baseTurnsLeft(UInt8 currentTurn, UInt8 lastActionTurn) {
-    return lastActionTurn + GAMEMECHANICS_BASEACTIONREQUIREDTURNS - currentTurn - 1;
+static int pawnActionMenuViewModel_baseTurnsLeft(UInt8 currentTurn, UInt8 lastActionTurn) {
+    return lastActionTurn + GAMEMECHANICS_BASEACTIONREQUIREDTURNS - currentTurn;
 }
 
 static Boolean pawnActionMenuViewModel_isDisabled(MenuActionType actionType, Pawn *pawn, UInt8 currentTurn) {
