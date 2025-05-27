@@ -69,6 +69,8 @@ typedef struct WarpAnimation {
 typedef struct ShockWaveAnimation {
     int *affectedPawnIndices;
     int affectedPawnCount;
+    Coordinate *pawnOriginalPositions;
+    Coordinate *pawnIntermediatePositions;
     Pawn *basePawn;
     int circleDiameter[WARPCIRCLECOUNT];
     Int32 launchTimestamp;

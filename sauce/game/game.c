@@ -308,7 +308,7 @@ static void game_drawGridTexts() {
 }
 
 static void game_drawPawns() {
-    int i;
+    int i, j;
     if (gameSession.activePawn != NULL && gameSession.menuScreenType == MENUSCREEN_GAME) {
         drawhelper_applyForeColor(EMERALD);
         if (gameSession.colorSupport) {
@@ -339,6 +339,7 @@ static void game_drawPawns() {
         Pawn *pawn = &gameSession.level.pawns[i];
         Coordinate pawnPosition;
         ImageSprite *shipSprite;
+        Boolean didDrawSprite = false;
         if (pawn->type != PAWNTYPE_SHIP || isInvalidCoordinate(gameSession.level.pawns[i].position)) {
             continue;
         }
@@ -356,7 +357,18 @@ static void game_drawPawns() {
         }
         if (gameSession.movement != NULL && gameSession.movement->pawn == pawn) {
             drawhelper_drawSprite(shipSprite, viewport_convertedCoordinate(gameSession.movement->pawnPosition));
-        } else {
+            didDrawSprite = true;
+        } else if (gameSession.shockWaveAnimation != NULL) {
+            for (j = 0; j < gameSession.shockWaveAnimation->affectedPawnCount; j++) {
+                if (gameSession.shockWaveAnimation->affectedPawnIndices[j] == i) {
+                    drawhelper_drawSprite(shipSprite, viewport_convertedCoordinate(gameSession.shockWaveAnimation->pawnIntermediatePositions[j]));
+                    didDrawSprite = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!didDrawSprite) {
             hexgrid_drawSpriteAtTile(shipSprite, pawnPosition);
         }
     }

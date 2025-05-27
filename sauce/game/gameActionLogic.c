@@ -77,10 +77,13 @@ void gameActionLogic_scheduleShockwave(Pawn *basePawn) {
     gameSession.shockWaveAnimation->launchTimestamp = TimGetTicks();
     gameSession.shockWaveAnimation->basePawn = basePawn;
     gameSession.shockWaveAnimation->affectedPawnIndices = (int *)MemPtrNew(sizeof(int) * gameSession.level.pawnCount);
+    gameSession.shockWaveAnimation->pawnOriginalPositions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.level.pawnCount);
     
     for (i = 0; i < gameSession.level.pawnCount; i++) {
-        if (!isInvalidCoordinate(gameSession.level.pawns[i].position) && gameSession.level.pawns[i].type == PAWNTYPE_SHIP && movement_distance(basePawn->position, gameSession.level.pawns[i].position) <= GAMEMECHANICS_SHOCKWAVERANGE) {
+        if (!isInvalidCoordinate(gameSession.level.pawns[i].position) && gameSession.level.pawns[i].type == PAWNTYPE_SHIP && movement_distance(basePawn->position, gameSession.level.pawns[i].position) < GAMEMECHANICS_SHOCKWAVERANGE - 1) {
             gameSession.shockWaveAnimation->affectedPawnIndices[affectedPawnCount] = i;
+            gameSession.shockWaveAnimation->pawnOriginalPositions[affectedPawnCount] = gameSession.level.pawns[i].position;
+            gameSession.level.pawns[i].position = movement_positionAwayFrom(basePawn->position, &gameSession.level.pawns[i], gameSession.level.pawns, gameSession.level.pawnCount, GAMEMECHANICS_SHOCKWAVERANGE);
             affectedPawnCount++;
         }
     }
@@ -286,6 +289,10 @@ void gameActionLogic_clearShockwave() {
         if (gameSession.shockWaveAnimation->affectedPawnIndices != NULL) {
             MemPtrFree(gameSession.shockWaveAnimation->affectedPawnIndices);
             gameSession.shockWaveAnimation->affectedPawnIndices = NULL;
+        }
+        if (gameSession.shockWaveAnimation->pawnOriginalPositions != NULL) {
+            MemPtrFree(gameSession.shockWaveAnimation->pawnOriginalPositions);
+            gameSession.shockWaveAnimation->pawnOriginalPositions = NULL;
         }
         MemPtrFree(gameSession.shockWaveAnimation);
         gameSession.shockWaveAnimation = NULL;
