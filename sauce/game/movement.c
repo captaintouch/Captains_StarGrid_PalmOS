@@ -344,13 +344,13 @@ MOVEMENT_SECTION
 Coordinate movement_positionAwayFrom(Coordinate sourceCoordinate, Pawn *pawn, Pawn *allPawns, int totalPawnCount, UInt8 distance) {
     Coordinate preferredPosition;
     int halfDistance = fmax(1.0, (float)distance / 2.0);
-    int vectorX = -sourceCoordinate.x - pawn->position.x;
-    int vectorY = -sourceCoordinate.y - pawn->position.y;
+    int vectorX = sourceCoordinate.x - pawn->position.x;
+    int vectorY = sourceCoordinate.y - pawn->position.y;
     if (vectorX > 1) vectorX = 1;
     if (vectorX < -1) vectorX = -1;
     if (vectorY > 1) vectorY = 1;
     if (vectorY < -1) vectorY = -1;
 
-    preferredPosition = (Coordinate) {pawn->position.x + vectorX * halfDistance, pawn->position.y + vectorY * halfDistance};
+    preferredPosition = (Coordinate) {pawn->position.x + -vectorX * halfDistance, pawn->position.y + -vectorY * halfDistance};
     return movement_closestTileToTargetInRange(pawn, preferredPosition, allPawns, totalPawnCount, false);
 }
