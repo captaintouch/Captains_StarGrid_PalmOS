@@ -73,6 +73,7 @@ typedef struct ShockWaveAnimation {
     Coordinate *pawnIntermediatePositions;
     Pawn *basePawn;
     int circleDiameter[WARPCIRCLECOUNT];
+    int maskCircleDiameter;
     Int32 launchTimestamp;
 } ShockWaveAnimation;
 

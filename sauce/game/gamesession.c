@@ -749,12 +749,9 @@ static void gameSession_progressUpdateShockWave() {
     }
 
     for (i = 0; i < WARPCIRCLECOUNT; i++) {
-        if (timePassedScale < 0.6) {
-            gameSession.shockWaveAnimation->circleDiameter[i] = (float)(timePassedScale) * (float)(WARPCIRCLECOUNT - i) * 30.0;
-        } else {
-            gameSession.shockWaveAnimation->circleDiameter[i] = (float)(1.0 - timePassedScale) * (float)(WARPCIRCLECOUNT - i) * 30.0;
-        }
+        gameSession.shockWaveAnimation->circleDiameter[i] = (float)(timePassedScale) * (float)(WARPCIRCLECOUNT - i) * 30.0;
     }
+    gameSession.shockWaveAnimation->maskCircleDiameter = timePassedScale * timePassedScale * WARPCIRCLECOUNT * 30;
 
     if (timePassedScale >= 1) {
         gameActionLogic_clearShockwave();

@@ -80,6 +80,7 @@ static void game_drawWarpAndShockwaveAnimation() {
     Coordinate targetPosition;
     AppColor foreColor;
     int *circleDiameter;
+    int maskCircleDiameter = 0;
     if (!gameSession.warpAnimation.isWarping && gameSession.shockWaveAnimation == NULL) {
         return;
     }
@@ -91,6 +92,7 @@ static void game_drawWarpAndShockwaveAnimation() {
         circleDiameter = gameSession.shockWaveAnimation->circleDiameter;
         targetPosition = hexgrid_tileCenterPosition(gameSession.shockWaveAnimation->basePawn->position);
         foreColor = pawn_factionColor(gameSession.shockWaveAnimation->basePawn->faction, gameSession.colorSupport);
+        maskCircleDiameter = gameSession.shockWaveAnimation->maskCircleDiameter;
     } else {
         return;
     }
@@ -102,6 +104,12 @@ static void game_drawWarpAndShockwaveAnimation() {
             drawhelper_applyForeColor(CLOUDS);
         }
         drawhelper_drawCircle(viewport_convertedCoordinate(targetPosition), circleDiameter[i]);
+    }
+
+    if (maskCircleDiameter > 0) {
+        // TODO: Create an actual mask
+        drawhelper_applyForeColor(DRACULAORCHID);
+        drawhelper_drawCircle(viewport_convertedCoordinate(targetPosition), maskCircleDiameter);
     }
 }
 
@@ -367,7 +375,7 @@ static void game_drawPawns() {
                 }
             }
         }
-        
+
         if (!didDrawSprite) {
             hexgrid_drawSpriteAtTile(shipSprite, pawnPosition);
         }
@@ -779,12 +787,12 @@ static Boolean game_checkIfGameIsPaused(EventType *eventptr) {
 Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu) {
     gameSession_registerPenInput(eventptr);
     if (eventptr->eType == winDisplayChangedEvent) {
-        if ( FrmGetActiveFormID() == GAME_FORM) {
+        if (FrmGetActiveFormID() == GAME_FORM) {
             game_resetForm();
         } else {
             gameSession.drawingState.shouldResetGameForm = true;
         }
-        
+
         return true;
     }
     if (gameSession.drawingState.shouldResetGameForm && FrmGetActiveFormID() == GAME_FORM) {
