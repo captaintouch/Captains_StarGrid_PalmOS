@@ -156,6 +156,17 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
 }
 
 LEVEL_SECTION
+void level_addPawn(Pawn pawn, Level *level) {
+    Pawn *updatedPawns = MemPtrNew(sizeof(Pawn) * (level->pawnCount + 1));
+    MemSet(updatedPawns, sizeof(Pawn) * (level->pawnCount + 1), 0);
+    MemMove(updatedPawns, level->pawns, sizeof(Pawn) * level->pawnCount);
+    MemPtrFree(level->pawns);
+    level->pawns = updatedPawns;
+    level->pawns[level->pawnCount] = pawn;
+    level->pawnCount += 1;
+}
+
+LEVEL_SECTION
 static void level_applyPlacementCorners(Level *level, NewGameConfig config) {
     int i, j;
     int indices[MAXPLAYERCOUNT];

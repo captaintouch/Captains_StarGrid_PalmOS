@@ -61,5 +61,5 @@ NewGameConfig level_getNewGameConfig(Level *level, NewGameConfig oldConfig) LEVE
 UInt8 level_factionCount(NewGameConfig config) LEVEL_SECTION;
 Level level_create(NewGameConfig config) LEVEL_SECTION;
 void level_destroy(Level *level) LEVEL_SECTION;
-
+void level_addPawn(Pawn pawn, Level *level) LEVEL_SECTION;
 #endif

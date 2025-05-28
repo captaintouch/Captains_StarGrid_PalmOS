@@ -604,8 +604,13 @@ static void gameSession_handlePawnActionButtonSelection() {
         case MenuActionTypeShockwave:
             gameActionLogic_scheduleShockwave(gameSession.activePawn);
             gameSession.activePawn->inventory.baseActionLastActionTurn = gameSession.currentTurn;
+            break;
         case MenuActionTypeBuildShip:
-            // TODO: implement build ship action
+            homeBase = movement_homeBase(gameSession.activePawn, gameSession.level.pawns, gameSession.level.pawnCount);
+            closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
+            level_addPawn(
+                (Pawn){PAWNTYPE_SHIP, closestTile, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, false}, 0, gameSession.activePawn->faction, false, true},
+                &gameSession.level);
             gameSession.state = GAMESTATE_DEFAULT;
             break;
     }
@@ -790,13 +795,17 @@ static void gameSession_progressUpdateWarp() {
 static void gameSession_progressUpdateMovement() {
     Int32 timeSinceLaunch;
     float timePassedScale;
+    float totalAnimationTime = 1.7;
     if (gameSession.movement == NULL) {
         return;
+    }
+    if (gameSession.menuScreenType != MENUSCREEN_GAME) {
+        totalAnimationTime = 2.5;
     }
     gameSession.drawingState.shouldRedrawOverlay = true;
 
     timeSinceLaunch = TimGetTicks() - gameSession.movement->launchTimestamp;
-    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * ((float)gameSession.movement->trajectory.tileCount - 1) / 1.7);
+    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * ((float)gameSession.movement->trajectory.tileCount - 1) / totalAnimationTime);
     gameSession.movement->pawnPosition = movement_coordinateAtPercentageOfTrajectory(gameSession.movement->trajectory, timePassedScale, &gameSession.movement->pawn->orientation);
     gameSession_updateViewPortOffset(false);
 
