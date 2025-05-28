@@ -87,5 +87,6 @@ typedef struct Movement {
 
 Boolean isEqualCoordinate(Coordinate coordA, Coordinate coordB);
 Boolean isInvalidCoordinate(Coordinate coord);
+Boolean isPositionInBounds(Coordinate coord);
 
 #endif

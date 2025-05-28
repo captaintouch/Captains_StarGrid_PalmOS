@@ -8,3 +8,7 @@ Boolean isEqualCoordinate(Coordinate coordA, Coordinate coordB) {
 Boolean isInvalidCoordinate(Coordinate coord) {
     return coord.x < 0 || coord.y < 0;
 }
+
+Boolean isPositionInBounds(Coordinate coord) {
+    return coord.x < 0 || coord.y < 0 || coord.x >= HEXGRID_COLS || coord.y >= HEXGRID_ROWS;
+}
