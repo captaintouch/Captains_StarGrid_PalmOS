@@ -272,7 +272,7 @@ void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coo
             if (invalidCoordinates != NULL && movement_positionInCoordinates(newPosition, invalidCoordinates, invalidCoordinatesCount)) {
                 continue;
             }
-            if (newPosition.x >= 0 && newPosition.x < HEXGRID_COLS && newPosition.y >= 0 && newPosition.y < HEXGRID_ROWS) {
+            if (isPositionInBounds(newPosition)) {
                 positions[positionCount] = newPosition;
                 positionCount++;
             }
