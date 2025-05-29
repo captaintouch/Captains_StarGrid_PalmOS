@@ -131,7 +131,7 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
 #ifdef DEBUG
             drawhelper_drawTextWithValue("", possibleDamage, viewport_convertedCoordinate(hexgrid_tileCenterPosition(candidateTile)));
 #endif
-            if (!isInvalidCoordinate(candidateTile) && possibleDamage <= maxDamage && movement_distance(pawn->position, candidateTile) <= maxRange) {
+            if (isPositionInBounds(candidateTile) && possibleDamage <= maxDamage && movement_distance(pawn->position, candidateTile) <= maxRange) {
                 int distance = movement_distance(candidateTile, targetPosition);
                 if (distance < minDistance) {
                     minDistance = distance;
