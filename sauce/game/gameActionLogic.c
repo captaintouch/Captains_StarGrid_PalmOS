@@ -158,6 +158,7 @@ Boolean gameActionLogic_afterMove() {
         gameSession.activePawn->inventory.carryingFlag = true;
         gameSession.activePawn->inventory.flagOfFaction = selectedPawn->inventory.flagOfFaction;
         selectedPawn->inventory.carryingFlag = false;
+        gameSession.level.scores[gameSession.activePawn->faction].flagsStolen++;
     }
     // Check if flag was returned to player's base
     if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->faction == gameSession.activePawn->faction && gameSession.activePawn->inventory.carryingFlag) {
@@ -169,6 +170,7 @@ Boolean gameActionLogic_afterMove() {
             }
             if (gameSession.level.pawns[i].faction == gameSession.activePawn->inventory.flagOfFaction) {
                 gameSession.level.pawns[i].faction = gameSession.activePawn->faction;
+                gameSession.level.scores[gameSession.activePawn->faction].shipsCaptured++;
                 gameActionLogic_returnFlagToBase(&gameSession.level.pawns[i]);
                 if (gameSession.level.pawns[i].type == PAWNTYPE_BASE) {
                     gameSession.level.pawns[i].position = (Coordinate){-1, -1};
@@ -176,6 +178,7 @@ Boolean gameActionLogic_afterMove() {
             }
         }
         gameSession.activePawn->inventory.carryingFlag = false;
+        gameSession.level.scores[gameSession.activePawn->faction].flagsCaptured++;
         if (gameActionLogic_nonCapturedFlagsLeft(gameSession.activePawn->faction) > 0) {  // Still some flags left to capture
             FrmCustomAlert(GAME_ALERT_FLAGCAPTURED, NULL, NULL, NULL);
             if (gameActionLogic_checkForGameOver()) {
@@ -214,6 +217,8 @@ void gameActionLogic_afterAttack() {
     if (gameSession.attackAnimation->targetPawn->inventory.health <= 0) {
         gameSession.attackAnimation->targetPawn->inventory.health = 0;
         gameSession.attackAnimation->targetPawn->position = (Coordinate){-1, -1};
+        gameSession.level.scores[gameSession.activePawn->faction].shipsDestroyed++;
+        gameSession.level.scores[gameSession.attackAnimation->targetPawn->faction].shipsLost++;
 
         if (gameSession.attackAnimation->targetPawn->type == PAWNTYPE_BASE) {
             int i;

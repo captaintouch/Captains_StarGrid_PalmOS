@@ -2,6 +2,7 @@
 #define LEVEL_H_
 #define LEVEL_SECTION  __attribute__ ((section ("level")))
 #include "models.h"
+#include "scoring.h"
 
 #define MAXPLAYERCOUNT 4
 
@@ -52,6 +53,7 @@ typedef struct Level {
     int gridTextCount;
     ActionTile *actionTiles;
     int actionTileCount;
+    Score scores[MAXPLAYERCOUNT];
 } Level;
 
 Level level_startLevel() LEVEL_SECTION;
