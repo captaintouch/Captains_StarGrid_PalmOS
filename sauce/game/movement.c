@@ -327,7 +327,7 @@ Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Coordinate targetPosi
         for (dy = -maxRange; dy <= maxRange; dy++) {
             Coordinate candidateTile = {pawn->position.x + dx, pawn->position.y + dy};
             Boolean targetOccupied = allowBase ? movement_shipAtTarget(candidateTile, allPawns, totalPawnCount) : movement_shipOrBaseAtTarget(candidateTile, allPawns, totalPawnCount);
-            if (!isPositionInBounds(candidateTile) && !targetOccupied) {
+            if (isPositionInBounds(candidateTile) && !targetOccupied) {
                 int distance = movement_distance(candidateTile, targetPosition);
                 if (distance < minDistance) {
                     minDistance = distance;

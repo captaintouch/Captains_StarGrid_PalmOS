@@ -17,7 +17,8 @@ typedef enum TargetSelectionType {
 typedef enum MenuScreenType {
     MENUSCREEN_START,
     MENUSCREEN_PLAYERCONFIG,
-    MENUSCREEN_GAME
+    MENUSCREEN_GAME,
+    MENUSCREEN_SCORE
 } MenuScreenType;
 
 typedef enum GameState {

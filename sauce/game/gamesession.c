@@ -366,6 +366,7 @@ DmResID gameSession_menuTopTitleResource() {
         case MENUSCREEN_PLAYERCONFIG:
             return STRING_PLAYERCPU;
         case MENUSCREEN_GAME:
+        case MENUSCREEN_SCORE:
             return 0;
     }
     return 0;
@@ -378,6 +379,7 @@ DmResID gameSession_menuBottomTitleResource() {
         case MENUSCREEN_PLAYERCONFIG:
             return STRING_CONFIG;
         case MENUSCREEN_GAME:
+        case MENUSCREEN_SCORE:
             return 0;
     }
     return 0;
@@ -476,6 +478,7 @@ static Boolean gameSession_handleNonGameMenuTap(Coordinate selectedTile) {
         case MENUSCREEN_PLAYERCONFIG:
             return gameSession_handlePlayerConfigTap(selectedTile);
         case MENUSCREEN_GAME:
+        case MENUSCREEN_SCORE:
             break;
     }
     return false;
