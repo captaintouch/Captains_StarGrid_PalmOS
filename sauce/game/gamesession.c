@@ -121,6 +121,7 @@ static void gameSession_saveGameState() {
     sessionData.factionTurn = gameSession.factionTurn;
     for (i = 0; i < MAXPLAYERCOUNT; i++) {
         sessionData.factions[i] = gameSession.factions[i];
+        sessionData.scores[i] = gameSession.level.scores[i];
     }
 
     FtrPtrNew(APP_CREATOR_ID, FEATUREMEM_SAVESTATE_SESSIONDATA, sizeof(GameRestorableSessionData), &sessionDataPtr);
@@ -147,6 +148,7 @@ static Boolean gameSession_restoreGameState() {
     gameSession.factionTurn = sessionData->factionTurn;
     for (i = 0; i < MAXPLAYERCOUNT; i++) {
         gameSession.factions[i] = sessionData->factions[i];
+        gameSession.level.scores[i] = sessionData->scores[i];
     }
 
     gameSession.level.pawnCount = sessionData->pawnCount;
