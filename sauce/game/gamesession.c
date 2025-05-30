@@ -365,8 +365,9 @@ DmResID gameSession_menuTopTitleResource() {
             return STRING_CAPTAINS;
         case MENUSCREEN_PLAYERCONFIG:
             return STRING_PLAYERCPU;
-        case MENUSCREEN_GAME:
         case MENUSCREEN_SCORE:
+            return STRING_STARGRID;
+        case MENUSCREEN_GAME:
             return 0;
     }
     return 0;
@@ -378,8 +379,9 @@ DmResID gameSession_menuBottomTitleResource() {
             return STRING_STARGRID;
         case MENUSCREEN_PLAYERCONFIG:
             return STRING_CONFIG;
-        case MENUSCREEN_GAME:
         case MENUSCREEN_SCORE:
+            return STRING_SCORE;
+        case MENUSCREEN_GAME:
             return 0;
     }
     return 0;
@@ -827,7 +829,7 @@ Boolean gameSession_animating() {
 
 static void gameSession_cpuTurn() {
     int i;
-    if (gameSession_animating() || gameSession.state != GAMESTATE_DEFAULT || gameSession.factions[gameSession.factionTurn].human) {
+    if (gameSession_animating() || gameSession.state != GAMESTATE_DEFAULT|| gameSession.menuScreenType != MENUSCREEN_GAME || gameSession.factions[gameSession.factionTurn].human) {
         return;
     }
     for (i = 0; i < gameSession.level.pawnCount; i++) {

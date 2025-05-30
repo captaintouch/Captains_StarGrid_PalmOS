@@ -25,9 +25,16 @@ static UInt8 gameActionLogic_nonCapturedFlagsLeft(UInt8 faction) {
     return flagsLeft;
 }
 
-static void gameActionLogic_restartGame() {
+/*static void gameActionLogic_restartGame() {
     FrmCustomAlert(GAME_ALERT_ENDOFGAMETECHDEMO, NULL, NULL, NULL);
     gameSession_reset(false);
+}*/
+
+static void gameActionLogic_showScore() {
+    gameSession.menuScreenType = MENUSCREEN_SCORE;
+    gameSession.drawingState.shouldRedrawBackground = true;
+    gameSession.drawingState.shouldRedrawHeader = true;
+    gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
 static Boolean gameActionLogic_humanShipsLeft() {
@@ -139,7 +146,7 @@ static Boolean gameActionLogic_baseOnPosition(Coordinate position) {
 static Boolean gameActionLogic_checkForGameOver() {
     if (!gameSession.continueCPUPlay && !gameActionLogic_humanShipsLeft()) {
         if (FrmCustomAlert(GAME_ALERT_CPUCONTINUEPLAYING, NULL, NULL, NULL) != 0) { // Do not continue playing
-            gameActionLogic_restartGame();
+            gameActionLogic_showScore();
             return true;
         } else {
             gameSession.continueCPUPlay = true;
@@ -190,7 +197,7 @@ Boolean gameActionLogic_afterMove() {
             } else {
                 FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_CPUALLFLAGSCAPTURED, NULL, NULL, NULL);
             }
-            gameActionLogic_restartGame();
+            gameActionLogic_showScore();
         }
     }
 
@@ -246,7 +253,7 @@ void gameActionLogic_afterAttack() {
         } else {
             FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_CPUTOTALDESTRUCTION, NULL, NULL, NULL);
         }
-        gameActionLogic_restartGame();
+        gameActionLogic_showScore();
     }
 }
 
