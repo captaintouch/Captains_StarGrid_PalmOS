@@ -130,15 +130,20 @@ NewGameConfig level_getNewGameConfig(Level *level, NewGameConfig oldConfig) {
 LEVEL_SECTION
 void level_addScorePawns(Level *level) {
     // TODO: Remove all pawns that are on Page 1 and Page 2
-
-
+    if (level->gridTexts != NULL) {
+        MemPtrFree(level->gridTexts);
+        level->gridTexts = NULL;
+    }
+    level->gridTexts = MemPtrNew(sizeof(GridText) * (1));
+    MemSet(level->gridTexts, sizeof(GridText) * (1), 0);
+    level->gridTexts[0] = (GridText){(Coordinate){1, 1}, STRING_SHIPSDESTROYED, false, true, false};
+    level->gridTextCount = 1;
 }
 
 LEVEL_SECTION
 void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
     int i;
     int index;
-    int pawnCount = level->pawnCount;
     int additionalPawnCount = 4;
     int additionalGridTexts = 1;
     GridText *updatedGridTexts;

@@ -36,6 +36,7 @@ static void gameActionLogic_showScore() {
     gameSession.drawingState.shouldRedrawHeader = true;
     gameSession.drawingState.shouldRedrawOverlay = true;
     gameSession.activePawn->type = PAWNTYPE_SHIP;
+    level_addScorePawns(&gameSession.level);
     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, 0});
 }
 

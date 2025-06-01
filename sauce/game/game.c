@@ -289,9 +289,10 @@ static void game_drawGridTexts() {
 
         if (gridText->simpleText) {
             Coordinate drawPosition = viewport_convertedCoordinate(hexgrid_tileCenterPosition(gridText->position));
+            int offset = gridText->position.y % 2 == 0 ? -(HEXTILE_SIZE / 2) : 0;
             drawhelper_applyTextColor(CLOUDS);
             drawhelper_applyBackgroundColor(DRACULAORCHID);
-            drawhelper_drawText(text, (Coordinate){drawPosition.x - HEXTILE_SIZE / 2 - 10, drawPosition.y - HEXTILE_SIZE / 2});
+            drawhelper_drawText(text, (Coordinate){drawPosition.x - HEXTILE_SIZE / 2 + offset, drawPosition.y - HEXTILE_SIZE / 2});
         } else {
             drawhelper_applyBackgroundColor(color);
             for (j = 0; text[j] != '\0'; j++) {
