@@ -35,6 +35,8 @@ static void gameActionLogic_showScore() {
     gameSession.drawingState.shouldRedrawBackground = true;
     gameSession.drawingState.shouldRedrawHeader = true;
     gameSession.drawingState.shouldRedrawOverlay = true;
+    gameSession.activePawn->type = PAWNTYPE_SHIP;
+    gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, 0});
 }
 
 static Boolean gameActionLogic_humanShipsLeft() {
