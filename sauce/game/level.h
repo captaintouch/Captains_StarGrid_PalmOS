@@ -3,8 +3,7 @@
 #define LEVEL_SECTION  __attribute__ ((section ("level")))
 #include "models.h"
 #include "scoring.h"
-
-#define MAXPLAYERCOUNT 4
+#include "../constants.h"
 
 typedef struct PlayerConfig {
     Boolean active;
@@ -16,7 +15,7 @@ typedef enum PlayerPlacementStrategy {
 } PlayerPlacementStrategy;
 
 typedef struct NewGameConfig {
-    PlayerConfig playerConfig[MAXPLAYERCOUNT];
+    PlayerConfig playerConfig[GAMEMECHANICS_MAXPLAYERCOUNT];
     PlayerPlacementStrategy placementStrategy;
     int shipCount;
 } NewGameConfig;
@@ -53,7 +52,7 @@ typedef struct Level {
     int gridTextCount;
     ActionTile *actionTiles;
     int actionTileCount;
-    Score scores[MAXPLAYERCOUNT];
+    Score scores[GAMEMECHANICS_MAXPLAYERCOUNT];
 } Level;
 
 Level level_startLevel() LEVEL_SECTION;

@@ -27,7 +27,7 @@ static void level_addPawns(Pawn *newPawns, int additionalPawnCount, Level *level
 LEVEL_SECTION
 UInt8 level_factionCount(NewGameConfig config) {
     int i, activePlayers = 0;
-    for (i = 0; i < MAXPLAYERCOUNT; i++) {
+    for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
         if (config.playerConfig[i].active) {
             activePlayers++;
         }
@@ -118,7 +118,7 @@ NewGameConfig level_getNewGameConfig(Level *level, NewGameConfig oldConfig) {
         }
     }
 
-    for (i = 0; i < MAXPLAYERCOUNT; i++) {
+    for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
         config.playerConfig[i].active = i < activePlayers;
     }
 
@@ -134,10 +134,11 @@ void level_addScorePawns(Level *level) {
         MemPtrFree(level->gridTexts);
         level->gridTexts = NULL;
     }
-    level->gridTexts = MemPtrNew(sizeof(GridText) * (1));
-    MemSet(level->gridTexts, sizeof(GridText) * (1), 0);
-    level->gridTexts[0] = (GridText){(Coordinate){1, 1}, STRING_SHIPSDESTROYED, false, true, false};
-    level->gridTextCount = 1;
+    level->gridTexts = MemPtrNew(sizeof(GridText) * (2));
+    MemSet(level->gridTexts, sizeof(GridText) * (2), 0);
+    level->gridTexts[0] = (GridText){(Coordinate){1, 1}, STRING_DESTROYED, false, true, false};
+    level->gridTexts[1] = (GridText){(Coordinate){1, 3}, STRING_CAPTURED, false, true, false};
+    level->gridTextCount = 2;
 }
 
 LEVEL_SECTION
@@ -193,16 +194,16 @@ void level_addPawn(Pawn pawn, Level *level) {
 LEVEL_SECTION
 static void level_applyPlacementCorners(Level *level, NewGameConfig config) {
     int i, j;
-    int indices[MAXPLAYERCOUNT];
+    int indices[GAMEMECHANICS_MAXPLAYERCOUNT];
     int pawnIndex = 0;
     Coordinate baseCoordinates[] = {
         (Coordinate){1, 1}, (Coordinate){HEXGRID_COLS - 2, HEXGRID_ROWS - 2}, (Coordinate){1, HEXGRID_ROWS - 2}, (Coordinate){HEXGRID_COLS - 2, 1}
     };
 
-    mathIsFun_shuffleIndices(indices, MAXPLAYERCOUNT);
+    mathIsFun_shuffleIndices(indices, GAMEMECHANICS_MAXPLAYERCOUNT);
 
     // Set the bases
-    for (i = 0; i < MAXPLAYERCOUNT; i++) {
+    for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
         int faction = indices[i];
         Coordinate baseCoordinate = baseCoordinates[i];
         Pawn *basePawn;
@@ -238,7 +239,7 @@ Level level_create(NewGameConfig config) {
     level.pawns = MemPtrNew(sizeof(Pawn) * level.pawnCount);
     MemSet(level.pawns, sizeof(Pawn) * level.pawnCount, 0);
 
-    MemSet(level.scores, sizeof(Score) * MAXPLAYERCOUNT, 0);
+    MemSet(level.scores, sizeof(Score) * GAMEMECHANICS_MAXPLAYERCOUNT, 0);
 
     switch (config.placementStrategy) {
         case PLAYERPLACEMENTSTRATEGY_CORNERS:

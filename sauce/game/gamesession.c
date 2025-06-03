@@ -33,7 +33,7 @@ Faction gameSession_factionWithRandomizedCPUProfile() {
 static NewGameConfig gameSession_defaultNewGameConfig() {
     NewGameConfig config;
     int i;
-    for (i = 0; i < MAXPLAYERCOUNT; i++) {
+    for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
         config.playerConfig[i].active = true;
         config.playerConfig[i].isHuman = i == 0;
     }
@@ -119,7 +119,7 @@ static void gameSession_saveGameState() {
     sessionData.pawnCount = gameSession.level.pawnCount;
     sessionData.factionCount = gameSession.factionCount;
     sessionData.factionTurn = gameSession.factionTurn;
-    for (i = 0; i < MAXPLAYERCOUNT; i++) {
+    for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
         sessionData.factions[i] = gameSession.factions[i];
         sessionData.scores[i] = gameSession.level.scores[i];
     }
@@ -146,7 +146,7 @@ static Boolean gameSession_restoreGameState() {
     gameSession.currentTurn = sessionData->currentTurn;
     gameSession.factionCount = sessionData->factionCount;
     gameSession.factionTurn = sessionData->factionTurn;
-    for (i = 0; i < MAXPLAYERCOUNT; i++) {
+    for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
         gameSession.factions[i] = sessionData->factions[i];
         gameSession.level.scores[i] = sessionData->scores[i];
     }

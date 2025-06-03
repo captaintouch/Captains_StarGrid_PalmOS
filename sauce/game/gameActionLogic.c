@@ -162,6 +162,11 @@ static Boolean gameActionLogic_checkForGameOver() {
 Boolean gameActionLogic_afterMove() {
     Boolean didScheduleMovement = false;
     Pawn *selectedPawn = gameSession.movement->targetPawn;
+    if (gameSession.menuScreenType == MENUSCREEN_GAME) {
+        gameActionLogic_showScore();
+    return false;
+    }
+    
     StrCopy(gameSession.cpuActionText, "");
     // Check if flag was captured
     if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->inventory.carryingFlag && !gameSession.activePawn->inventory.carryingFlag && selectedPawn->inventory.flagOfFaction != gameSession.activePawn->faction) {
