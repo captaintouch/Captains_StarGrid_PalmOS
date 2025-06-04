@@ -239,7 +239,7 @@ Level level_create(NewGameConfig config) {
     level.pawns = MemPtrNew(sizeof(Pawn) * level.pawnCount);
     MemSet(level.pawns, sizeof(Pawn) * level.pawnCount, 0);
 
-    MemSet(level.scores, sizeof(Score) * GAMEMECHANICS_MAXPLAYERCOUNT, 0);
+    MemSet(level.scores, sizeof(LevelScore) * GAMEMECHANICS_MAXPLAYERCOUNT, 0);
 
     switch (config.placementStrategy) {
         case PLAYERPLACEMENTSTRATEGY_CORNERS:

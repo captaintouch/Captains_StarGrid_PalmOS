@@ -51,7 +51,7 @@ typedef struct Faction {
 typedef struct GameRestorableSessionData {
     int pawnCount;
     Faction factions[GAMEMECHANICS_MAXPLAYERCOUNT];
-    Score scores[GAMEMECHANICS_MAXPLAYERCOUNT];
+    LevelScore scores[GAMEMECHANICS_MAXPLAYERCOUNT];
     int factionCount;
     int factionTurn;
     int currentTurn;

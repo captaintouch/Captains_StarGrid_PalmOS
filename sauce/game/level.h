@@ -52,7 +52,7 @@ typedef struct Level {
     int gridTextCount;
     ActionTile *actionTiles;
     int actionTileCount;
-    Score scores[GAMEMECHANICS_MAXPLAYERCOUNT];
+    LevelScore scores[GAMEMECHANICS_MAXPLAYERCOUNT];
 } Level;
 
 Level level_startLevel() LEVEL_SECTION;
