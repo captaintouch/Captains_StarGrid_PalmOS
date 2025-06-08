@@ -170,7 +170,7 @@ Boolean gameActionLogic_afterMove() {
     Pawn *selectedPawn = gameSession.movement->targetPawn;
     if (gameSession.menuScreenType == MENUSCREEN_GAME) {
         gameActionLogic_showScore();
-        return false;
+        return true;
     }
 
     StrCopy(gameSession.cpuActionText, "");
