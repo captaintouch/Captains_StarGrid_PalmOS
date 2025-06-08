@@ -292,7 +292,7 @@ static void game_drawGridTexts() {
             int offset = gridText->position.y % 2 == 0 ? -(HEXTILE_SIZE / 2) : 0;
             drawhelper_applyTextColor(CLOUDS);
             drawhelper_applyBackgroundColor(DRACULAORCHID);
-            drawhelper_drawText(text, (Coordinate){drawPosition.x - HEXTILE_SIZE / 2 + offset, drawPosition.y - HEXTILE_SIZE / 2});
+            drawhelper_drawText(text, (Coordinate){drawPosition.x - HEXTILE_SIZE / 2 + offset + gridText->textOffset.x, drawPosition.y - HEXTILE_SIZE / 2 + gridText->textOffset.y});
         } else {
             drawhelper_applyBackgroundColor(color);
             for (j = 0; text[j] != '\0'; j++) {

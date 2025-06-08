@@ -112,5 +112,6 @@ Boolean gameSession_animating();
 AppColor gameSession_hightlightTilesColor();
 DmResID gameSession_menuTopTitleResource();
 DmResID gameSession_menuBottomTitleResource();
+Pawn *gameSession_pawnAtTile(Coordinate tile);
 
 #endif

@@ -23,6 +23,9 @@ typedef struct LevelScore {
 Score scoring_scoreFromLevelScore(LevelScore levelScore);
 Score scoring_appendScore(Score lScore, Score rScore);
 
+int scoring_totalDestroyedShips(LevelScore score);
+int scoring_totalCapturedShips(LevelScore score);
+
 // functions: 
 // - combine score (player saved total score + level score)
 // - rank for score

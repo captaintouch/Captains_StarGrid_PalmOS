@@ -22,6 +22,7 @@ typedef struct NewGameConfig {
 
 typedef struct GridText {
     Coordinate position;
+    Coordinate textOffset;
     int textResource;
     Boolean alternateColor;
     Boolean simpleText;
@@ -63,5 +64,5 @@ UInt8 level_factionCount(NewGameConfig config) LEVEL_SECTION;
 Level level_create(NewGameConfig config) LEVEL_SECTION;
 void level_destroy(Level *level) LEVEL_SECTION;
 void level_addPawn(Pawn pawn, Level *level) LEVEL_SECTION;
-void level_addScorePawns(Level *level) LEVEL_SECTION;
+void level_addScorePawns(Level *level, int faction) LEVEL_SECTION;
 #endif

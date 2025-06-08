@@ -31,12 +31,18 @@ static UInt8 gameActionLogic_nonCapturedFlagsLeft(UInt8 faction) {
 }*/
 
 static void gameActionLogic_showScore() {
+    Coordinate oldPosition = gameSession.activePawn->position;
     gameSession.menuScreenType = MENUSCREEN_SCORE;
     gameSession.drawingState.shouldRedrawBackground = true;
     gameSession.drawingState.shouldRedrawHeader = true;
     gameSession.drawingState.shouldRedrawOverlay = true;
     gameSession.activePawn->type = PAWNTYPE_SHIP;
-    level_addScorePawns(&gameSession.level);
+    gameSession.level.scores[gameSession.activePawn->faction].shipsDestroyed[1] = 2;
+    gameSession.level.scores[gameSession.activePawn->faction].shipsDestroyed[2] = 1;
+    gameSession.level.scores[gameSession.activePawn->faction].shipsDestroyed[3] = 2;
+    gameSession.level.scores[gameSession.activePawn->faction].shipsCaptured[3] = 2;
+    level_addScorePawns(&gameSession.level, gameSession.activePawn->faction);
+    gameSession.activePawn = gameSession_pawnAtTile(oldPosition);
     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, 0});
 }
 

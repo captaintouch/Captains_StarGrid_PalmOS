@@ -26,3 +26,19 @@ Score scoring_appendScore(Score lScore, Score rScore) {
     newScore.shipsLost = lScore.shipsLost + rScore.shipsLost;
     return newScore;
 }
+
+int scoring_totalDestroyedShips(LevelScore score) {
+    int i, quantity = 0;
+    for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
+        quantity += score.shipsDestroyed[i];
+    }
+    return quantity;
+}
+
+int scoring_totalCapturedShips(LevelScore score) {
+    int i, quantity = 0;
+    for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
+        quantity += score.shipsCaptured[i];
+    }
+    return quantity;
+}

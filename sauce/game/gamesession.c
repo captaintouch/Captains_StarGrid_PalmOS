@@ -207,7 +207,7 @@ static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn) {
     gameSession.viewportOffset = gameSession_validViewportOffset(position);
 }
 
-static Pawn *gameSession_pawnAtTile(Coordinate tile) {
+Pawn *gameSession_pawnAtTile(Coordinate tile) {
     int i;
     for (i = 0; i < gameSession.level.pawnCount; i++) {
         if (gameSession.level.pawns[i].position.x == tile.x && gameSession.level.pawns[i].position.y == tile.y && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
