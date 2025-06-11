@@ -52,3 +52,12 @@ int scoring_totalCapturedShips(LevelScore score) {
     }
     return quantity;
 }
+
+int scoring_scoreValue(Score score) {
+    return score.shipsDestroyed + score.shipsCaptured + score.flagsStolen * 2 + score.flagsCaptured * 3;
+}
+
+int scoring_levelScoreValue(LevelScore levelScore) {
+    Score score = scoring_scoreFromLevelScore(levelScore);
+    return scoring_scoreValue(score);
+}

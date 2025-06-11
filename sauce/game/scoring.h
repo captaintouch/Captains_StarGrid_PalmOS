@@ -22,6 +22,8 @@ typedef struct LevelScore {
 
 Score scoring_scoreFromLevelScore(LevelScore levelScore);
 Score scoring_appendScore(Score lScore, Score rScore);
+int scoring_scoreValue(Score score);
+int scoring_levelScoreValue(LevelScore levelScore);
 
 int scoring_totalDestroyedShips(LevelScore score);
 int scoring_totalCapturedShips(LevelScore score);
