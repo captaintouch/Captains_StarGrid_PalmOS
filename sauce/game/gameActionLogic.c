@@ -41,6 +41,8 @@ static void gameActionLogic_showScore() {
     gameSession.level.scores[gameSession.activePawn->faction].shipsDestroyed[2] = 1;
     gameSession.level.scores[gameSession.activePawn->faction].shipsDestroyed[3] = 2;
     gameSession.level.scores[gameSession.activePawn->faction].shipsCaptured[3] = 2;
+    gameSession.level.scores[gameSession.activePawn->faction].basesDestroyed[2] = true;
+    gameSession.level.scores[gameSession.activePawn->faction].basesDestroyed[3] = true;
     level_addScorePawns(&gameSession.level, gameSession.activePawn->faction);
     gameSession.activePawn = gameSession_pawnAtTile(oldPosition);
     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, 0});

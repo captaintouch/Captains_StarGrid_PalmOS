@@ -35,6 +35,16 @@ int scoring_totalDestroyedShips(LevelScore score) {
     return quantity;
 }
 
+int scoring_totalDestroyedBases(LevelScore score) {
+    int i, quantity = 0;
+    for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
+        if (score.basesDestroyed[i]) {
+            quantity++;
+        }
+    }
+    return quantity;
+}
+
 int scoring_totalCapturedShips(LevelScore score) {
     int i, quantity = 0;
     for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {

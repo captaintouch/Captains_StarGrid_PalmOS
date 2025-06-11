@@ -25,6 +25,7 @@ Score scoring_appendScore(Score lScore, Score rScore);
 
 int scoring_totalDestroyedShips(LevelScore score);
 int scoring_totalCapturedShips(LevelScore score);
+int scoring_totalDestroyedBases(LevelScore score);
 
 // functions: 
 // - combine score (player saved total score + level score)

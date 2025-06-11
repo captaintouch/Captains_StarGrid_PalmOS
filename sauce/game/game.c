@@ -284,8 +284,15 @@ static void game_drawGridTexts() {
     for (i = 0; i < gameSession.level.gridTextCount; i++) {
         GridText *gridText = &gameSession.level.gridTexts[i];
         AppColor color = gridText->alternateColor ? ALIZARIN : BELIZEHOLE;
-        MemHandle resourceHandle = DmGetResource(strRsc, gridText->textResource);
-        Char *text = (char *)MemHandleLock(resourceHandle);
+        MemHandle resourceHandle;
+        Char *text;
+
+        if (gridText->textResource > 0) {
+            resourceHandle = DmGetResource(strRsc, gridText->textResource);
+            text = (char *)MemHandleLock(resourceHandle);
+        } else {
+            text = gridText->fixedText;
+        }
 
         if (gridText->simpleText) {
             Coordinate drawPosition = viewport_convertedCoordinate(hexgrid_tileCenterPosition(gridText->position));
@@ -310,8 +317,10 @@ static void game_drawGridTexts() {
             }
         }
 
-        MemHandleUnlock(resourceHandle);
-        DmReleaseResource(resourceHandle);
+        if (gridText->textResource > 0) {
+            MemHandleUnlock(resourceHandle);
+            DmReleaseResource(resourceHandle);
+        }
     }
     FntSetFont(oldFont);
 }

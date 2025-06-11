@@ -58,9 +58,9 @@ Level level_startLevel() {
     level.gridTexts = MemPtrNew(sizeof(GridText) * 3);
     MemSet(level.gridTexts, sizeof(GridText) * 3, 0);
     level.gridTextCount = 3;
-    level.gridTexts[0] = (GridText){(Coordinate){1, 2}, (Coordinate){0, 0}, STRING_NEW, false, false};
-    level.gridTexts[1] = (GridText){(Coordinate){1, 4}, (Coordinate){0, 0}, STRING_RANK, false, false};
-    level.gridTexts[2] = (GridText){(Coordinate){1, 6}, (Coordinate){0, 0}, STRING_ABOUT, false, false};
+    level.gridTexts[0] = (GridText){(Coordinate){1, 2}, (Coordinate){0, 0}, STRING_NEW, NULL, false, false};
+    level.gridTexts[1] = (GridText){(Coordinate){1, 4}, (Coordinate){0, 0}, STRING_RANK, NULL, false, false};
+    level.gridTexts[2] = (GridText){(Coordinate){1, 6}, (Coordinate){0, 0}, STRING_ABOUT, NULL, false, false};
 
     return level;
 }
@@ -128,12 +128,10 @@ NewGameConfig level_getNewGameConfig(Level *level, NewGameConfig oldConfig) {
 LEVEL_SECTION
 static void level_removePawn(int index, Level *level) {
     int i;
-    if (index <= level->pawnCount - 1) {
-        for (i = index; i < level->pawnCount; i++) {
-            level->pawns[i] = level->pawns[i + 1];
-        }
+    for (i = index; i < level->pawnCount - 1; i++) {
+        level->pawns[i] = level->pawns[i + 1];
     }
-    level->pawnCount--;
+    level->pawnCount = level->pawnCount - 1;
     MemPtrResize(level->pawns, sizeof(Pawn) * level->pawnCount);
 }
 
@@ -143,7 +141,8 @@ static void level_removePawnsBelowCoordinates(Coordinate coord, Level *level) {
     for (i = 0; i < level->pawnCount; i++) {
         if (level->pawns[i].position.x < coord.x && level->pawns[i].position.y < coord.y) {
             level_removePawn(i, level);
-            i = 0;
+            level_removePawnsBelowCoordinates(coord, level);
+            return;
         }
     }
 }
@@ -152,7 +151,7 @@ LEVEL_SECTION
 void level_addScorePawns(Level *level, int faction) {
     Pawn *newPawns;
     LevelScore score = level->scores[faction];
-    int totalDestroyed = scoring_totalDestroyedShips(score);
+    int totalDestroyed = scoring_totalDestroyedShips(score) + scoring_totalDestroyedBases(score);
     int totalCaptured = scoring_totalCapturedShips(score);
     int i, factionIndex, pawnCount = 0;
     level_removePawnsBelowCoordinates((Coordinate){9, 9}, level);
@@ -160,15 +159,23 @@ void level_addScorePawns(Level *level, int faction) {
         MemPtrFree(level->gridTexts);
         level->gridTexts = NULL;
     }
-    level->gridTexts = MemPtrNew(sizeof(GridText) * (2));
-    level->gridTexts[0] = (GridText){(Coordinate){1, 1}, (Coordinate){0, 4}, STRING_DESTROYED, false, true, false};
-    level->gridTexts[1] = (GridText){(Coordinate){1, 3}, (Coordinate){0, 4}, STRING_CAPTURED, false, true, false};
-    level->gridTextCount = 2;
+    level->gridTexts = MemPtrNew(sizeof(GridText) * (4));
+    level->gridTexts[0] = (GridText){(Coordinate){0, 1}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_DESTROYED, "", false, true, false};
+    level->gridTexts[1] = (GridText){(Coordinate){0, 3}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_CAPTURED, "", false, true, false};
+    level->gridTexts[2] = (GridText){(Coordinate){0, 2}, (Coordinate){HEXTILE_SIZE / 2, 4}, 0, "", false, true, false};
+    StrIToA(level->gridTexts[2].fixedText, totalDestroyed);
+    level->gridTexts[3] = (GridText){(Coordinate){0, 4}, (Coordinate){HEXTILE_SIZE / 2, 4}, 0, "", false, true, false};
+    StrIToA(level->gridTexts[3].fixedText, totalCaptured);
+    level->gridTextCount = 4;
 
     // add destroyed ships
     newPawns = MemPtrNew(sizeof(Pawn) * totalDestroyed);
     pawnCount = 0;
     for (factionIndex = 0; factionIndex < GAMEMECHANICS_MAXPLAYERCOUNT; factionIndex++) {
+        if (score.basesDestroyed[factionIndex]) {
+            newPawns[pawnCount] = (Pawn){PAWNTYPE_BASE, (Coordinate){1 + pawnCount, 2}, (Inventory){1, 0, 0, 0, false}, 4, factionIndex, false, false};
+            pawnCount++;
+        }
         for (i = 0; i < score.shipsDestroyed[factionIndex]; i++) {
             newPawns[pawnCount] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1 + pawnCount, 2}, (Inventory){1, 0, 0, 0, false}, 4, factionIndex, false, false};
             pawnCount++;
@@ -229,7 +236,7 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
     MemPtrFree(level->gridTexts);
     level->gridTexts = updatedGridTexts;
 
-    level->gridTexts[level->gridTextCount] = (GridText){(Coordinate){8, 6}, (Coordinate){0, 0}, STRING_PLAYERS, false, true};
+    level->gridTexts[level->gridTextCount] = (GridText){(Coordinate){8, 6}, (Coordinate){0, 0}, STRING_PLAYERS, "", false, true};
     level->gridTextCount = level->gridTextCount + 1;
 
     level_applyNewGameConfig(newGameConfig, level);
