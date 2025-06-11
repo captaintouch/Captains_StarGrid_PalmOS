@@ -159,14 +159,17 @@ void level_addScorePawns(Level *level, int faction) {
         MemPtrFree(level->gridTexts);
         level->gridTexts = NULL;
     }
-    level->gridTexts = MemPtrNew(sizeof(GridText) * (4));
+    level->gridTextCount = 6;
+    level->gridTexts = MemPtrNew(sizeof(GridText) * (level->gridTextCount));
     level->gridTexts[0] = (GridText){(Coordinate){0, 1}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_DESTROYED, "", false, true, false};
     level->gridTexts[1] = (GridText){(Coordinate){0, 3}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_CAPTURED, "", false, true, false};
     level->gridTexts[2] = (GridText){(Coordinate){0, 2}, (Coordinate){HEXTILE_SIZE / 2, 4}, 0, "", false, true, false};
     StrIToA(level->gridTexts[2].fixedText, totalDestroyed);
     level->gridTexts[3] = (GridText){(Coordinate){0, 4}, (Coordinate){HEXTILE_SIZE / 2, 4}, 0, "", false, true, false};
     StrIToA(level->gridTexts[3].fixedText, totalCaptured);
-    level->gridTextCount = 4;
+    level->gridTexts[4] = (GridText){(Coordinate){0, 5}, (Coordinate){HEXTILE_SIZE / 2, 10}, 0, "", false, true, false};
+    StrIToA(level->gridTexts[4].fixedText, score.flagsStolen);
+    level->gridTexts[5] = (GridText){(Coordinate){1, 5}, (Coordinate){HEXTILE_SIZE / 2, 10}, STRING_FLAGSSTOLEN, "", false, true, false};
 
     // add destroyed ships
     newPawns = MemPtrNew(sizeof(Pawn) * totalDestroyed);
