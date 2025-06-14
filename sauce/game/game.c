@@ -244,6 +244,7 @@ static void game_drawActionTiles() {
                     sprite = &spriteLibrary.cpuSprite;
                     break;
                 case ACTIONTILEIDENTIFIER_LAUNCHGAME:
+                case ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS:
                     sprite = NULL;
                     FntSetFont(symbolFont);
                     playChar[0] = 0x04;
@@ -507,6 +508,7 @@ static void game_drawGameStartHeader() {
     char *text;
     Coordinate screenSize;
     int centerX;
+    char fixedText[20];
 
     if (gameSession.menuScreenType == MENUSCREEN_GAME || !gameSession.drawingState.shouldRedrawHeader) {
         return;
@@ -529,13 +531,20 @@ static void game_drawGameStartHeader() {
     MemHandleUnlock(resourceHandle);
     DmReleaseResource(resourceHandle);
 
-    resourceHandle = DmGetResource(strRsc, gameSession_menuBottomTitleResource());
-    text = (char *)MemHandleLock(resourceHandle);
+    if (gameSession_useValueForBottomTitle()) {
+        StrIToA(fixedText, gameSession_valueForBottomTitle());
+        text = fixedText;
+    } else {
+        resourceHandle = DmGetResource(strRsc, gameSession_menuBottomTitleResource());
+        text = (char *)MemHandleLock(resourceHandle);
+    }
     FntSetFont(largeBoldFont);
     centerX = screenSize.x / 2 - FntCharsWidth(text, StrLen(text)) / 2;
     drawhelper_drawText(text, (Coordinate){centerX, 12});
-    MemHandleUnlock(resourceHandle);
-    DmReleaseResource(resourceHandle);
+    if (!gameSession_useValueForBottomTitle()) {
+        MemHandleUnlock(resourceHandle);
+        DmReleaseResource(resourceHandle);
+    }
     FntSetFont(oldFont);
 
     drawhelper_applyForeColor(SUNFLOWER);

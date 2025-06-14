@@ -366,11 +366,19 @@ DmResID gameSession_menuTopTitleResource() {
         case MENUSCREEN_PLAYERCONFIG:
             return STRING_PLAYERCPU;
         case MENUSCREEN_SCORE:
-            return STRING_STARGRID;
+            return STRING_LEVELSCORE;
         case MENUSCREEN_GAME:
             return 0;
     }
     return 0;
+}
+
+Boolean gameSession_useValueForBottomTitle() {
+    return gameSession.menuScreenType == MENUSCREEN_SCORE;
+}
+
+int gameSession_valueForBottomTitle() {
+    return gameSession.menuScreenType == MENUSCREEN_SCORE ? scoring_levelScoreValue(gameSession.level.scores, gameSession.activePawn->faction) * 121 : -1;
 }
 
 DmResID gameSession_menuBottomTitleResource() {
@@ -380,7 +388,6 @@ DmResID gameSession_menuBottomTitleResource() {
         case MENUSCREEN_PLAYERCONFIG:
             return STRING_CONFIG;
         case MENUSCREEN_SCORE:
-            return STRING_SCORE;
         case MENUSCREEN_GAME:
             return 0;
     }
@@ -463,6 +470,8 @@ static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
                 case ACTIONTILEIDENTIFIER_FOURPLAYERS:
                     config.playerConfig[2].active = true;
                     config.playerConfig[3].active = true;
+                    break;
+                case ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS:
                     break;
             }
             level_applyNewGameConfig(config, &gameSession.level);

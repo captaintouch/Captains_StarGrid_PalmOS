@@ -111,6 +111,8 @@ Boolean gameSession_shouldShowHealthBar();
 Boolean gameSession_animating();
 AppColor gameSession_hightlightTilesColor();
 DmResID gameSession_menuTopTitleResource();
+Boolean gameSession_useValueForBottomTitle();
+int gameSession_valueForBottomTitle();
 DmResID gameSession_menuBottomTitleResource();
 Pawn *gameSession_pawnAtTile(Coordinate tile);
 

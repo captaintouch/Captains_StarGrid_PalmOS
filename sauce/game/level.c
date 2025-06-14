@@ -81,6 +81,7 @@ void level_applyNewGameConfig(NewGameConfig config, Level *level) {
                 level->actionTiles[i].hidden = level->actionTiles[i].tag > activePlayers - 1;
                 break;
             case ACTIONTILEIDENTIFIER_LAUNCHGAME:
+            case ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS:
                 break;
             case ACTIONTILEIDENTIFIER_TWOPLAYERS:
             case ACTIONTILEIDENTIFIER_THREEPLAYERS:
@@ -107,6 +108,7 @@ NewGameConfig level_getNewGameConfig(Level *level, NewGameConfig oldConfig) {
                 config.playerConfig[level->actionTiles[i].tag].isHuman = false;
                 break;
             case ACTIONTILEIDENTIFIER_LAUNCHGAME:
+            case ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS:
                 break;
             case ACTIONTILEIDENTIFIER_TWOPLAYERS:
             case ACTIONTILEIDENTIFIER_THREEPLAYERS:
@@ -151,6 +153,7 @@ LEVEL_SECTION
 void level_addScorePawns(Level *level, int faction) {
     Pawn *newPawns;
     LevelScore score = level->scores[faction];
+    Score generalScore = scoring_scoreFromLevelScores(level->scores, faction);
     int totalDestroyed = scoring_totalDestroyedShips(score) + scoring_totalDestroyedBases(score);
     int totalCaptured = scoring_totalCapturedShips(score);
     int i, factionIndex, pawnCount = 0;
@@ -159,7 +162,7 @@ void level_addScorePawns(Level *level, int faction) {
         MemPtrFree(level->gridTexts);
         level->gridTexts = NULL;
     }
-    level->gridTextCount = 6;
+    level->gridTextCount = 8;
     level->gridTexts = MemPtrNew(sizeof(GridText) * (level->gridTextCount));
     level->gridTexts[0] = (GridText){(Coordinate){0, 1}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_DESTROYED, "", false, true, false};
     level->gridTexts[1] = (GridText){(Coordinate){0, 3}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_CAPTURED, "", false, true, false};
@@ -170,6 +173,17 @@ void level_addScorePawns(Level *level, int faction) {
     level->gridTexts[4] = (GridText){(Coordinate){0, 5}, (Coordinate){HEXTILE_SIZE / 2, 10}, 0, "", false, true, false};
     StrIToA(level->gridTexts[4].fixedText, score.flagsStolen);
     level->gridTexts[5] = (GridText){(Coordinate){1, 5}, (Coordinate){HEXTILE_SIZE / 2, 10}, STRING_FLAGSSTOLEN, "", false, true, false};
+    level->gridTexts[6] = (GridText){(Coordinate){0, 6}, (Coordinate){HEXTILE_SIZE / 2, 10}, 0, "", false, true, false};
+    StrIToA(level->gridTexts[6].fixedText, generalScore.shipsLost);
+    level->gridTexts[7] = (GridText){(Coordinate){1, 6}, (Coordinate){HEXTILE_SIZE / 2, 10}, STRING_SHIPSLOST, "", false, true, false};
+
+    if (level->actionTiles != NULL) {
+        MemPtrFree(level->actionTiles);
+        level->actionTiles = NULL;
+    }
+    level->actionTiles = MemPtrNew(sizeof(ActionTile));
+    level->actionTileCount = 1;
+    level->actionTiles[0] = (ActionTile){(Coordinate){6, 7}, true, ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS, false, 0};
 
     // add destroyed ships
     newPawns = MemPtrNew(sizeof(Pawn) * totalDestroyed);

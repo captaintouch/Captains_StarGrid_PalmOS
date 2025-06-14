@@ -1,19 +1,19 @@
 #include "scoring.h"
 
-Score scoring_scoreFromLevelScore(LevelScore levelScore) {
+Score scoring_scoreFromLevelScores(LevelScore *levelScores, int faction) {
     int i;
     Score score;
     MemSet(&score, sizeof(Score), 0);
     for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
-        if (levelScore.flagsCaptured[i]) {
+        if (levelScores[faction].flagsCaptured[i]) {
             score.flagsCaptured++;
         }
-        score.shipsDestroyed += levelScore.shipsDestroyed[i];
-        score.shipsCaptured += levelScore.shipsCaptured[i];
-        score.flagsCaptured += levelScore.flagsCaptured[i];
+        score.shipsDestroyed += levelScores[faction].shipsDestroyed[i];
+        score.shipsCaptured += levelScores[faction].shipsCaptured[i];
+        score.flagsCaptured += levelScores[faction].flagsCaptured[i];
+        score.shipsLost += levelScores[i].shipsDestroyed[faction];
     }
-    score.flagsStolen = levelScore.flagsStolen;
-    score.shipsLost = levelScore.shipsLost;
+    score.flagsStolen = levelScores[faction].flagsStolen;
     return score;
 }
 
@@ -57,7 +57,7 @@ int scoring_scoreValue(Score score) {
     return score.shipsDestroyed + score.shipsCaptured + score.flagsStolen * 2 + score.flagsCaptured * 3;
 }
 
-int scoring_levelScoreValue(LevelScore levelScore) {
-    Score score = scoring_scoreFromLevelScore(levelScore);
+int scoring_levelScoreValue(LevelScore *levelScores, int faction) {
+    Score score = scoring_scoreFromLevelScores(levelScores, faction);
     return scoring_scoreValue(score);
 }

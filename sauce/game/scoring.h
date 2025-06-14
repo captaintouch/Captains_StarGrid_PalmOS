@@ -14,16 +14,15 @@ typedef struct Score {
 typedef struct LevelScore {
     int shipsDestroyed[GAMEMECHANICS_MAXPLAYERCOUNT];
     Boolean basesDestroyed[GAMEMECHANICS_MAXPLAYERCOUNT];
-    int shipsLost;
     int shipsCaptured[GAMEMECHANICS_MAXPLAYERCOUNT];
     Boolean flagsCaptured[GAMEMECHANICS_MAXPLAYERCOUNT];
     int flagsStolen;
 } LevelScore;
 
-Score scoring_scoreFromLevelScore(LevelScore levelScore);
+Score scoring_scoreFromLevelScores(LevelScore *levelScores, int faction);
 Score scoring_appendScore(Score lScore, Score rScore);
 int scoring_scoreValue(Score score);
-int scoring_levelScoreValue(LevelScore levelScore);
+int scoring_levelScoreValue(LevelScore *levelScores, int faction);
 
 int scoring_totalDestroyedShips(LevelScore score);
 int scoring_totalCapturedShips(LevelScore score);
