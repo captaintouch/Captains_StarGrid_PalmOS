@@ -54,7 +54,7 @@ int scoring_totalCapturedShips(LevelScore score) {
 }
 
 int scoring_scoreValue(Score score) {
-    return score.shipsDestroyed + score.shipsCaptured + score.flagsStolen * 2 + score.flagsCaptured * 3;
+    return -score.shipsLost + score.shipsDestroyed + score.shipsCaptured + score.flagsStolen * 2 + score.flagsCaptured * 3;
 }
 
 int scoring_levelScoreValue(LevelScore *levelScores, int faction) {
