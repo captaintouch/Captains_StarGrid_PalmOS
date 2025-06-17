@@ -108,6 +108,31 @@ static Coordinate movement_hexRound(float q, float r) {
 }
 
 MOVEMENT_SECTION
+Coordinate movement_getBoxCoordinate(Coordinate center, float t, int boxSize) {
+    int halfSize = boxSize / 2;
+    int perimeter = 4 * boxSize;
+    int pos = (int)(t * perimeter) % perimeter;
+
+    Coordinate result = {center.x, center.y};
+
+    if (pos < boxSize) {
+        result.x = center.x - halfSize + pos;
+        result.y = center.y - halfSize;
+    } else if (pos < 2 * boxSize) {
+        result.x = center.x + halfSize;
+        result.y = center.y - halfSize + (pos - boxSize);
+    } else if (pos < 3 * boxSize) {
+        result.x = center.x + halfSize - (pos - 2 * boxSize);
+        result.y = center.y + halfSize;
+    } else {
+        result.x = center.x - halfSize;
+        result.y = center.y + halfSize - (pos - 3 * boxSize);
+    }
+
+    return result;
+}
+
+MOVEMENT_SECTION
 static Boolean movement_isInvalid(Coordinate originCoordinate, Coordinate interCoordinate) {
     int deltaX = interCoordinate.x - originCoordinate.x;
     int deltaY = interCoordinate.y - originCoordinate.y;

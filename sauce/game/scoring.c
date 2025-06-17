@@ -82,3 +82,14 @@ DmResID scoring_rankForScore(Score score) {
 
     return STRING_RANK0 + RANK_COUNT - 1;
 }
+
+Score scoring_loadSavedScore() {
+    Score score;
+    MemSet(&score, sizeof(Score), 0);
+    score.flagsCaptured = 2;
+    score.flagsStolen = 6;
+    score.shipsCaptured = 3;
+    score.shipsDestroyed = 10;
+    score.shipsLost = 5;
+    return score;
+}

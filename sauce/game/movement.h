@@ -15,4 +15,5 @@ Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Coordinate targetPosi
 Boolean movement_shipAtTarget(Coordinate targetCoordinate, Pawn *allPawns, int totalPawnCount) MOVEMENT_SECTION;
 Pawn *movement_homeBase(Pawn *pawn, Pawn *allPawns, int totalPawnCount) MOVEMENT_SECTION;
 Coordinate movement_positionAwayFrom(Coordinate sourceCoordinate, Pawn *pawn, Pawn *allPawns, int totalPawnCount, UInt8 distance) MOVEMENT_SECTION;
+Coordinate movement_getBoxCoordinate(Coordinate center, float t, int boxSize) MOVEMENT_SECTION;
 #endif

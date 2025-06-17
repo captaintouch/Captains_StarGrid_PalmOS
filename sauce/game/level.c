@@ -138,12 +138,16 @@ static void level_removePawn(int index, Level *level) {
 }
 
 LEVEL_SECTION
-static void level_removePawnsBelowCoordinates(Coordinate coord, Level *level) {
+static void level_removePawnsBelowCoordinates(Coordinate coord, Level *level, Boolean inverse) {
     int i;
     for (i = 0; i < level->pawnCount; i++) {
-        if (level->pawns[i].position.x < coord.x && level->pawns[i].position.y < coord.y) {
+        Boolean affected = level->pawns[i].position.x < coord.x && level->pawns[i].position.y < coord.y;
+        if (inverse) {
+            affected = !affected;
+        }
+        if (affected) {
             level_removePawn(i, level);
-            level_removePawnsBelowCoordinates(coord, level);
+            level_removePawnsBelowCoordinates(coord, level, inverse);
             return;
         }
     }
@@ -157,7 +161,7 @@ void level_addScorePawns(Level *level, int faction) {
     int totalDestroyed = scoring_totalDestroyedShips(score) + scoring_totalDestroyedBases(score);
     int totalCaptured = scoring_totalCapturedShips(score);
     int i, factionIndex, pawnCount = 0;
-    level_removePawnsBelowCoordinates((Coordinate){9, 9}, level);
+    level_removePawnsBelowCoordinates((Coordinate){9, 9}, level, false);
     if (level->gridTexts != NULL) {
         MemPtrFree(level->gridTexts);
         level->gridTexts = NULL;
@@ -212,6 +216,31 @@ void level_addScorePawns(Level *level, int faction) {
     }
     level_addPawns(newPawns, pawnCount, level);
     MemPtrFree(newPawns);
+}
+
+LEVEL_SECTION
+void level_addRank(Level *level, Score score) {
+    int additionalGridTexts = 5;
+    GridText *updatedGridTexts  = MemPtrNew(sizeof(GridText) * (level->gridTextCount + additionalGridTexts));
+    level_removePawnsBelowCoordinates((Coordinate){6, 6}, level, true);
+    MemSet(updatedGridTexts, sizeof(GridText) * (level->gridTextCount + additionalGridTexts), 0);
+    MemMove(updatedGridTexts, level->gridTexts, sizeof(GridText) * level->gridTextCount);
+    MemPtrFree(level->gridTexts);
+    level->gridTexts = updatedGridTexts;
+
+    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){9, 2}, (Coordinate){0, 0}, scoring_rankForScore(score), "", false, true};
+    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){9, 3}, (Coordinate){0, 0}, STRING_PLAYERS, "", false, true};
+    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){9, 4}, (Coordinate){0, 0}, STRING_PLAYERS, "", false, true};
+    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){9, 5}, (Coordinate){0, 0}, STRING_PLAYERS, "", false, true};
+    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){9, 6}, (Coordinate){0, 0}, STRING_PLAYERS, "", false, true};
+
+    if (level->actionTiles != NULL) {
+        MemPtrFree(level->actionTiles);
+        level->actionTiles = NULL;
+    }
+    level->actionTiles = MemPtrNew(sizeof(ActionTile));
+    level->actionTileCount = 1;
+    level->actionTiles[0] = (ActionTile){(Coordinate){13, 7}, true, ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS, false, 0};
 }
 
 LEVEL_SECTION
@@ -348,3 +377,4 @@ NewGameConfig level_defaultNewGameConfig() {
     config.shipCount = 2;
     return config;
 }
+

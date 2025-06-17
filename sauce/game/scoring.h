@@ -19,6 +19,7 @@ typedef struct LevelScore {
     int flagsStolen;
 } LevelScore;
 
+DmResID scoring_rankForScore(Score score);
 Score scoring_scoreFromLevelScores(LevelScore *levelScores, int faction);
 Score scoring_appendScore(Score lScore, Score rScore);
 int scoring_scoreValue(Score score);
@@ -28,8 +29,6 @@ int scoring_totalDestroyedShips(LevelScore score);
 int scoring_totalCapturedShips(LevelScore score);
 int scoring_totalDestroyedBases(LevelScore score);
 
-// functions: 
-// - combine score (player saved total score + level score)
-// - rank for score
+Score scoring_loadSavedScore(); 
 
 #endif

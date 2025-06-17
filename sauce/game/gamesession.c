@@ -355,6 +355,8 @@ DmResID gameSession_menuTopTitleResource() {
             return STRING_PLAYERCPU;
         case MENUSCREEN_SCORE:
             return STRING_LEVELSCORE;
+        case MENUSCREEN_RANK:
+            return STRING_STARGRID;
         case MENUSCREEN_GAME:
             return 0;
     }
@@ -375,11 +377,36 @@ DmResID gameSession_menuBottomTitleResource() {
             return STRING_STARGRID;
         case MENUSCREEN_PLAYERCONFIG:
             return STRING_CONFIG;
+        case MENUSCREEN_RANK:
+            return STRING_RANK;
         case MENUSCREEN_SCORE:
         case MENUSCREEN_GAME:
             return 0;
     }
     return 0;
+}
+
+static Boolean gameSession_handleScoreMenuTap(Coordinate selectedTile) {
+    int i;
+    for (i = 0; i < gameSession.level.actionTileCount; i++) {
+        if (isEqualCoordinate(gameSession.level.actionTiles[i].position, selectedTile)) {
+            switch (gameSession.level.actionTiles[i].identifier) {
+                case ACTIONTILEIDENTIFIER_HUMANPLAYER:
+                case ACTIONTILEIDENTIFIER_CPUPLAYER:
+                case ACTIONTILEIDENTIFIER_LAUNCHGAME:
+                case ACTIONTILEIDENTIFIER_TWOPLAYERS:
+                case ACTIONTILEIDENTIFIER_THREEPLAYERS:
+                case ACTIONTILEIDENTIFIER_FOURPLAYERS:
+                    break;
+                case ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS:
+                    gameSession.drawingState.shouldRedrawHeader = true;
+                    gameSession.menuScreenType = MENUSCREEN_RANK;
+                    level_addRank(&gameSession.level, scoring_loadSavedScore());
+                    gameSession.activePawn->type = PAWNTYPE_SHIP;
+                    gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0});
+            }
+        }
+    }
 }
 
 static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
@@ -477,8 +504,9 @@ static Boolean gameSession_handleNonGameMenuTap(Coordinate selectedTile) {
         case MENUSCREEN_PLAYERCONFIG:
             return gameSession_handlePlayerConfigTap(selectedTile);
         case MENUSCREEN_GAME:
-        case MENUSCREEN_SCORE:
             break;
+        case MENUSCREEN_SCORE:
+            return gameSession_handleScoreMenuTap(selectedTile);
     }
     return false;
 }
@@ -642,30 +670,6 @@ AppColor gameSession_hightlightTilesColor() {
     }
 }
 
-static Coordinate gameSession_getBoxCoordinate(Coordinate center, float t, int boxSize) {
-    int halfSize = boxSize / 2;
-    int perimeter = 4 * boxSize;
-    int pos = (int)(t * perimeter) % perimeter;
-
-    Coordinate result = {center.x, center.y};
-
-    if (pos < boxSize) {
-        result.x = center.x - halfSize + pos;
-        result.y = center.y - halfSize;
-    } else if (pos < 2 * boxSize) {
-        result.x = center.x + halfSize;
-        result.y = center.y - halfSize + (pos - boxSize);
-    } else if (pos < 3 * boxSize) {
-        result.x = center.x + halfSize - (pos - 2 * boxSize);
-        result.y = center.y + halfSize;
-    } else {
-        result.x = center.x - halfSize;
-        result.y = center.y + halfSize - (pos - 3 * boxSize);
-    }
-
-    return result;
-}
-
 static void gameSession_progressUpdateExplosion() {
     Int32 timeSinceLaunch;
     float timePassedScale;
@@ -703,7 +707,7 @@ static void gameSession_progressUpdateAttack() {
         case TARGETSELECTIONTYPE_MOVE:
             break;
         case TARGETSELECTIONTYPE_PHASER:
-            attackLine = (Line){hexgrid_tileCenterPosition(gameSession.activePawn->position), gameSession_getBoxCoordinate(targetCenter, timePassedScale, HEXTILE_PAWNSIZE / 3)};
+            attackLine = (Line){hexgrid_tileCenterPosition(gameSession.activePawn->position), movement_getBoxCoordinate(targetCenter, timePassedScale, HEXTILE_PAWNSIZE / 3)};
             gameSession.attackAnimation->lines = (Line *)MemPtrNew(sizeof(Line) * 3);
             gameSession.attackAnimation->lines[0] = (Line){attackLine.startpoint, movement_coordinateAtPercentageOfLine(attackLine, remapToMax(timePassedScale * 2.4, 1))};
             attackLine.startpoint = gameSession.attackAnimation->lines[0].endpoint;
@@ -826,7 +830,7 @@ Boolean gameSession_animating() {
 
 static void gameSession_cpuTurn() {
     int i;
-    if (gameSession_animating() || gameSession.state != GAMESTATE_DEFAULT|| gameSession.menuScreenType != MENUSCREEN_GAME || gameSession.factions[gameSession.factionTurn].human) {
+    if (gameSession_animating() || gameSession.state != GAMESTATE_DEFAULT || gameSession.menuScreenType != MENUSCREEN_GAME || gameSession.factions[gameSession.factionTurn].human) {
         return;
     }
     for (i = 0; i < gameSession.level.pawnCount; i++) {
@@ -930,7 +934,7 @@ void gameSession_progressLogic() {
                 drawhelper_drawTextWithValue("X:", gameSession.lastPenInput.touchCoordinate.x, (Coordinate){gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y});
                 drawhelper_drawTextWithValue("Y:", gameSession.lastPenInput.touchCoordinate.y, (Coordinate){gameSession.lastPenInput.touchCoordinate.x, gameSession.lastPenInput.touchCoordinate.y + 10});
 #endif
-                if (gameSession.lastPenInput.moving && gameSession.state == GAMESTATE_DEFAULT && gameSession_handleMiniMapTap()) {
+                if (gameSession.lastPenInput.moving && gameSession.state == GAMESTATE_DEFAULT && gameSession.menuScreenType == MENUSCREEN_GAME && gameSession_handleMiniMapTap()) {
                     gameSession.drawingState.awaitingEndMiniMapScrolling = true;
                 } else {
                     if ((gameSession.state == GAMESTATE_SELECTTARGET && gameSession.lastPenInput.moving || isInvalidCoordinate(gameSession.lastPenInput.touchCoordinate))) {
