@@ -335,3 +335,16 @@ void level_destroy(Level *level) {
         MemPtrFree(level->actionTiles);
     }
 }
+
+LEVEL_SECTION
+NewGameConfig level_defaultNewGameConfig() {
+    NewGameConfig config;
+    int i;
+    for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
+        config.playerConfig[i].active = true;
+        config.playerConfig[i].isHuman = i == 0;
+    }
+    config.placementStrategy = PLAYERPLACEMENTSTRATEGY_CORNERS;
+    config.shipCount = 2;
+    return config;
+}

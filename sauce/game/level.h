@@ -67,4 +67,5 @@ Level level_create(NewGameConfig config) LEVEL_SECTION;
 void level_destroy(Level *level) LEVEL_SECTION;
 void level_addPawn(Pawn pawn, Level *level) LEVEL_SECTION;
 void level_addScorePawns(Level *level, int faction) LEVEL_SECTION;
+NewGameConfig level_defaultNewGameConfig() LEVEL_SECTION;
 #endif
