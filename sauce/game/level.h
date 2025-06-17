@@ -24,7 +24,7 @@ typedef struct GridText {
     Coordinate position;
     Coordinate textOffset;
     int textResource;
-    char fixedText[6];
+    char fixedText[20];
     Boolean alternateColor;
     Boolean simpleText;
     Boolean filler;

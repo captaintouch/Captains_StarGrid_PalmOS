@@ -8,6 +8,17 @@
 #include "movement.h"
 
 LEVEL_SECTION
+static void level_scoreText(char *fixedText, DmResID textResource, int value) {
+    MemHandle resourceHandle = DmGetResource(strRsc, textResource);
+    char *resourceText = (char *)MemHandleLock(resourceHandle);
+    StrIToA(fixedText, value);
+    StrCat(fixedText, " ");
+    StrCat(fixedText, resourceText);
+    MemHandleUnlock(resourceHandle);
+    DmReleaseResource(resourceHandle);
+}
+
+LEVEL_SECTION
 static void level_addPawns(Pawn *newPawns, int additionalPawnCount, Level *level) {
     int i;
     Pawn *updatedPawns = MemPtrNew(sizeof(Pawn) * (level->pawnCount + additionalPawnCount));
@@ -166,7 +177,7 @@ void level_addScorePawns(Level *level, int faction) {
         MemPtrFree(level->gridTexts);
         level->gridTexts = NULL;
     }
-    level->gridTextCount = 8;
+    level->gridTextCount = 6;
     level->gridTexts = MemPtrNew(sizeof(GridText) * (level->gridTextCount));
     level->gridTexts[0] = (GridText){(Coordinate){0, 1}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_DESTROYED, "", false, true, false};
     level->gridTexts[1] = (GridText){(Coordinate){0, 3}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_CAPTURED, "", false, true, false};
@@ -175,11 +186,9 @@ void level_addScorePawns(Level *level, int faction) {
     level->gridTexts[3] = (GridText){(Coordinate){0, 4}, (Coordinate){HEXTILE_SIZE / 2, 4}, 0, "", false, true, false};
     StrIToA(level->gridTexts[3].fixedText, totalCaptured);
     level->gridTexts[4] = (GridText){(Coordinate){0, 5}, (Coordinate){HEXTILE_SIZE / 2, 10}, 0, "", false, true, false};
-    StrIToA(level->gridTexts[4].fixedText, score.flagsStolen);
-    level->gridTexts[5] = (GridText){(Coordinate){1, 5}, (Coordinate){HEXTILE_SIZE / 2, 10}, STRING_FLAGSSTOLEN, "", false, true, false};
-    level->gridTexts[6] = (GridText){(Coordinate){0, 6}, (Coordinate){HEXTILE_SIZE / 2, 10}, 0, "", false, true, false};
-    StrIToA(level->gridTexts[6].fixedText, generalScore.shipsLost);
-    level->gridTexts[7] = (GridText){(Coordinate){1, 6}, (Coordinate){HEXTILE_SIZE / 2, 10}, STRING_SHIPSLOST, "", false, true, false};
+    level_scoreText(level->gridTexts[4].fixedText, STRING_FLAGSSTOLEN, score.flagsStolen);
+    level->gridTexts[5] = (GridText){(Coordinate){0, 6}, (Coordinate){HEXTILE_SIZE / 2, 10}, 0, "", false, true, false};
+    level_scoreText(level->gridTexts[5].fixedText, STRING_SHIPSLOST, generalScore.shipsLost);
 
     if (level->actionTiles != NULL) {
         MemPtrFree(level->actionTiles);
@@ -220,7 +229,7 @@ void level_addScorePawns(Level *level, int faction) {
 
 LEVEL_SECTION
 void level_addRank(Level *level, Score score) {
-    int additionalGridTexts = 5;
+    int additionalGridTexts = 6;
     GridText *updatedGridTexts  = MemPtrNew(sizeof(GridText) * (level->gridTextCount + additionalGridTexts));
     level_removePawnsBelowCoordinates((Coordinate){6, 6}, level, true);
     MemSet(updatedGridTexts, sizeof(GridText) * (level->gridTextCount + additionalGridTexts), 0);
@@ -228,11 +237,17 @@ void level_addRank(Level *level, Score score) {
     MemPtrFree(level->gridTexts);
     level->gridTexts = updatedGridTexts;
 
-    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){9, 2}, (Coordinate){0, 0}, scoring_rankForScore(score), "", false, true};
-    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){9, 3}, (Coordinate){0, 0}, STRING_PLAYERS, "", false, true};
-    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){9, 4}, (Coordinate){0, 0}, STRING_PLAYERS, "", false, true};
-    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){9, 5}, (Coordinate){0, 0}, STRING_PLAYERS, "", false, true};
-    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){9, 6}, (Coordinate){0, 0}, STRING_PLAYERS, "", false, true};
+    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 2}, (Coordinate){0, 0}, scoring_rankForScore(score), "", false, true};
+    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 3}, (Coordinate){0, 0}, 0, "", false, true};
+    level_scoreText(level->gridTexts[level->gridTextCount - 1].fixedText, STRING_SHIPSDESTROYED, score.shipsDestroyed);
+    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 4}, (Coordinate){0, 0}, 0, "", false, true};
+    level_scoreText(level->gridTexts[level->gridTextCount - 1].fixedText, STRING_SHIPSCAPTURED, score.shipsCaptured);
+    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 5}, (Coordinate){0, 0}, 0, "", false, true};
+    level_scoreText(level->gridTexts[level->gridTextCount - 1].fixedText, STRING_FLAGSSTOLEN, score.flagsStolen);
+    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 6}, (Coordinate){0, 0}, 0, "", false, true};
+    level_scoreText(level->gridTexts[level->gridTextCount - 1].fixedText, STRING_FLAGSCAPTURED, score.flagsCaptured);
+    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 7}, (Coordinate){0, 0}, 0, "", false, true};
+    level_scoreText(level->gridTexts[level->gridTextCount - 1].fixedText, STRING_SHIPSLOST, score.shipsLost);
 
     if (level->actionTiles != NULL) {
         MemPtrFree(level->actionTiles);

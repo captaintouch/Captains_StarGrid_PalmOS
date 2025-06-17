@@ -426,6 +426,12 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
                 case STRING_ABOUT:
                     about_show();
                     break;
+                case STRING_RANK:
+                    gameSession.drawingState.shouldRedrawHeader = true;
+                    gameSession.menuScreenType = MENUSCREEN_RANK;
+                    level_addRank(&gameSession.level, scoring_loadSavedScore());
+                    gameSession.activePawn->type = PAWNTYPE_SHIP;
+                    gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0});
             }
             return true;
         }
@@ -504,6 +510,8 @@ static Boolean gameSession_handleNonGameMenuTap(Coordinate selectedTile) {
         case MENUSCREEN_PLAYERCONFIG:
             return gameSession_handlePlayerConfigTap(selectedTile);
         case MENUSCREEN_GAME:
+            break;
+        case MENUSCREEN_RANK:
             break;
         case MENUSCREEN_SCORE:
             return gameSession_handleScoreMenuTap(selectedTile);
