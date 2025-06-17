@@ -1,4 +1,11 @@
 #include "scoring.h"
+#include "../constants.h"
+#include <PalmOS.h>
+
+const int rank_thresholds[RANK_COUNT] = {
+    200, 280, 400, 550, 750, 1000, 1400, 2000, 2800, 4000,
+    5500, 7500, 10000, 14000, 20000, 26000, 31000, 35000, 40000
+};
 
 Score scoring_scoreFromLevelScores(LevelScore *levelScores, int faction) {
     int i;
@@ -60,4 +67,18 @@ int scoring_scoreValue(Score score) {
 int scoring_levelScoreValue(LevelScore *levelScores, int faction) {
     Score score = scoring_scoreFromLevelScores(levelScores, faction);
     return scoring_scoreValue(score);
+}
+
+DmResID scoring_rankForScore(Score score) {
+    int i;
+    int value = scoring_scoreValue(score);
+    if (value <= rank_thresholds[0]) return STRING_RANK0;
+    if (value >= rank_thresholds[RANK_COUNT - 1]) return STRING_RANK0 + RANK_COUNT - 1;
+
+    for (i = 0; i < RANK_COUNT - 1; ++i) {
+        if (value < rank_thresholds[i + 1])
+            return STRING_RANK0 + i;
+    }
+
+    return STRING_RANK0 + RANK_COUNT - 1;
 }
