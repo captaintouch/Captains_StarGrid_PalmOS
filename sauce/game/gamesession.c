@@ -398,15 +398,20 @@ static Boolean gameSession_handleScoreMenuTap(Coordinate selectedTile) {
                 case ACTIONTILEIDENTIFIER_THREEPLAYERS:
                 case ACTIONTILEIDENTIFIER_FOURPLAYERS:
                     break;
+                case ACTIONTILEIDENTIFIER_ENDGAME:
+                    gameSession_reset(false);
+                    return true;
                 case ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS:
                     gameSession.drawingState.shouldRedrawHeader = true;
                     gameSession.menuScreenType = MENUSCREEN_RANK;
                     level_addRank(&gameSession.level, scoring_loadSavedScore());
                     gameSession.activePawn->type = PAWNTYPE_SHIP;
                     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0});
+                    return true;
             }
         }
     }
+    return false;
 }
 
 static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
@@ -427,6 +432,8 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
                     about_show();
                     break;
                 case STRING_RANK:
+                    gameSession.level.gridTexts[i].alternateColor = true;
+                    gameSession.drawingState.shouldRedrawOverlay = true;
                     gameSession.drawingState.shouldRedrawHeader = true;
                     gameSession.menuScreenType = MENUSCREEN_RANK;
                     level_addRank(&gameSession.level, scoring_loadSavedScore());
@@ -512,7 +519,6 @@ static Boolean gameSession_handleNonGameMenuTap(Coordinate selectedTile) {
         case MENUSCREEN_GAME:
             break;
         case MENUSCREEN_RANK:
-            break;
         case MENUSCREEN_SCORE:
             return gameSession_handleScoreMenuTap(selectedTile);
     }

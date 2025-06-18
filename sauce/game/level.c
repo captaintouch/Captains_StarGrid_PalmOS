@@ -255,7 +255,7 @@ void level_addRank(Level *level, Score score) {
     }
     level->actionTiles = MemPtrNew(sizeof(ActionTile));
     level->actionTileCount = 1;
-    level->actionTiles[0] = (ActionTile){(Coordinate){13, 7}, true, ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS, false, 0};
+    level->actionTiles[0] = (ActionTile){(Coordinate){13, 7}, true, ACTIONTILEIDENTIFIER_ENDGAME, false, 0};
 }
 
 LEVEL_SECTION

@@ -244,6 +244,7 @@ static void game_drawActionTiles() {
                     sprite = &spriteLibrary.cpuSprite;
                     break;
                 case ACTIONTILEIDENTIFIER_LAUNCHGAME:
+                case ACTIONTILEIDENTIFIER_ENDGAME:
                 case ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS:
                     sprite = NULL;
                     FntSetFont(symbolFont);
