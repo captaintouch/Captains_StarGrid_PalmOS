@@ -28,7 +28,7 @@ Score scoring_scoreFromLevelScores(LevelScore *levelScores, int faction) {
 }
 
 SCORING_SECTION
-Score scoring_appendScore(Score lScore, Score rScore) {
+static Score scoring_appendScore(Score lScore, Score rScore) {
     Score newScore;
     newScore.flagsCaptured = lScore.flagsCaptured + rScore.flagsCaptured;
     newScore.flagsStolen = lScore.flagsStolen + rScore.flagsStolen;
@@ -103,6 +103,14 @@ Score scoring_loadSavedScore() {
     score.shipsDestroyed = 10;
     score.shipsLost = 5;*/
     return score;
+}
+
+SCORING_SECTION
+void scoring_saveScore(LevelScore *levelScores, int faction) {
+    Score oldScore = database_readScore();
+    Score score = scoring_scoreFromLevelScores(levelScores, faction);
+    Score combinedScore = scoring_appendScore(oldScore, score);
+    database_writeScore(&combinedScore);
 }
 
 SCORING_SECTION

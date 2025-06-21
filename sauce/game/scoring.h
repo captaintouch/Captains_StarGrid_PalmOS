@@ -33,5 +33,6 @@ int scoring_totalDestroyedBases(LevelScore score) SCORING_SECTION;
 Score scoring_loadSavedScore() SCORING_SECTION; 
 
 void scoring_reset() SCORING_SECTION; 
+void scoring_saveScore(LevelScore *levelScores, int faction) SCORING_SECTION;
 
 #endif
