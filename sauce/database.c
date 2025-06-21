@@ -14,15 +14,20 @@ static LocalID database_scoreDatabaseId() {
 }
 
 DB_SECTION
+void database_reset() {
+    LocalID dbId = dbId = database_scoreDatabaseId();
+    if (dbId > 0) {
+        DmDeleteDatabase(0, dbId);
+    }
+}
+
+DB_SECTION
 static LocalID database_recreateScoreDatabase() {
     LocalID dbId;
     DmOpenRef dbRef;
     Err error;
 
-    dbId = database_scoreDatabaseId();
-    if (dbId > 0) {
-        DmDeleteDatabase(0, dbId);
-    }
+    database_reset();
 
     error = DmCreateDatabase(0, DBSCORE_NAME, APP_CREATOR_ID, DB_TYPE, false);
     if (error != errNone) {

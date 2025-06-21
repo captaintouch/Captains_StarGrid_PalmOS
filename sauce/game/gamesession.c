@@ -916,6 +916,11 @@ Boolean gameSession_handleMenu(UInt16 menuItemID) {
         case GAME_MENUITEM_EXIT:
             gameSession_reset(false);
             return true;
+        case GAME_MENUITEM_RESETRANK:
+            if (FrmCustomAlert(GAME_ALERT_RESETRANKCONFIRMATION, NULL, NULL, NULL) == 0) {
+                scoring_reset();
+            }
+            return true;
         case GAME_MENUITEM_ABOUT:
             about_show();
             return true;

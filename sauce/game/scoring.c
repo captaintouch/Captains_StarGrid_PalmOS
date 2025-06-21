@@ -104,3 +104,8 @@ Score scoring_loadSavedScore() {
     score.shipsLost = 5;*/
     return score;
 }
+
+SCORING_SECTION
+void scoring_reset() {
+    database_reset();
+}
