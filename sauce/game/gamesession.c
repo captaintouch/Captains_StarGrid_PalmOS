@@ -11,6 +11,7 @@
 #include "movement.h"
 #include "pawnActionMenuViewModel.h"
 #include "viewport.h"
+#include "../database.h"
 
 #define WARPINITIALTIME 0.4
 
@@ -500,6 +501,7 @@ static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
                     config.playerConfig[3].active = true;
                     break;
                 case ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS:
+                case ACTIONTILEIDENTIFIER_ENDGAME:
                     break;
             }
             level_applyNewGameConfig(config, &gameSession.level);

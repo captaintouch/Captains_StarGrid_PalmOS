@@ -93,6 +93,7 @@ void level_applyNewGameConfig(NewGameConfig config, Level *level) {
                 break;
             case ACTIONTILEIDENTIFIER_LAUNCHGAME:
             case ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS:
+            case ACTIONTILEIDENTIFIER_ENDGAME:
                 break;
             case ACTIONTILEIDENTIFIER_TWOPLAYERS:
             case ACTIONTILEIDENTIFIER_THREEPLAYERS:
@@ -120,6 +121,7 @@ NewGameConfig level_getNewGameConfig(Level *level, NewGameConfig oldConfig) {
                 break;
             case ACTIONTILEIDENTIFIER_LAUNCHGAME:
             case ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS:
+            case ACTIONTILEIDENTIFIER_ENDGAME:
                 break;
             case ACTIONTILEIDENTIFIER_TWOPLAYERS:
             case ACTIONTILEIDENTIFIER_THREEPLAYERS:

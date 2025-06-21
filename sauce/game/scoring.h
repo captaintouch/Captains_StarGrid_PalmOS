@@ -1,5 +1,6 @@
 #ifndef SCORING_H_
 #define SCORING_H_
+#define SCORING_SECTION  __attribute__ ((section ("scoring")))
 #include <PalmOS.h>
 #include "../constants.h"
 
@@ -19,16 +20,16 @@ typedef struct LevelScore {
     int flagsStolen;
 } LevelScore;
 
-DmResID scoring_rankForScore(Score score);
-Score scoring_scoreFromLevelScores(LevelScore *levelScores, int faction);
-Score scoring_appendScore(Score lScore, Score rScore);
-int scoring_scoreValue(Score score);
-int scoring_levelScoreValue(LevelScore *levelScores, int faction);
+DmResID scoring_rankForScore(Score score) SCORING_SECTION;
+Score scoring_scoreFromLevelScores(LevelScore *levelScores, int faction) SCORING_SECTION;
+Score scoring_appendScore(Score lScore, Score rScore) SCORING_SECTION;
+int scoring_scoreValue(Score score) SCORING_SECTION;
+int scoring_levelScoreValue(LevelScore *levelScores, int faction) SCORING_SECTION;
 
-int scoring_totalDestroyedShips(LevelScore score);
-int scoring_totalCapturedShips(LevelScore score);
-int scoring_totalDestroyedBases(LevelScore score);
+int scoring_totalDestroyedShips(LevelScore score) SCORING_SECTION;
+int scoring_totalCapturedShips(LevelScore score) SCORING_SECTION;
+int scoring_totalDestroyedBases(LevelScore score) SCORING_SECTION;
 
-Score scoring_loadSavedScore(); 
+Score scoring_loadSavedScore() SCORING_SECTION; 
 
 #endif
