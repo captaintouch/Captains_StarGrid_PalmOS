@@ -25,11 +25,6 @@ static UInt8 gameActionLogic_nonCapturedFlagsLeft(UInt8 faction) {
     return flagsLeft;
 }
 
-/*static void gameActionLogic_restartGame() {
-    FrmCustomAlert(GAME_ALERT_ENDOFGAMETECHDEMO, NULL, NULL, NULL);
-    gameSession_reset(false);
-}*/
-
 static void gameActionLogic_showScore() {
     DmResID oldRank = scoring_rankForScore(scoring_loadSavedScore());
     DmResID newRank;
