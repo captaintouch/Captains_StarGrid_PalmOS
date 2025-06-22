@@ -8,9 +8,9 @@ Boolean about_buttonHandler(UInt16 buttonID) {
     }
 
     switch (buttonID) {
-        /*case ABOUT_FORM_BUTTON_ACKNOWLEDGEMENTS:
-            FrmCustomAlert(ABOUT_ALERT_ACKNOWLEDGEMENTS, NULL, NULL, NULL);
-            return true;*/
+        case ABOUT_FORM_BUTTON_ACKNOWLEDGEMENTS:
+            FrmCustomAlert(GAME_ALERT_ACKNOWLEDGMENTS, NULL, NULL, NULL);
+            return true;
         default:
             FrmReturnToForm(GAME_FORM);
             return true;
