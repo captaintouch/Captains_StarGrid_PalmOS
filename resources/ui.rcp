@@ -67,6 +67,13 @@ BEGIN
     BUTTONS "Yes, reset" "No"
 END
 
+ALERT ID GAME_ALERT_PROMOTED
+BEGIN
+    TITLE "Promotion!"
+    MESSAGE "New rank achieved! Congratulations ^1!"
+    BUTTONS "Ok"
+END
+
 ALERT ID GAME_ALERT_GAMECOMPLETE_ALLFLAGSCAPTURED
 BEGIN
     TITLE "Victory!"
