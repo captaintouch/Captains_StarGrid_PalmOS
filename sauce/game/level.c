@@ -239,7 +239,8 @@ void level_addRank(Level *level, Score score) {
     MemPtrFree(level->gridTexts);
     level->gridTexts = updatedGridTexts;
 
-    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 2}, (Coordinate){0, 0}, scoring_rankForScore(score), "", false, true};
+    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 2}, (Coordinate){0, 0}, 0, "", false, true};
+    level_scoreText(level->gridTexts[level->gridTextCount - 1].fixedText, STRING_UNTILNEXTRANK, scoring_scoreNeededUntilNextRank(score) * GAMEMECHANICS_SCOREBOOST);
     level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 3}, (Coordinate){0, 0}, 0, "", false, true};
     level_scoreText(level->gridTexts[level->gridTextCount - 1].fixedText, STRING_SHIPSDESTROYED, score.shipsDestroyed);
     level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 4}, (Coordinate){0, 0}, 0, "", false, true};

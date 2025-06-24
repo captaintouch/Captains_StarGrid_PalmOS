@@ -24,6 +24,7 @@ DmResID scoring_rankForScore(Score score) SCORING_SECTION;
 Score scoring_scoreFromLevelScores(LevelScore *levelScores, int faction) SCORING_SECTION;
 int scoring_scoreValue(Score score) SCORING_SECTION;
 int scoring_levelScoreValue(LevelScore *levelScores, int faction) SCORING_SECTION;
+int scoring_scoreNeededUntilNextRank(Score score) SCORING_SECTION;
 
 int scoring_totalDestroyedShips(LevelScore score) SCORING_SECTION;
 int scoring_totalCapturedShips(LevelScore score) SCORING_SECTION;

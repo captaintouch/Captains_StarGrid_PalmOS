@@ -89,6 +89,20 @@ DmResID scoring_rankForScore(Score score) {
 }
 
 SCORING_SECTION
+int scoring_scoreNeededUntilNextRank(Score score) {
+    const UInt32 rank_thresholds[RANK_COUNT] = {20, 28, 40, 55, 75, 100, 140, 200, 280, 400, 550, 750, 1000, 1400, 2000, 2600, 3100, 3500, 4000};
+    int i;
+    int rankScore = rank_thresholds[0];
+    UInt32 scoreVal = scoring_scoreValue(score);
+    for (i = 0; i < RANK_COUNT - 1; i++) {
+        if (scoreVal >= rank_thresholds[i] && i + 1 < RANK_COUNT) {
+            rankScore = rank_thresholds[i + 1];
+        }
+    }
+    return rankScore - scoreVal;
+}
+
+SCORING_SECTION
 Score scoring_loadSavedScore() {
     return database_readScore();
 }

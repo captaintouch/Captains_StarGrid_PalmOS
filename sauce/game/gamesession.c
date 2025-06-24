@@ -369,7 +369,7 @@ Boolean gameSession_useValueForBottomTitle() {
 }
 
 int gameSession_valueForBottomTitle() {
-    return gameSession.menuScreenType == MENUSCREEN_SCORE ? scoring_levelScoreValue(gameSession.level.scores, gameSession.activePawn->faction) * 121 : -1;
+    return gameSession.menuScreenType == MENUSCREEN_SCORE ? scoring_levelScoreValue(gameSession.level.scores, gameSession.activePawn->faction) * GAMEMECHANICS_SCOREBOOST : -1;
 }
 
 DmResID gameSession_menuBottomTitleResource() {
