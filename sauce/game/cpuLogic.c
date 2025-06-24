@@ -57,11 +57,8 @@ static int cpuLogic_defenseValueForBase(Pawn *base, Pawn *allPawns, int totalPaw
             if (distance >= maxRange) {
                 continue;
             }
-            /*FrmCustomAlert(GAME_ALERT_NOMOREACTIONS, NULL, NULL, NULL);
             healthPercentage = (float)(maxRange - distance) * 100.0 / (float)maxRange;
             defenseValue += ((float)allPawns[i].inventory.health * (float)healthPercentage / 100.0);
-            */
-            defenseValue += allPawns[i].inventory.health;
         }
     }
 

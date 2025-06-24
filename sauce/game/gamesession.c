@@ -446,7 +446,7 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
 }
 
 static void gameSession_launchGame(NewGameConfig config) {
-    int faction, previousFaction = 0;
+    int faction;
     level_destroy(&gameSession.level);
     gameSession.menuScreenType = MENUSCREEN_GAME;
     gameSession.level = level_create(config);

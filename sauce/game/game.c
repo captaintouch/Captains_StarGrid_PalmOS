@@ -207,7 +207,7 @@ static void game_drawBar(Coordinate position, int width, int height, float barVa
 }
 
 static void game_drawHealthBar(Pawn *pawn, int maxWidth, int height, Coordinate position) {
-    int maxHealth, healthWidth;
+    int maxHealth;
 
     if (pawn->type == PAWNTYPE_SHIP) {
         maxHealth = GAMEMECHANICS_MAXSHIPHEALTH;
