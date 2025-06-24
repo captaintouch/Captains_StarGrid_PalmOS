@@ -29,6 +29,17 @@ static void gameActionLogic_showScore() {
     DmResID oldRank = scoring_rankForScore(scoring_loadSavedScore());
     DmResID newRank;
     Coordinate oldPosition = gameSession.activePawn->position;
+    int i, humanCount = 0;
+    for (i = 0; i < gameSession.factionCount; i++) {
+        if (gameSession.factions[i].human) {
+            humanCount++;
+        }
+    }
+    if (humanCount > 1) {
+        // No score reporting in multiplayer games
+        gameSession_reset(false);
+        return;
+    }
     gameSession.menuScreenType = MENUSCREEN_SCORE;
     gameSession.drawingState.shouldRedrawBackground = true;
     gameSession.drawingState.shouldRedrawHeader = true;
@@ -178,10 +189,6 @@ static Boolean gameActionLogic_checkForGameOver() {
 Boolean gameActionLogic_afterMove() {
     Boolean didScheduleMovement = false;
     Pawn *selectedPawn = gameSession.movement->targetPawn;
-    if (gameSession.menuScreenType == MENUSCREEN_GAME) {
-        gameActionLogic_showScore();
-        return true;
-    }
 
     StrCopy(gameSession.cpuActionText, "");
     // Check if flag was captured

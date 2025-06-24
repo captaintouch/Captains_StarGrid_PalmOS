@@ -822,8 +822,8 @@ static void gameSession_progressUpdateMovement() {
     if (gameSession.movement == NULL) {
         return;
     }
-    if (gameSession.menuScreenType != MENUSCREEN_GAME) {
-        totalAnimationTime = 2.5;
+    if (gameSession.menuScreenType != MENUSCREEN_GAME || gameSession.continueCPUPlay) {
+        totalAnimationTime = 2.8;
     }
     gameSession.drawingState.shouldRedrawOverlay = true;
 
