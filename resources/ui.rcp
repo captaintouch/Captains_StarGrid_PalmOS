@@ -23,13 +23,13 @@ BEGIN
     TITLE "Captain's StarGrid"
 	FORMBITMAP AT (5 20) BITMAP 4000
 
-	LABEL "" AUTOID AT (37 15) 
-	LABEL ""  AUTOID AT (37 26) 
-	LABEL ""  AUTOID AT (37 37) 
-	LABEL ""  AUTOID AT (5 48) 
-	LABEL "" AUTOID AT (5 59)
-	LABEL "" AUTOID AT (5 70)
-	LABEL "" AUTOID AT (5 81)
+	LABEL "Encouraged by the response" AUTOID AT (37 15) 
+	LABEL "to Captain's MiniGolf in 2024,"  AUTOID AT (37 26) 
+	LABEL "I thought, let's try to create"  AUTOID AT (37 37) 
+	LABEL "a turn-based strategy game in 2025!"  AUTOID AT (5 48) 
+	LABEL "Hope you like it. I had allot of fun" AUTOID AT (5 59)
+	LABEL "creating it! One more love letter to" AUTOID AT (5 70)
+	LABEL "the handheld OS that refuses to fade." AUTOID AT (5 81)
 
 	LABEL "Mastodon: " AUTOID AT (5 92) FONT 1
 	LABEL "@rxpz@social.linux.pizza" AUTOID AT (5 103)
@@ -37,7 +37,7 @@ BEGIN
 	LABEL "https://quarters.captaintouch.com" AUTOID AT (5 125)
 
 	BUTTON "Cheers" AUTOID AT (5 139 35 15)
-	BUTTON "Acknowledgements" ID 3000 AT (45 139 110 15)
+	BUTTON "Acknowledgements" ID ABOUT_FORM_BUTTON_ACKNOWLEDGEMENTS AT (45 139 110 15)
 END
 
 FORM ID GAME_FORM AT ( 0 0 160 160 )
@@ -60,11 +60,25 @@ BEGIN
 	END
 END
 
+ALERT ID GAME_ALERT_ACKNOWLEDGMENTS
+BEGIN
+    TITLE "Acknowledgements"
+    MESSAGE "Thanks to the PalmDB community for their feedback and playtesting.\n\nShip asset created by Kenney."
+    BUTTONS "Cheers"
+END
+
 ALERT ID GAME_ALERT_RESETRANKCONFIRMATION
 BEGIN
     TITLE "Reset rank/score"
-    MESSAGE "You get promoted to... cadet.\n\nAre you sure?"
+    MESSAGE "You get demoted to... Star cadet.\n\nAre you sure?"
     BUTTONS "Yes, reset" "No"
+END
+
+ALERT ID GAME_ALERT_PROMOTED
+BEGIN
+    TITLE "Promotion!"
+    MESSAGE "New rank achieved! Congratulations ^1!"
+    BUTTONS "Ok"
 END
 
 ALERT ID GAME_ALERT_GAMECOMPLETE_ALLFLAGSCAPTURED

@@ -1,13 +1,9 @@
 #include "scoring.h"
-#include "../constants.h"
-#include "../database.h"
+
 #include <PalmOS.h>
 
-SCORING_SECTION
-const int rank_thresholds[RANK_COUNT] = {
-    200, 280, 400, 550, 750, 1000, 1400, 2000, 2800, 4000,
-    5500, 7500, 10000, 14000, 20000, 26000, 31000, 35000, 40000
-};
+#include "../constants.h"
+#include "../database.h"
 
 SCORING_SECTION
 Score scoring_scoreFromLevelScores(LevelScore *levelScores, int faction) {
@@ -80,29 +76,21 @@ int scoring_levelScoreValue(LevelScore *levelScores, int faction) {
 
 SCORING_SECTION
 DmResID scoring_rankForScore(Score score) {
+    const UInt32 rank_thresholds[RANK_COUNT] = {20, 28, 40, 55, 75, 100, 140, 200, 280, 400, 550, 750, 1000, 1400, 2000, 2600, 3100, 3500, 4000};
     int i;
-    int value = scoring_scoreValue(score);
-    if (value <= rank_thresholds[0]) return STRING_RANK0;
-    if (value >= rank_thresholds[RANK_COUNT - 1]) return STRING_RANK0 + RANK_COUNT - 1;
-
-    for (i = 0; i < RANK_COUNT - 1; ++i) {
-        if (value < rank_thresholds[i + 1])
-            return STRING_RANK0 + i;
+    UInt32 scoreVal = scoring_scoreValue(score);
+    DmResID rank = STRING_RANK0;
+    for (i = 0; i < RANK_COUNT - 1; i++) {
+        if (scoreVal >= rank_thresholds[i]) {
+            rank = STRING_RANK0 + i + 1;
+        }
     }
-
-    return STRING_RANK0 + RANK_COUNT - 1;
+    return rank;
 }
 
 SCORING_SECTION
 Score scoring_loadSavedScore() {
-    Score score = database_readScore();
-    /*MemSet(&score, sizeof(Score), 0);
-    score.flagsCaptured = 2;
-    score.flagsStolen = 6;
-    score.shipsCaptured = 3;
-    score.shipsDestroyed = 10;
-    score.shipsLost = 5;*/
-    return score;
+    return database_readScore();
 }
 
 SCORING_SECTION

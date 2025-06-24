@@ -25,12 +25,9 @@ static UInt8 gameActionLogic_nonCapturedFlagsLeft(UInt8 faction) {
     return flagsLeft;
 }
 
-/*static void gameActionLogic_restartGame() {
-    FrmCustomAlert(GAME_ALERT_ENDOFGAMETECHDEMO, NULL, NULL, NULL);
-    gameSession_reset(false);
-}*/
-
 static void gameActionLogic_showScore() {
+    DmResID oldRank = scoring_rankForScore(scoring_loadSavedScore());
+    DmResID newRank;
     Coordinate oldPosition = gameSession.activePawn->position;
     gameSession.menuScreenType = MENUSCREEN_SCORE;
     gameSession.drawingState.shouldRedrawBackground = true;
@@ -47,6 +44,13 @@ static void gameActionLogic_showScore() {
     gameSession.level.scores[3].shipsDestroyed[gameSession.activePawn->faction] = 2;
     gameSession.level.scores[2].shipsDestroyed[gameSession.activePawn->faction] = 3;
     scoring_saveScore(gameSession.level.scores, gameSession.activePawn->faction);
+    newRank = scoring_rankForScore(scoring_loadSavedScore());
+    if (newRank != oldRank) {
+        MemHandle resourceHandle = DmGetResource(strRsc, newRank);
+        Char *rankText = (char *)MemHandleLock(resourceHandle);
+        FrmCustomAlert(GAME_ALERT_PROMOTED, rankText, "" ,"");
+        DmReleaseResource(resourceHandle);
+    }
     level_addScorePawns(&gameSession.level, gameSession.activePawn->faction);
     gameSession.activePawn = gameSession_pawnAtTile(oldPosition);
     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, 0});
