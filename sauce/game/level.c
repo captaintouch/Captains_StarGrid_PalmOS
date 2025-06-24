@@ -141,13 +141,24 @@ NewGameConfig level_getNewGameConfig(Level *level, NewGameConfig oldConfig) {
 }
 
 LEVEL_SECTION
-static void level_removePawn(int index, Level *level) {
+void level_removePawnAtIndex(int index, Level *level) {
     int i;
     for (i = index; i < level->pawnCount - 1; i++) {
         level->pawns[i] = level->pawns[i + 1];
     }
     level->pawnCount = level->pawnCount - 1;
     MemPtrResize(level->pawns, sizeof(Pawn) * level->pawnCount);
+}
+
+LEVEL_SECTION
+void level_removePawn(Pawn *pawn, Level *level) {
+    int i;
+    for (i = 0; i < level->pawnCount; i++) {
+        if (pawn == &level->pawns[i]) {
+            level_removePawnAtIndex(i, level);
+            return;
+        }
+    }
 }
 
 LEVEL_SECTION
@@ -159,7 +170,7 @@ static void level_removePawnsBelowCoordinates(Coordinate coord, Level *level, Bo
             affected = !affected;
         }
         if (affected) {
-            level_removePawn(i, level);
+            level_removePawnAtIndex(i, level);
             level_removePawnsBelowCoordinates(coord, level, inverse);
             return;
         }

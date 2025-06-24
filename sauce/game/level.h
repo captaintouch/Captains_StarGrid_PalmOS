@@ -69,5 +69,7 @@ void level_destroy(Level *level) LEVEL_SECTION;
 void level_addPawn(Pawn pawn, Level *level) LEVEL_SECTION;
 void level_addScorePawns(Level *level, int faction) LEVEL_SECTION;
 void level_addRank(Level *level, Score score) LEVEL_SECTION;
+void level_removePawn(Pawn *pawn, Level *level) LEVEL_SECTION;
+void level_removePawnAtIndex(int index, Level *level) LEVEL_SECTION;
 NewGameConfig level_defaultNewGameConfig() LEVEL_SECTION;
 #endif

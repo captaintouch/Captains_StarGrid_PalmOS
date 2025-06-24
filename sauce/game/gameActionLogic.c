@@ -212,7 +212,7 @@ Boolean gameActionLogic_afterMove() {
 
                 gameActionLogic_returnFlagToBase(&gameSession.level.pawns[i]);
                 if (gameSession.level.pawns[i].type == PAWNTYPE_BASE) {
-                    gameSession.level.pawns[i].position = (Coordinate){-1, -1};
+                    level_removePawnAtIndex(i, &gameSession.level);
                 }
             }
         }
@@ -255,7 +255,6 @@ void gameActionLogic_afterAttack() {
 
     if (gameSession.attackAnimation->targetPawn->inventory.health <= 0) {
         gameSession.attackAnimation->targetPawn->inventory.health = 0;
-        gameSession.attackAnimation->targetPawn->position = (Coordinate){-1, -1};
         gameSession.level.scores[gameSession.activePawn->faction].shipsDestroyed[gameSession.attackAnimation->targetPawn->faction]++;
 
         if (gameSession.attackAnimation->targetPawn->type == PAWNTYPE_BASE) {
@@ -271,6 +270,7 @@ void gameActionLogic_afterAttack() {
             FrmCustomAlert(GAME_ALERT_BASEDESTROYED, NULL, NULL, NULL);
         }
         gameActionLogic_returnFlagToBase(gameSession.attackAnimation->targetPawn);
+        level_removePawn(gameSession.attackAnimation->targetPawn, &gameSession.level);
     }
 
     if (gameActionLogic_checkForGameOver()) {
