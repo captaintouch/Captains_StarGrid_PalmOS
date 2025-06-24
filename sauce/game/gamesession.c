@@ -215,7 +215,7 @@ static AppColor gameSession_hightlightTilesColor() {
 }
 
 static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPosition, TargetSelectionType targetSelectionType) {
-    int i;
+    int i, j;
     int maxTileRange = gameActionLogic_maxRange(targetSelectionType);
     Coordinate *coordinates = NULL;
     int coordinatesCount = 0;
@@ -233,6 +233,15 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
             }
             MemPtrResize(coordinates, sizeof(Coordinate) * coordinatesCount);
             movement_findTilesInRange(currentPosition, maxTileRange, coordinates, coordinatesCount, &gameSession.highlightTiles, &gameSession.highlightTileCount, color, true);
+            for (i = 0; i < gameSession.highlightTileCount; i++) {
+                HighlightTile *tile = &gameSession.highlightTiles[i];
+                for (j = 0; j < gameSession.level.pawnCount; j++) {
+                    Pawn *pawnAtPosition = &gameSession.level.pawns[j];
+                    if (pawnAtPosition->faction != gameSession.activePawn->faction && movement_distance(pawnAtPosition->position, tile->position) <= GAMEMECHANICS_MAXTILETORPEDORANGE) {
+                        tile->color = SUNFLOWER;
+                    }
+                }
+            }
             break;
         case TARGETSELECTIONTYPE_PHASER:
         case TARGETSELECTIONTYPE_TORPEDO:

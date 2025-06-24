@@ -4,10 +4,12 @@
 #include <PalmOS.h>
 #include "mathIsFun.h"
 
+DRAWING_SECTION
 void drawhelper_fillRectangle(RectangleType *rect, UInt16 cornerDiam) {
     WinPaintRectangle(rect, cornerDiam);
 }
 
+DRAWING_SECTION
 void drawhelper_fillRectangleWithShadow(RectangleType *rect, UInt16 cornerDiam, AppColor color, AppColor shadowColor) {
     RectangleType shadowRect;
     RctSetRectangle(&shadowRect, rect->topLeft.x, rect->topLeft.y, rect->extent.x + 1, rect->extent.y + 1);
@@ -17,16 +19,19 @@ void drawhelper_fillRectangleWithShadow(RectangleType *rect, UInt16 cornerDiam, 
     WinPaintRectangle(rect, cornerDiam);
 }
 
+DRAWING_SECTION
 void drawhelper_drawCircle(Coordinate center, int radius) {
     RectangleType rect;
     RctSetRectangle(&rect, center.x - radius, center.y - radius, 2 * radius, 2 * radius);
     drawhelper_fillRectangle(&rect, radius);
 }
 
+DRAWING_SECTION
 void drawhelper_borderRectangle(RectangleType *rect) {
     WinDrawRectangleFrame(roundFrame, rect);
 }
 
+DRAWING_SECTION
 void drawhelper_drawLineBetweenCoordinates(Coordinate startpoint, Coordinate endpoint) {
     WinDrawLine(startpoint.x,
                 startpoint.y,
@@ -34,35 +39,43 @@ void drawhelper_drawLineBetweenCoordinates(Coordinate startpoint, Coordinate end
                 endpoint.y);
 }
 
+DRAWING_SECTION
 void drawhelper_drawLine(Line *line) {
     drawhelper_drawLineBetweenCoordinates(line->startpoint, line->endpoint);
 }
 
+DRAWING_SECTION
 void drawhelper_drawPoint(Coordinate point) {
     WinDrawPixel(point.x, point.y);
 }
 
+DRAWING_SECTION
 void drawhelper_applyForeColor(AppColor color) {
     WinSetForeColor(colors_reference[color]);
 }
 
+DRAWING_SECTION
 void drawhelper_applyTextColor(AppColor color) {
     WinSetTextColor(colors_reference[color]);
 }
 
+DRAWING_SECTION
 void drawhelper_applyBackgroundColor(AppColor color) {
     WinSetBackColor(colors_reference[color]);
 }
 
+DRAWING_SECTION
 void drawhelper_drawText(char *text, Coordinate position) {
     WinDrawChars(text, StrLen(text), position.x, position.y);
 }
 
+DRAWING_SECTION
 void drawhelper_drawTextCentered(char *text, Coordinate position, int offsetX, int offsetY) {
     int width = FntCharsWidth(text, StrLen(text));
     WinDrawChars(text, StrLen(text), position.x - width / 2 + offsetX, position.y - FntCharHeight() / 2 + offsetY);
 }
 
+DRAWING_SECTION
 void drawhelper_drawTextWithValue(char *text, int value, Coordinate position) {
     char finalText[20];
     char valueText[20];
@@ -72,10 +85,12 @@ void drawhelper_drawTextWithValue(char *text, int value, Coordinate position) {
     WinDrawChars(finalText, StrLen(finalText), position.x, position.y);
 }
 
+DRAWING_SECTION
 static void drawhelper_drawImage(ImageData *imageData, Coordinate coordinate) {
     WinDrawBitmap(imageData->bitmapPtr, coordinate.x, coordinate.y);
 }
 
+DRAWING_SECTION
 void drawhelper_drawSprite(ImageSprite *imageSprite, Coordinate coordinate) {
     Coordinate updatedPosition;
     updatedPosition.x = coordinate.x - imageSprite->size.x / 2;
@@ -83,6 +98,7 @@ void drawhelper_drawSprite(ImageSprite *imageSprite, Coordinate coordinate) {
     drawhelper_drawImage(imageSprite->imageData, updatedPosition);
 }
 
+DRAWING_SECTION
 void drawhelper_drawAnimatedSprite(ImageSprite *imageSprite, UInt8 frameCount, Coordinate coordinate, Int32 launchTimestamp, float durationSeconds) {
     float timePassedScale = (float)(TimGetTicks() - (float)launchTimestamp) / ((float)SysTicksPerSecond() * durationSeconds);
     int selectedIndex;
@@ -93,6 +109,7 @@ void drawhelper_drawAnimatedSprite(ImageSprite *imageSprite, UInt8 frameCount, C
     drawhelper_drawSprite(&imageSprite[selectedIndex], coordinate);
 }
 
+DRAWING_SECTION
 void drawhelper_releaseImage(ImageData *imageData) {
     if (imageData == NULL) {
         return;
@@ -102,6 +119,7 @@ void drawhelper_releaseImage(ImageData *imageData) {
     MemPtrFree(imageData);
 }
 
+DRAWING_SECTION
 void drawhelper_drawBoxAround(Coordinate coordinate, int dimension) {
   Line line;
   int offset = dimension / 2 + 2;
