@@ -294,7 +294,10 @@ static Pawn *gameSession_nextPawn() {
     int i;
     int startMatching = false;
     for (i = 0; i < gameSession.level.pawnCount; i++) {
-        if (gameSession.level.pawns[i].faction == gameSession.factionTurn && gameSession.level.pawns[i].type == PAWNTYPE_SHIP && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
+        if (gameSession.level.pawns[i].faction == gameSession.factionTurn && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
+            if (gameSession.level.pawns[i].type == PAWNTYPE_BASE && pawnActionMenuViewModel_baseTurnsLeft(gameSession.currentTurn, gameSession.level.pawns[i].inventory.baseActionLastActionTurn) > 0) {
+                continue;
+            }
             if (startMatching) {
                 return &gameSession.level.pawns[i];
             }

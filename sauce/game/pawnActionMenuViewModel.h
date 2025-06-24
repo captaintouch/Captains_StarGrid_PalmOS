@@ -14,5 +14,6 @@ typedef enum {
 } MenuActionType;
 
 void pawnActionMenuViewModel_setupMenuForPawn(Pawn *pawn, Button **displayButtons, UInt8 *displayButtonCount, UInt8 currentTurn);
+int pawnActionMenuViewModel_baseTurnsLeft(UInt8 currentTurn, UInt8 lastActionTurn);
 MenuActionType pawnActionMenuViewModel_actionAtIndex(UInt8 index, Pawn *pawn);
 #endif

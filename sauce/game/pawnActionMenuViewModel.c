@@ -24,7 +24,7 @@ static UInt16 pawnActionMenuViewModel_textForActionType(MenuActionType actionTyp
     }
 }
 
-static int pawnActionMenuViewModel_baseTurnsLeft(UInt8 currentTurn, UInt8 lastActionTurn) {
+int pawnActionMenuViewModel_baseTurnsLeft(UInt8 currentTurn, UInt8 lastActionTurn) {
     return lastActionTurn + GAMEMECHANICS_BASEACTIONREQUIREDTURNS - currentTurn;
 }
 
