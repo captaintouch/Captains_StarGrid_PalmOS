@@ -357,7 +357,7 @@ DmResID gameSession_menuTopTitleResource() {
         case MENUSCREEN_SCORE:
             return STRING_LEVELSCORE;
         case MENUSCREEN_RANK:
-            return STRING_STARGRID;
+        return scoring_rankForScore(scoring_loadSavedScore());
         case MENUSCREEN_GAME:
             return 0;
     }
@@ -379,7 +379,6 @@ DmResID gameSession_menuBottomTitleResource() {
         case MENUSCREEN_PLAYERCONFIG:
             return STRING_CONFIG;
         case MENUSCREEN_RANK:
-            return STRING_RANK;
         case MENUSCREEN_SCORE:
         case MENUSCREEN_GAME:
             return 0;

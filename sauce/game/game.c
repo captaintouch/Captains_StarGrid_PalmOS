@@ -12,6 +12,7 @@
 #include "pawn.h"
 #include "spriteLibrary.h"
 #include "viewport.h"
+#include "mathIsFun.h"
 
 WinHandle backgroundBuffer = NULL;
 WinHandle overlayBuffer = NULL;
@@ -191,24 +192,30 @@ static ImageSprite *game_spriteForPawn(Pawn *pawn) {
     }
 }
 
+static void game_drawBar(Coordinate position, int width, int height, float barValue, float maxBarValue) {
+    RectangleType rect;
+    int filledWidth;
+    // draw border
+    drawhelper_applyForeColor(CLOUDS);
+    RctSetRectangle(&rect, position.x - 1, position.y - 1, width + 2, height + 2);
+    drawhelper_fillRectangle(&rect, 0);
+
+    filledWidth = ((float)width * barValue) / maxBarValue;
+    drawhelper_applyForeColor(ALIZARIN);
+    RctSetRectangle(&rect, position.x, position.y, filledWidth, height);
+    drawhelper_fillRectangle(&rect, 0);
+}
+
 static void game_drawHealthBar(Pawn *pawn, int maxWidth, int height, Coordinate position) {
     int maxHealth, healthWidth;
-    RectangleType rect;
+
     if (pawn->type == PAWNTYPE_SHIP) {
         maxHealth = GAMEMECHANICS_MAXSHIPHEALTH;
     } else {
         maxHealth = GAMEMECHANICS_MAXBASEHEALTH;
     }
 
-    // draw border
-    drawhelper_applyForeColor(CLOUDS);
-    RctSetRectangle(&rect, position.x - 1, position.y - 1, maxWidth + 2, height + 2);
-    drawhelper_fillRectangle(&rect, 0);
-
-    healthWidth = (maxWidth * pawn->inventory.health) / maxHealth;
-    drawhelper_applyForeColor(ALIZARIN);
-    RctSetRectangle(&rect, position.x, position.y, healthWidth, height);
-    drawhelper_fillRectangle(&rect, 0);
+    game_drawBar(position, maxWidth, height, pawn->inventory.health, maxHealth);
 }
 
 static void game_drawActionTiles() {
@@ -532,21 +539,30 @@ static void game_drawGameStartHeader() {
     MemHandleUnlock(resourceHandle);
     DmReleaseResource(resourceHandle);
 
-    if (gameSession_useValueForBottomTitle()) {
+    if (gameSession.menuScreenType == MENUSCREEN_RANK) {
+        int barWidth = 55;
+        int currValue = gameSession_menuTopTitleResource() - STRING_RANK0;
+        int maxValue = RANK_COUNT;
+        game_drawBar((Coordinate){screenSize.x / 2 - barWidth / 2, 18}, barWidth, 8, fmax(1, currValue), maxValue);
+        text = NULL;
+    } else if (gameSession_useValueForBottomTitle()) {
         StrIToA(fixedText, gameSession_valueForBottomTitle());
         text = fixedText;
     } else {
         resourceHandle = DmGetResource(strRsc, gameSession_menuBottomTitleResource());
         text = (char *)MemHandleLock(resourceHandle);
     }
-    FntSetFont(largeBoldFont);
-    centerX = screenSize.x / 2 - FntCharsWidth(text, StrLen(text)) / 2;
-    drawhelper_drawText(text, (Coordinate){centerX, 12});
-    if (!gameSession_useValueForBottomTitle()) {
+    if (text != NULL && StrLen(text) > 0) {
+        FntSetFont(largeBoldFont);
+        centerX = screenSize.x / 2 - FntCharsWidth(text, StrLen(text)) / 2;
+        drawhelper_drawText(text, (Coordinate){centerX, 12});
+        FntSetFont(oldFont);
+    }
+
+    if (!gameSession_useValueForBottomTitle() && gameSession.menuScreenType != MENUSCREEN_RANK) {
         MemHandleUnlock(resourceHandle);
         DmReleaseResource(resourceHandle);
     }
-    FntSetFont(oldFont);
 
     drawhelper_applyForeColor(SUNFLOWER);
     hexgrid_drawTileAtPosition((Coordinate){0, 0}, false);
