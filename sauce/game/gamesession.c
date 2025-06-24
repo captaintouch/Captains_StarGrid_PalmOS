@@ -273,7 +273,16 @@ static void gameSession_enableActionsForFaction(int faction) {
 static Boolean gameSession_movesLeftForFaction(int faction) {
     int i;
     for (i = 0; i < gameSession.level.pawnCount; i++) {
-        if (gameSession.level.pawns[i].faction == faction && gameSession.level.pawns[i].type == PAWNTYPE_SHIP && !gameSession.level.pawns[i].turnComplete && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
+        Boolean turnComplete;
+        switch (gameSession.level.pawns[i].type) {
+            case PAWNTYPE_SHIP:
+                turnComplete = gameSession.level.pawns[i].turnComplete;
+                break;
+            case PAWNTYPE_BASE:
+                turnComplete = gameSession.level.pawns[i].turnComplete || pawnActionMenuViewModel_baseTurnsLeft(gameSession.currentTurn, gameSession.level.pawns[i].inventory.baseActionLastActionTurn) > 0;
+                break;
+        }
+        if (gameSession.level.pawns[i].faction == faction && !turnComplete && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
             return true;
         }
     }
