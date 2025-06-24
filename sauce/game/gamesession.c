@@ -65,8 +65,6 @@ void gameSession_reset(Boolean newGame) {
 
     gameSession.highlightTiles = NULL;
     gameSession.highlightTileCount = 0;
-    gameSession.secondaryHighlightTiles = NULL;
-    gameSession.secondaryHighlightTileCount = 0;
 
     gameSession.attackAnimation = NULL;
     gameSession.movement = NULL;
@@ -206,11 +204,24 @@ Pawn *gameSession_pawnAtTile(Coordinate tile) {
     return NULL;
 }
 
+static AppColor gameSession_hightlightTilesColor() {
+    switch (gameSession.targetSelectionType) {
+        case TARGETSELECTIONTYPE_MOVE:
+            return EMERALD;
+        case TARGETSELECTIONTYPE_PHASER:
+        case TARGETSELECTIONTYPE_TORPEDO:
+            return ALIZARIN;
+    }
+}
+
 static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPosition, TargetSelectionType targetSelectionType) {
     int i;
     int maxTileRange = gameActionLogic_maxRange(targetSelectionType);
     Coordinate *coordinates = NULL;
     int coordinatesCount = 0;
+    int maxIteration;
+    AppColor color = gameSession_hightlightTilesColor();
+    gameSession_resetHighlightTiles();
     switch (targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
             coordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.level.pawnCount);
@@ -221,23 +232,30 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
                 }
             }
             MemPtrResize(coordinates, sizeof(Coordinate) * coordinatesCount);
-            movement_findTilesInRange(currentPosition, maxTileRange, coordinates, coordinatesCount, &gameSession.highlightTiles, &gameSession.highlightTileCount);
+            movement_findTilesInRange(currentPosition, maxTileRange, coordinates, coordinatesCount, &gameSession.highlightTiles, &gameSession.highlightTileCount, color, true);
             break;
         case TARGETSELECTIONTYPE_PHASER:
         case TARGETSELECTIONTYPE_TORPEDO:
-            movement_findTilesInRange(currentPosition, maxTileRange, NULL, 0, &gameSession.secondaryHighlightTiles, &gameSession.secondaryHighlightTileCount);
-            gameSession.highlightTiles = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.secondaryHighlightTileCount);
-            for (i = 0; i < gameSession.secondaryHighlightTileCount; i++) {
-                Pawn *pawnAtPosition = gameSession_pawnAtTile(gameSession.secondaryHighlightTiles[i]);
+            movement_findTilesInRange(currentPosition, maxTileRange, NULL, 0, &gameSession.highlightTiles, &gameSession.highlightTileCount, color, false);
+            for (i = 0; i < gameSession.highlightTileCount; i++) {
+                Pawn *pawnAtPosition = gameSession_pawnAtTile(gameSession.highlightTiles[i].position);
                 if (pawnAtPosition == NULL || pawnAtPosition->faction == gameSession.activePawn->faction) {
                     continue;
                 }
-                gameSession.highlightTiles[coordinatesCount] = pawnAtPosition->position;
-                coordinatesCount++;
+                gameSession.highlightTiles[i].filled = true;
             }
-            coordinatesCount++;
-            gameSession.highlightTileCount = coordinatesCount;
-            MemPtrResize(gameSession.highlightTiles, sizeof(Coordinate) * coordinatesCount);
+
+            maxIteration = gameSession.highlightTileCount;
+            // move the filled tiles to the end so they don't get overdrawn
+            for (i = 0; i < maxIteration; i++) {
+                if (gameSession.highlightTiles[i].filled) {
+                    HighlightTile temp = gameSession.highlightTiles[i];
+                    gameSession.highlightTiles[i] = gameSession.highlightTiles[gameSession.highlightTileCount - 1];
+                    gameSession.highlightTiles[gameSession.highlightTileCount - 1] = temp;
+                    maxIteration--;
+                    i--;
+                }
+            }
             break;
     }
 
@@ -567,7 +585,7 @@ static Boolean gameSession_handleMiniMapTap() {
 static Boolean gameSession_highlightTilesContains(Coordinate coordinate) {
     int i;
     for (i = 0; i < gameSession.highlightTileCount; i++) {
-        if (gameSession.highlightTiles[i].x == coordinate.x && gameSession.highlightTiles[i].y == coordinate.y) {
+        if (isEqualCoordinate(gameSession.highlightTiles[i].position, coordinate)) {
             return true;
         }
     }
@@ -579,11 +597,6 @@ static void gameSession_resetHighlightTiles() {
         MemPtrFree(gameSession.highlightTiles);
         gameSession.highlightTiles = NULL;
         gameSession.highlightTileCount = 0;
-    }
-    if (gameSession.secondaryHighlightTiles != NULL) {
-        MemPtrFree(gameSession.secondaryHighlightTiles);
-        gameSession.secondaryHighlightTiles = NULL;
-        gameSession.secondaryHighlightTileCount = 0;
     }
 }
 
@@ -685,16 +698,6 @@ static void gameSession_handlePawnActionButtonSelection() {
         gameSession_updateValidPawnPositionsForMovement(gameSession.activePawn->position, gameSession.targetSelectionType);
     }
     gameSession.drawingState.shouldRedrawOverlay = true;
-}
-
-AppColor gameSession_hightlightTilesColor() {
-    switch (gameSession.targetSelectionType) {
-        case TARGETSELECTIONTYPE_MOVE:
-            return EMERALD;
-        case TARGETSELECTIONTYPE_PHASER:
-        case TARGETSELECTIONTYPE_TORPEDO:
-            return ALIZARIN;
-    }
 }
 
 static void gameSession_progressUpdateExplosion() {

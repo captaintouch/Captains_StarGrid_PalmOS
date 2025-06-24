@@ -281,10 +281,10 @@ static Boolean movement_positionInCoordinates(Coordinate referenceCoordinate, Co
 }
 
 MOVEMENT_SECTION
-void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coordinate *invalidCoordinates, int invalidCoordinatesCount, Coordinate **results, int *numberOfPositions) {
+void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coordinate *invalidCoordinates, int invalidCoordinatesCount, HighlightTile **results, int *numberOfPositions, AppColor color, Boolean filled) {
     int i, j;
     int positionCount = 0;
-    Coordinate *positions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * maxTileRange * 2 * maxTileRange * 2);
+    HighlightTile *positions = (HighlightTile *)MemPtrNew(sizeof(HighlightTile) * maxTileRange * 2 * maxTileRange * 2);
     for (i = -maxTileRange - 2; i < maxTileRange + 2; i++) {
         for (j = -maxTileRange - 2; j < maxTileRange + 2; j++) {
             Coordinate newPosition = (Coordinate){currentPosition.x + i, currentPosition.y + j};
@@ -298,12 +298,11 @@ void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coo
                 continue;
             }
             if (isPositionInBounds(newPosition)) {
-                positions[positionCount] = newPosition;
-                positionCount++;
+                positions[positionCount++] = (HighlightTile){newPosition, color, filled};
             }
         }
     }
-    MemPtrResize(positions, positionCount * sizeof(Coordinate));
+    MemPtrResize(positions, positionCount * sizeof(HighlightTile));
     *results = positions;
     *numberOfPositions = positionCount;
 }

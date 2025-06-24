@@ -75,10 +75,8 @@ typedef struct GameSession {
     int factionTurn;
     CPUStrategyResult *cpuStrategyResult;
 
-    Coordinate *highlightTiles; //Contains the tiles that should be colored to indicate where movement is possible
+    HighlightTile *highlightTiles;
     int highlightTileCount;
-    Coordinate *secondaryHighlightTiles; //Tiles that indicate the range but can't be selected
-    int secondaryHighlightTileCount;
     DrawingState drawingState;
 
     TargetSelectionType targetSelectionType;
@@ -110,7 +108,6 @@ Boolean gameSession_handleMenu(UInt16 menuItemID);
 Boolean gameSession_handleFormButtonTap(UInt16 buttonID);
 Boolean gameSession_shouldShowHealthBar();
 Boolean gameSession_animating();
-AppColor gameSession_hightlightTilesColor();
 DmResID gameSession_menuTopTitleResource();
 Boolean gameSession_useValueForBottomTitle();
 int gameSession_valueForBottomTitle();

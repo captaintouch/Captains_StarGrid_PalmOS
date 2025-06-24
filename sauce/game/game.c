@@ -8,11 +8,11 @@
 #include "drawhelper.h"
 #include "gamesession.h"
 #include "hexgrid.h"
+#include "mathIsFun.h"
 #include "minimap.h"
 #include "pawn.h"
 #include "spriteLibrary.h"
 #include "viewport.h"
-#include "mathIsFun.h"
 
 WinHandle backgroundBuffer = NULL;
 WinHandle overlayBuffer = NULL;
@@ -141,27 +141,23 @@ static void game_drawAttackAnimation() {
 
 static void game_drawHighlightTiles() {  // Tiles that need to be highlighted (for example to indicate where a pawn can move)
     int i;
-    if (gameSession.secondaryHighlightTiles != NULL && gameSession.secondaryHighlightTileCount > 0) {
-        for (i = 0; i < gameSession.secondaryHighlightTileCount; i++) {
-            drawhelper_applyForeColor(gameSession_hightlightTilesColor());
-            if (gameSession.colorSupport) {
-                hexgrid_drawTileAtPosition(gameSession.secondaryHighlightTiles[i], true);
-            } else {
-                hexgrid_fillTileAtPosition(gameSession.secondaryHighlightTiles[i], true);
-                drawhelper_applyForeColor(CLOUDS);
-                hexgrid_drawTileAtPosition(gameSession.secondaryHighlightTiles[i], true);
-            }
-        }
-    }
-
     if (gameSession.highlightTiles != NULL && gameSession.highlightTileCount > 0) {
-        drawhelper_applyForeColor(gameSession_hightlightTilesColor());
         for (i = 0; i < gameSession.highlightTileCount; i++) {
-            hexgrid_fillTileAtPosition(gameSession.highlightTiles[i], true);
-        }
-        drawhelper_applyForeColor(CLOUDS);
-        for (i = 0; i < gameSession.highlightTileCount; i++) {
-            hexgrid_drawTileAtPosition(gameSession.highlightTiles[i], true);
+            HighlightTile *tile = &gameSession.highlightTiles[i];
+            drawhelper_applyForeColor(tile->color);
+            if (tile->filled) {
+                hexgrid_fillTileAtPosition(tile->position, true);
+                drawhelper_applyForeColor(CLOUDS);
+                hexgrid_drawTileAtPosition(tile->position, true);
+            } else {
+                if (gameSession.colorSupport) {
+                    hexgrid_drawTileAtPosition(tile->position, true);
+                } else {
+                    hexgrid_fillTileAtPosition(tile->position, true);
+                    drawhelper_applyForeColor(CLOUDS);
+                    hexgrid_drawTileAtPosition(tile->position, true);
+                }
+            }
         }
     }
 }

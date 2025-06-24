@@ -1,6 +1,7 @@
 #ifndef MODELS_H_
 #define MODELS_H_
 #include <PalmOS.h>
+#include "colors.h"
 
 #define WARPCIRCLECOUNT 3
 
@@ -84,6 +85,12 @@ typedef struct Movement {
     Int32 launchTimestamp;
     Coordinate pawnPosition;
 } Movement;
+
+typedef struct HighlightTile {
+    Coordinate position;
+    AppColor color;
+    Boolean filled;
+} HighlightTile;
 
 Boolean isEqualCoordinate(Coordinate coordA, Coordinate coordB);
 Boolean isInvalidCoordinate(Coordinate coord);
