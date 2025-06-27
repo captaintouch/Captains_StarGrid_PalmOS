@@ -151,6 +151,20 @@ void level_removePawnAtIndex(int index, Level *level) {
 }
 
 LEVEL_SECTION
+static int level_removePawnsOfFaction(int factionIndex, Level *level) {
+    int i;
+    int removalCount = 0;
+    for (i = 0; i < level->pawnCount - 1; i++) {
+        if (level->pawns[i].faction == factionIndex) {
+            level_removePawnAtIndex(i, level);
+            i--;
+            removalCount++;
+        }
+    }
+    return removalCount;
+}
+
+LEVEL_SECTION
 void level_removePawn(Pawn *pawn, Level *level) {
     int i;
     for (i = 0; i < level->pawnCount; i++) {
@@ -335,7 +349,7 @@ static void level_applyPlacementCorners(Level *level, NewGameConfig config) {
     // Set the bases
     for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
         int faction = indices[i];
-        Coordinate baseCoordinate = baseCoordinates[i];
+        Coordinate baseCoordinate = baseCoordinates[faction];
         Pawn *basePawn;
         if (!config.playerConfig[faction].active) {
             continue;
@@ -346,9 +360,40 @@ static void level_applyPlacementCorners(Level *level, NewGameConfig config) {
         // Add ships around the bases
         for (j = 0; j < config.shipCount; j++) {
             Coordinate shipCoordinate = movement_closestTileToTargetInRange(basePawn, basePawn->position, level->pawns, pawnIndex, false);
-            level->pawns[pawnIndex] = (Pawn){PAWNTYPE_SHIP, shipCoordinate, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, false}, (i + i * TimGetTicks()) % GFX_FRAMECOUNT_SHIPA, faction, false, false};
+            level->pawns[pawnIndex] = (Pawn){PAWNTYPE_SHIP, shipCoordinate, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, false}, (faction + faction * TimGetTicks()) % GFX_FRAMECOUNT_SHIPA, faction, false, false};
             pawnIndex++;
         }
+    }
+}
+
+LEVEL_SECTION
+static void level_removeHumanPawnsAndRecenter(Level *level, NewGameConfig config) {
+    int i, j;
+    int indices[GAMEMECHANICS_MAXPLAYERCOUNT];
+    int pawnIndex = 0;
+    mathIsFun_shuffleIndices(indices, GAMEMECHANICS_MAXPLAYERCOUNT);
+    for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
+        int faction = indices[i];
+        Coordinate baseCoordinate = (Coordinate){HEXGRID_COLS / 2, HEXGRID_ROWS / 2};
+        int extraPawnCount = config.shipCount + 1 + 1;
+        Pawn pawns[extraPawnCount];
+        Pawn *basePawn;
+        if (!config.playerConfig[faction].isHuman) {
+            continue;
+        }
+        level_removePawnsOfFaction(faction, level);
+        
+        pawns[pawnIndex] = (Pawn){PAWNTYPE_BASE, baseCoordinate, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, faction, 0, 0, true}, 0, faction, false, false};
+        basePawn = &pawns[pawnIndex];
+        pawnIndex++;
+        // Add ships around the bases
+        for (j = 0; j < config.shipCount + 1; j++) {
+            Coordinate shipCoordinate = movement_closestTileToTargetInRange(basePawn, basePawn->position, pawns, pawnIndex, false);
+            pawns[pawnIndex] = (Pawn){PAWNTYPE_SHIP, shipCoordinate, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, false}, (faction + faction * TimGetTicks()) % GFX_FRAMECOUNT_SHIPA, faction, false, false};
+            pawnIndex++;
+        }
+        level_addPawns(pawns, pawnIndex, level);
+        return;
     }
 }
 
@@ -373,6 +418,10 @@ Level level_create(NewGameConfig config) {
         case PLAYERPLACEMENTSTRATEGY_CORNERS:
             level_applyPlacementCorners(&level, config);
             break;
+        case PLAYERPLACEMENTSTRATEGY_CENTERDEFENSE:
+            level_applyPlacementCorners(&level, config);
+            level_removeHumanPawnsAndRecenter(&level, config);
+            break;
     }
 
     return level;
@@ -395,14 +444,18 @@ void level_destroy(Level *level) {
 }
 
 LEVEL_SECTION
-NewGameConfig level_defaultNewGameConfig() {
+NewGameConfig level_defaultNewGameConfig(int rank) {
     NewGameConfig config;
     int i;
     for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
         config.playerConfig[i].active = true;
         config.playerConfig[i].isHuman = i == 0;
     }
-    config.placementStrategy = PLAYERPLACEMENTSTRATEGY_CORNERS;
+    if (rank < 1) {
+        config.placementStrategy = PLAYERPLACEMENTSTRATEGY_CORNERS;
+    } else {
+        config.placementStrategy = random(0, 1);
+    }
     config.shipCount = 2;
     return config;
 }

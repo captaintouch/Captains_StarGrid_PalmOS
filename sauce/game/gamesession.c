@@ -463,7 +463,7 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
                     gameSession.drawingState.shouldRedrawOverlay = true;
                     gameSession.drawingState.shouldRedrawHeader = true;
                     gameSession.menuScreenType = MENUSCREEN_PLAYERCONFIG;
-                    level_addPlayerConfigPawns(&gameSession.level, level_defaultNewGameConfig());
+                    level_addPlayerConfigPawns(&gameSession.level, level_defaultNewGameConfig(0));
                     gameSession.activePawn = &gameSession.level.pawns[0];
                     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, gameSession.activePawn->position.y});
                     break;
@@ -512,7 +512,7 @@ static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
     int i;
     for (i = 0; i < gameSession.level.actionTileCount; i++) {
         if (isEqualCoordinate(gameSession.level.actionTiles[i].position, selectedTile)) {
-            NewGameConfig config = level_getNewGameConfig(&gameSession.level, level_defaultNewGameConfig());
+            NewGameConfig config = level_getNewGameConfig(&gameSession.level, level_defaultNewGameConfig(scoring_rankValue(scoring_loadSavedScore())));
             gameSession.level.actionTiles[i].selected = true;
             gameSession.drawingState.shouldRedrawOverlay = true;
             switch (gameSession.level.actionTiles[i].identifier) {

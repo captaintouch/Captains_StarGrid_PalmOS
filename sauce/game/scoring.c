@@ -89,6 +89,11 @@ DmResID scoring_rankForScore(Score score) {
 }
 
 SCORING_SECTION
+int scoring_rankValue(Score score) {
+    return scoring_rankForScore(score) - STRING_RANK0;
+}
+
+SCORING_SECTION
 int scoring_scoreNeededUntilNextRank(Score score) {
     const UInt32 rank_thresholds[RANK_COUNT] = {20, 28, 40, 55, 75, 100, 140, 200, 280, 400, 550, 750, 1000, 1400, 2000, 2600, 3100, 3500, 4000};
     int i;

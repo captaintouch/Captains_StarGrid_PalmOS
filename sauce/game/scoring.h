@@ -21,6 +21,7 @@ typedef struct LevelScore {
 } LevelScore;
 
 DmResID scoring_rankForScore(Score score) SCORING_SECTION;
+int scoring_rankValue(Score score) SCORING_SECTION;
 Score scoring_scoreFromLevelScores(LevelScore *levelScores, int faction) SCORING_SECTION;
 int scoring_scoreValue(Score score) SCORING_SECTION;
 int scoring_levelScoreValue(LevelScore *levelScores, int faction) SCORING_SECTION;
