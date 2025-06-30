@@ -24,8 +24,16 @@ static UInt16 pawnActionMenuViewModel_textForActionType(MenuActionType actionTyp
     }
 }
 
-int pawnActionMenuViewModel_baseTurnsLeft(UInt8 currentTurn, UInt8 lastActionTurn) {
-    return lastActionTurn + GAMEMECHANICS_BASEACTIONREQUIREDTURNS - currentTurn;
+int pawnActionMenuViewModel_baseTurnsLeft(UInt8 currentTurn, UInt8 lastActionTurn, BaseAction lastActionType) {
+    int requiredTurns = GAMEMECHANICS_BASEACTIONREQUIREDTURNS;
+    switch (lastActionType) {
+        case BASEACTION_NONE:
+        case BASEACTION_SHOCKWAVE:
+        break;
+        case BASEACTION_BUILD_SHIP:
+            requiredTurns *= 2;
+    }
+    return lastActionTurn + requiredTurns - currentTurn;
 }
 
 static Boolean pawnActionMenuViewModel_isDisabled(MenuActionType actionType, Pawn *pawn, UInt8 currentTurn) {
@@ -40,7 +48,7 @@ static Boolean pawnActionMenuViewModel_isDisabled(MenuActionType actionType, Paw
             return pawn->warped || pawn->inventory.carryingFlag;
         case MenuActionTypeShockwave:
         case MenuActionTypeBuildShip:
-            return pawnActionMenuViewModel_baseTurnsLeft(currentTurn, pawn->inventory.baseActionLastActionTurn) > 0;
+            return pawnActionMenuViewModel_baseTurnsLeft(currentTurn, pawn->inventory.baseActionLastActionTurn, pawn->inventory.lastBaseAction) > 0;
     }
 }
 
@@ -50,7 +58,7 @@ static void appendTurnsRequiredForAction(MenuActionType actionType, char *text, 
     if (actionType != MenuActionTypeShockwave && actionType != MenuActionTypeBuildShip && !pawnActionMenuViewModel_isDisabled(actionType, pawn, currentTurn)) {
         return;
     }
-    turnsRequired = pawnActionMenuViewModel_baseTurnsLeft(currentTurn, pawn->inventory.baseActionLastActionTurn);
+    turnsRequired = pawnActionMenuViewModel_baseTurnsLeft(currentTurn, pawn->inventory.baseActionLastActionTurn, pawn->inventory.lastBaseAction);
     if (turnsRequired > 0) {
         StrCat(text, " (in ");
         StrIToA(valueText, turnsRequired);

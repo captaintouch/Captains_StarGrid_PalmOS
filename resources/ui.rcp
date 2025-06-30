@@ -130,6 +130,13 @@ BEGIN
     BUTTONS "Ok"
 END
 
+ALERT ID GAME_ALERT_SHIPBUILDINPROGRESS
+BEGIN
+    TITLE "No action possible"
+    MESSAGE "Base is constructing a ship, ^1 turns remaining."
+    BUTTONS "Ok"
+END
+
 ALERT ID GAME_ALERT_CPUCONTINUEPLAYING
 BEGIN
     TITLE "Game Over"

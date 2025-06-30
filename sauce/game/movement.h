@@ -13,7 +13,7 @@ void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coo
 UInt8 movement_orientationBetween(Coordinate coordA, Coordinate coordB) MOVEMENT_SECTION;
 Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Coordinate targetPosition, Pawn *allPawns, int totalPawnCount, Boolean allowBase) MOVEMENT_SECTION;
 Boolean movement_shipAtTarget(Coordinate targetCoordinate, Pawn *allPawns, int totalPawnCount) MOVEMENT_SECTION;
-Pawn *movement_homeBase(Pawn *pawn, Pawn *allPawns, int totalPawnCount) MOVEMENT_SECTION;
+Pawn *movement_homeBase(int factionIndex, Pawn *allPawns, int totalPawnCount) MOVEMENT_SECTION;
 Coordinate movement_positionAwayFrom(Coordinate sourceCoordinate, Pawn *pawn, Pawn *allPawns, int totalPawnCount, UInt8 distance) MOVEMENT_SECTION;
 Coordinate movement_getBoxCoordinate(Coordinate center, float t, int boxSize) MOVEMENT_SECTION;
 #endif
