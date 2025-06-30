@@ -7,6 +7,7 @@
 #include "mathIsFun.h"
 #include "movement.h"
 #include "viewport.h"
+#include "pawnActionMenuViewModel.h"
 
 typedef enum CPUStrategy {
     CPUSTRATEGY_DEFENDBASE,
@@ -287,7 +288,23 @@ static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int
 }
 
 CPULOGIC_SECTION
-CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, CPUFactionProfile factionProfile) {
+static CPUStrategyResult cpuLogic_baseStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int currentTurn) {
+    Pawn *enemyInRange;
+
+    if (pawnActionMenuViewModel_baseTurnsLeft(currentTurn, pawn->inventory.baseActionLastActionTurn, pawn->inventory.lastBaseAction) > 0) {
+        return (CPUStrategyResult){100, CPUACTION_NONE, NULL, (Coordinate){-1, -1}};
+    }
+
+    enemyInRange = cpuLogic_weakestEnemyInRange(pawn, allPawns, totalPawnCount, true, false, (float)GAMEMECHANICS_SHOCKWAVERANGE);
+    if (enemyInRange != NULL && !enemyInRange->inventory.carryingFlag) {
+        return (CPUStrategyResult){100, CPUACTION_BASE_SHOCKWAVE, NULL, (Coordinate){-1, -1}};
+    } else {
+        return (CPUStrategyResult){100, CPUACTION_BASE_BUILDSHIP, NULL, (Coordinate){-1, -1}};
+    }
+}
+
+CPULOGIC_SECTION
+CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int currentTurn, CPUFactionProfile factionProfile) {
     int i;
     CPUStrategyResult bestStrategy;
     CPUStrategyResult strategyResult[3];
@@ -295,7 +312,10 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
     CPUStrategy selectedStrategy = 0;
 #endif
     if (isInvalidCoordinate(pawn->position)) {
-        return (CPUStrategyResult){CPUACTION_NONE, NULL};
+        return (CPUStrategyResult){100, CPUACTION_NONE, NULL, (Coordinate){-1, -1}};
+    }
+    if (pawn->type == PAWNTYPE_BASE) {
+        return cpuLogic_baseStrategy(pawn, allPawns, totalPawnCount, currentTurn);
     }
 
     strategyResult[CPUSTRATEGY_DEFENDBASE] = cpuLogic_defendBaseStrategy(pawn, allPawns, totalPawnCount, factionProfile.defendBasePriority);
@@ -318,7 +338,7 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
     bestStrategy.targetPosition = cpuLogic_safePosition(pawn, allPawns, totalPawnCount, bestStrategy.target);
 
 #ifdef DEBUG
-    /*drawhelper_drawTextWithValue("DEFBASE:", strategyResult[CPUSTRATEGY_DEFENDBASE].score, (Coordinate){0, 0});
+    /*c
     drawhelper_drawTextWithValue("CTF:", strategyResult[CPUSTRATEGY_CAPTUREFLAG].score, (Coordinate){0, 10});
     drawhelper_drawTextWithValue("ATTACK:", strategyResult[CPUSTRATEGY_ATTACK].score, (Coordinate){0, 20});*/
     switch (selectedStrategy) {

@@ -299,7 +299,7 @@ static void gameSession_showPawnActions() {
 static void gameSession_enableActionsForFaction(int faction) {
     int i;
     for (i = 0; i < gameSession.level.pawnCount; i++) {
-        if (gameSession.level.pawns[i].faction == faction && gameSession.level.pawns[i].type == PAWNTYPE_SHIP && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
+        if (gameSession.level.pawns[i].faction == faction && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
             gameSession.level.pawns[i].turnComplete = false;
         }
     }
@@ -889,73 +889,80 @@ Boolean gameSession_animating() {
 }
 
 static void gameSession_cpuTurn() {
-    int i;
+    UInt16 textId;
+    char *text;
+    MemHandle resourceHandle;
+    Coordinate closestTile;
+    Pawn *targetPawn;
+    CPUStrategyResult strategy;
+    Pawn *homeBase;
+    Pawn *pawn = gameSession.activePawn;
     if (gameSession_animating() || gameSession.state != GAMESTATE_DEFAULT || gameSession.menuScreenType != MENUSCREEN_GAME || gameSession.factions[gameSession.factionTurn].human) {
         return;
     }
-    for (i = 0; i < gameSession.level.pawnCount; i++) {
-        UInt16 textId;
-        char *text;
-        MemHandle resourceHandle;
-        Coordinate closestTile;
-        Pawn *targetPawn;
-        CPUStrategyResult strategy;
-        Pawn *homeBase;
-        Pawn *pawn = &gameSession.level.pawns[i];
-        if (pawn->faction != gameSession.factionTurn || gameSession.factions[pawn->faction].human || pawn->turnComplete || isInvalidCoordinate(pawn->position)) {
-            continue;
-        }
-        // move camera to active pawn
-        if (!gameSession_isViewPortOffsetToPawn(pawn)) {
-            gameSession_moveCameraToPawn(pawn);
-            gameSession.activePawn = pawn;
-            return;
-        }
-        strategy = cpuLogic_getStrategy(pawn, gameSession.level.pawns, gameSession.level.pawnCount, gameSession.factions[pawn->faction].profile);
-        pawn->turnComplete = true;
-        gameSession.activePawn = pawn;
-        if (pawn->type == PAWNTYPE_BASE) {
-            return;
-        }
-        switch (strategy.CPUAction) {
-            case CPUACTION_MOVE:
-                closestTile = strategy.targetPosition;
-                if (isEqualCoordinate(closestTile, strategy.target->position)) {
-                    targetPawn = strategy.target;
-                } else {
-                    targetPawn = NULL;
-                }
-                gameActionLogic_scheduleMovement(gameSession.activePawn, targetPawn, closestTile);
-                textId = STRING_MOVING;
-                break;
-            case CPUACTION_PHASERATTACK:
-            case CPUACTION_TORPEDOATTACK:
-                gameActionLogic_scheduleAttack(strategy.target, strategy.target->position, strategy.CPUAction == CPUACTION_PHASERATTACK ? TARGETSELECTIONTYPE_PHASER : TARGETSELECTIONTYPE_TORPEDO);
-                textId = STRING_ATTACKING;
-                break;
-            case CPUACTION_WARP:
-                homeBase = movement_homeBase(pawn->faction, gameSession.level.pawns, gameSession.level.pawnCount);
-                pawn->warped = true;
-                closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
-                textId = STRING_WARP;
-                gameActionLogic_scheduleWarp(pawn, closestTile);
-                pawn->position = closestTile;
-                break;
-            case CPUACTION_NONE:
-                textId = STRING_NOACTION;
-                gameSession.drawingState.requiresPauseAfterLayout = true;
-                break;
-        }
-        resourceHandle = DmGetResource(strRsc, textId);
-        text = (char *)MemHandleLock(resourceHandle);
-        StrCopy(gameSession.cpuActionText, text);
-        MemHandleUnlock(resourceHandle);
-        DmReleaseResource(resourceHandle);
+    if (pawn->turnComplete) {
+        pawn = gameSession_nextPawn();
+    }
+    if (pawn == NULL || !gameSession_movesLeftForFaction(gameSession.factionTurn)) {
+        gameSession_startTurnForNextFaction();
         return;
     }
-    if (!gameSession_movesLeftForFaction(gameSession.factionTurn)) {
-        gameSession_startTurnForNextFaction();
+
+    // move camera to active pawn
+    if (!gameSession_isViewPortOffsetToPawn(pawn)) {
+        gameSession_moveCameraToPawn(pawn);
+        gameSession.activePawn = pawn;
+        return;
     }
+    strategy = cpuLogic_getStrategy(pawn, gameSession.level.pawns, gameSession.level.pawnCount, gameSession.currentTurn, gameSession.factions[pawn->faction].profile);
+    pawn->turnComplete = true;
+    gameSession.activePawn = pawn;
+    switch (strategy.CPUAction) {
+        case CPUACTION_MOVE:
+            closestTile = strategy.targetPosition;
+            if (isEqualCoordinate(closestTile, strategy.target->position)) {
+                targetPawn = strategy.target;
+            } else {
+                targetPawn = NULL;
+            }
+            gameActionLogic_scheduleMovement(gameSession.activePawn, targetPawn, closestTile);
+            textId = STRING_MOVING;
+            break;
+        case CPUACTION_PHASERATTACK:
+        case CPUACTION_TORPEDOATTACK:
+            gameActionLogic_scheduleAttack(strategy.target, strategy.target->position, strategy.CPUAction == CPUACTION_PHASERATTACK ? TARGETSELECTIONTYPE_PHASER : TARGETSELECTIONTYPE_TORPEDO);
+            textId = STRING_ATTACKING;
+            break;
+        case CPUACTION_WARP:
+            homeBase = movement_homeBase(pawn->faction, gameSession.level.pawns, gameSession.level.pawnCount);
+            pawn->warped = true;
+            closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
+            textId = STRING_WARP;
+            gameActionLogic_scheduleWarp(pawn, closestTile);
+            pawn->position = closestTile;
+            break;
+        case CPUACTION_BASE_SHOCKWAVE:
+            gameActionLogic_scheduleShockwave(pawn);
+            pawn->inventory.baseActionLastActionTurn = gameSession.currentTurn;
+            pawn->inventory.lastBaseAction = BASEACTION_SHOCKWAVE;
+            textId = STRING_SHOCKWAVE;
+            break;
+        case CPUACTION_BASE_BUILDSHIP:
+            pawn->inventory.baseActionLastActionTurn = gameSession.currentTurn;
+            pawn->inventory.lastBaseAction = BASEACTION_BUILD_SHIP;
+            textId = STRING_BUILDSHIP;
+            gameSession.drawingState.requiresPauseAfterLayout = true;
+            break;
+        case CPUACTION_NONE:
+            textId = STRING_NOACTION;
+            gameSession.drawingState.requiresPauseAfterLayout = pawn->type == PAWNTYPE_SHIP;
+            break;
+    }
+    resourceHandle = DmGetResource(strRsc, textId);
+    text = (char *)MemHandleLock(resourceHandle);
+    StrCopy(gameSession.cpuActionText, text);
+    MemHandleUnlock(resourceHandle);
+    DmReleaseResource(resourceHandle);
 }
 
 Boolean gameSession_handleMenu(UInt16 menuItemID) {

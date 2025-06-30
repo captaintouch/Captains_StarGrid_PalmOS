@@ -18,6 +18,8 @@ typedef enum CPUAction {
     CPUACTION_TORPEDOATTACK,
     CPUACTION_PHASERATTACK,
     CPUACTION_WARP,
+    CPUACTION_BASE_SHOCKWAVE,
+    CPUACTION_BASE_BUILDSHIP
 } CPUAction;
 
 typedef struct CPUStrategyResult {
@@ -27,6 +29,6 @@ typedef struct CPUStrategyResult {
     Coordinate targetPosition;
 } CPUStrategyResult;
 
-CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, CPUFactionProfile factionProfile) CPULOGIC_SECTION;
+CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int currentTurn, CPUFactionProfile factionProfile) CPULOGIC_SECTION;
 
 #endif

@@ -31,7 +31,7 @@ int pawnActionMenuViewModel_baseTurnsLeft(UInt8 currentTurn, UInt8 lastActionTur
         case BASEACTION_SHOCKWAVE:
         break;
         case BASEACTION_BUILD_SHIP:
-            requiredTurns *= 2;
+            requiredTurns *= 1.5;
     }
     return lastActionTurn + requiredTurns - currentTurn;
 }
