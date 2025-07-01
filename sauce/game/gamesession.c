@@ -886,7 +886,7 @@ static void gameSession_progressUpdateMovement() {
 }
 
 Boolean gameSession_animating() {
-    return gameSession.attackAnimation != NULL || gameSession.movement != NULL || gameSession.warpAnimation.isWarping;
+    return gameSession.attackAnimation != NULL || gameSession.movement != NULL || gameSession.warpAnimation.isWarping || gameSession.shockWaveAnimation != NULL;
 }
 
 static void gameSession_cpuTurn() {
