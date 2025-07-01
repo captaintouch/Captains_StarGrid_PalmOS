@@ -137,6 +137,14 @@ BEGIN
     BUTTONS "Ok"
 END
 
+ALERT ID GAME_ALERT_SHIPBUILDFINISHED
+BEGIN
+    TITLE "Finished!"
+    MESSAGE "Your base just created a new ship."
+    BUTTONS "Ok"
+END
+
+
 ALERT ID GAME_ALERT_CPUCONTINUEPLAYING
 BEGIN
     TITLE "Game Over"

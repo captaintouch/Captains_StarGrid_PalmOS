@@ -379,6 +379,9 @@ static void gameSession_startTurn() {
         homeBase->inventory.lastBaseAction = BASEACTION_NONE;
         gameSession_buildShip(homeBase);
         nextPawn = homeBase;
+        if (gameSession.factions[homeBase->faction].human) {
+            FrmCustomAlert(GAME_ALERT_SHIPBUILDFINISHED, NULL, NULL, NULL);
+        }
     }
     gameSession_moveCameraToPawn(nextPawn);
     gameSession.activePawn = nextPawn;
