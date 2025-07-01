@@ -45,15 +45,6 @@ static void gameActionLogic_showScore() {
     gameSession.drawingState.shouldRedrawHeader = true;
     gameSession.drawingState.shouldRedrawOverlay = true;
     gameSession.activePawn->type = PAWNTYPE_SHIP;
-    gameSession.level.scores[gameSession.activePawn->faction].shipsDestroyed[1] = 2;
-    gameSession.level.scores[gameSession.activePawn->faction].shipsDestroyed[2] = 1;
-    gameSession.level.scores[gameSession.activePawn->faction].shipsDestroyed[3] = 2;
-    gameSession.level.scores[gameSession.activePawn->faction].shipsCaptured[3] = 2;
-    gameSession.level.scores[gameSession.activePawn->faction].basesDestroyed[2] = true;
-    gameSession.level.scores[gameSession.activePawn->faction].basesDestroyed[3] = true;
-    gameSession.level.scores[gameSession.activePawn->faction].flagsStolen = 5;
-    gameSession.level.scores[3].shipsDestroyed[gameSession.activePawn->faction] = 2;
-    gameSession.level.scores[2].shipsDestroyed[gameSession.activePawn->faction] = 3;
     scoring_saveScore(gameSession.level.scores, gameSession.activePawn->faction);
     newRank = scoring_rankForScore(scoring_loadSavedScore());
     if (newRank != oldRank) {

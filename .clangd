@@ -1,0 +1,20 @@
+CompileFlags:
+  Add: [-I/opt/palmdev/sdk-5r3/include,
+	-I/opt/palmdev/sdk-5r3/include/Dynamic,
+	-I/opt/palmdev/sdk-5r3/include/Core,
+	-I/opt/palmdev/sdk-5r3/include/Core/UI,
+	-I/opt/palmdev/sdk-5r3/include/Core/Hardware,
+	-I/opt/palmdev/sdk-5r3/include/Core/System,
+	-I/opt/palmdev/sdk-5r3/include/Core/System/Unix,
+	-I/opt/palmdev/sdk-5r3/include/Libraries,
+	-I/opt/palmdev/sdk-5r3/include/Libraries/PalmOSGlue,
+	-I/opt/palmdev/sdk-5r3/include/Libraries/Lz77,
+	-I/opt/palmdev/sdk-5r3/include/Libraries/ExgLocal,
+	-I/opt/palmdev/sdk-5r3/include/Libraries/Sms,
+	-I/opt/palmdev/sdk-5r3/include/Libraries/Pdi,
+	-I/opt/palmdev/sdk-5r3/include/Libraries/Telephony,
+	-I/opt/palmdev/sdk-5r3/include/Libraries/Telephony/UI,
+	-I/opt/palmdev/sdk-5r3/include/Libraries/INet,
+	-I/opt/palmdev/sdk-5r3/include/Extensions,
+	-I/opt/palmdev/sdk-5r3/include/Extensions/ExpansionMgr
+]

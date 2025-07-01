@@ -9,6 +9,7 @@
 #include "hexgrid.h"
 #include "mathIsFun.h"
 #include "minimap.h"
+#include "models.h"
 #include "movement.h"
 #include "pawnActionMenuViewModel.h"
 #include "viewport.h"
@@ -237,7 +238,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
                 HighlightTile *tile = &gameSession.highlightTiles[i];
                 for (j = 0; j < gameSession.level.pawnCount; j++) {
                     Pawn *pawnAtPosition = &gameSession.level.pawns[j];
-                    if (pawnAtPosition->faction != gameSession.activePawn->faction && movement_distance(pawnAtPosition->position, tile->position) <= GAMEMECHANICS_MAXTILETORPEDORANGE) {
+                    if (pawnAtPosition->type == PAWNTYPE_SHIP && pawnAtPosition->faction != gameSession.activePawn->faction && movement_distance(pawnAtPosition->position, tile->position) <= GAMEMECHANICS_MAXTILETORPEDORANGE) {
                         tile->color = SUNFLOWER;
                     }
                 }
