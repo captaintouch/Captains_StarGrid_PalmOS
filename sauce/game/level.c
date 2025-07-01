@@ -314,8 +314,8 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
 
     index = level->actionTileCount - 4;
     level->actionTiles[index] = (ActionTile){(Coordinate){8, 7}, false, ACTIONTILEIDENTIFIER_TWOPLAYERS, false, 2};        // 2 player config
-    level->actionTiles[index + 1] = (ActionTile){(Coordinate){9, 7}, false, ACTIONTILEIDENTIFIER_THREEPLAYERS, false, 3};  // 3 player config
-    level->actionTiles[index + 2] = (ActionTile){(Coordinate){10, 7}, true, ACTIONTILEIDENTIFIER_FOURPLAYERS, false, 4};   // 4 player config
+    level->actionTiles[index + 1] = (ActionTile){(Coordinate){9, 7}, true, ACTIONTILEIDENTIFIER_THREEPLAYERS, false, 3};  // 3 player config
+    level->actionTiles[index + 2] = (ActionTile){(Coordinate){10, 7}, false, ACTIONTILEIDENTIFIER_FOURPLAYERS, false, 4};   // 4 player config
 
     level->actionTiles[index + 3] = (ActionTile){(Coordinate){13, 7}, true, ACTIONTILEIDENTIFIER_LAUNCHGAME, false, 0};  // Start the game
 
@@ -453,6 +453,7 @@ NewGameConfig level_defaultNewGameConfig(int rank) {
     }
     if (rank < 1) {
         config.placementStrategy = PLAYERPLACEMENTSTRATEGY_CORNERS;
+        config.playerConfig[GAMEMECHANICS_MAXPLAYERCOUNT - 1].active = false;
     } else {
         config.placementStrategy = random(0, 1);
     }
