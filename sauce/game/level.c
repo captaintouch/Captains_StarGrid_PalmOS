@@ -61,7 +61,7 @@ Level level_startLevel() {
     level.pawns = NULL;
     MemSet(newPawns, sizeof(Pawn) * 4, 0);
     newPawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, BASEACTION_NONE, false}, 4, 3, false, false};
-    newPawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, BASEACTION_NONE ,false}, 4, 0, false, false};
+    newPawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, BASEACTION_NONE, false}, 4, 0, false, false};
     newPawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, BASEACTION_NONE, false}, 4, 1, false, false};
     newPawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 6}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, BASEACTION_NONE, false}, 4, 2, false, false};
     level_addPawns(newPawns, 4, &level);
@@ -257,7 +257,7 @@ void level_addScorePawns(Level *level, int faction) {
 LEVEL_SECTION
 void level_addRank(Level *level, Score score) {
     int additionalGridTexts = 6;
-    GridText *updatedGridTexts  = MemPtrNew(sizeof(GridText) * (level->gridTextCount + additionalGridTexts));
+    GridText *updatedGridTexts = MemPtrNew(sizeof(GridText) * (level->gridTextCount + additionalGridTexts));
     level_removePawnsBelowCoordinates((Coordinate){6, 6}, level, true);
     MemSet(updatedGridTexts, sizeof(GridText) * (level->gridTextCount + additionalGridTexts), 0);
     MemMove(updatedGridTexts, level->gridTexts, sizeof(GridText) * level->gridTextCount);
@@ -382,7 +382,7 @@ static void level_removeHumanPawnsAndRecenter(Level *level, NewGameConfig config
             continue;
         }
         level_removePawnsOfFaction(faction, level);
-        
+
         pawns[pawnIndex] = (Pawn){PAWNTYPE_BASE, baseCoordinate, (Inventory){GAMEMECHANICS_MAXBASEHEALTH, faction, 0, 0, BASEACTION_NONE, true}, 0, faction, false, false};
         basePawn = &pawns[pawnIndex];
         pawnIndex++;
@@ -460,3 +460,13 @@ NewGameConfig level_defaultNewGameConfig(int rank) {
     return config;
 }
 
+LEVEL_SECTION
+Pawn *level_pawnAtTile(Coordinate tileCoordinate, Level *level) {
+    int i;
+    for (i = 0; i < level->pawnCount; i++) {
+        if (isEqualCoordinate(level->pawns[i].position, tileCoordinate) && !isInvalidCoordinate(level->pawns[i].position)) {
+            return &level->pawns[i];
+        }
+    }
+    return NULL;
+}

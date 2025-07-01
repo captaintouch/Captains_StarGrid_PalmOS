@@ -195,16 +195,6 @@ static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn) {
     gameSession.viewportOffset = gameSession_validViewportOffset(position);
 }
 
-Pawn *gameSession_pawnAtTile(Coordinate tile) {
-    int i;
-    for (i = 0; i < gameSession.level.pawnCount; i++) {
-        if (gameSession.level.pawns[i].position.x == tile.x && gameSession.level.pawns[i].position.y == tile.y && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
-            return &gameSession.level.pawns[i];
-        }
-    }
-    return NULL;
-}
-
 static AppColor gameSession_hightlightTilesColor() {
     switch (gameSession.targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
@@ -248,7 +238,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
         case TARGETSELECTIONTYPE_TORPEDO:
             movement_findTilesInRange(currentPosition, maxTileRange, NULL, 0, &gameSession.highlightTiles, &gameSession.highlightTileCount, color, false);
             for (i = 0; i < gameSession.highlightTileCount; i++) {
-                Pawn *pawnAtPosition = gameSession_pawnAtTile(gameSession.highlightTiles[i].position);
+                Pawn *pawnAtPosition = level_pawnAtTile(gameSession.highlightTiles[i].position, &gameSession.level);
                 if (pawnAtPosition == NULL || pawnAtPosition->faction == gameSession.activePawn->faction) {
                     continue;
                 }
@@ -363,10 +353,12 @@ static void gameSession_moveCameraToPawn(Pawn *pawn) {
 }
 
 static void gameSession_buildShip(Pawn *homeBase) {
+    Coordinate oldActivePawnPosition = gameSession.activePawn->position;
     Coordinate closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
     level_addPawn(
         (Pawn){PAWNTYPE_SHIP, closestTile, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, BASEACTION_NONE, false}, 0, homeBase->faction, false, true},
         &gameSession.level);
+    gameSession.activePawn = level_pawnAtTile(oldActivePawnPosition, &gameSession.level);
 }
 
 static void gameSession_startTurn() {
@@ -374,11 +366,11 @@ static void gameSession_startTurn() {
     Pawn *homeBase;
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
     nextPawn = gameSession_nextPawn();
-    homeBase = movement_homeBase(nextPawn->faction, gameSession.level.pawns, gameSession.level.pawnCount);
+    homeBase = movement_homeBase(gameSession.factionTurn, gameSession.level.pawns, gameSession.level.pawnCount);
     if (homeBase != NULL && homeBase->inventory.lastBaseAction == BASEACTION_BUILD_SHIP && pawnActionMenuViewModel_baseTurnsLeft(gameSession.currentTurn, homeBase->inventory.baseActionLastActionTurn, homeBase->inventory.lastBaseAction) == 0) {
         homeBase->inventory.lastBaseAction = BASEACTION_NONE;
         gameSession_buildShip(homeBase);
-        nextPawn = homeBase;
+        nextPawn = movement_homeBase(gameSession.factionTurn, gameSession.level.pawns, gameSession.level.pawnCount);
         if (gameSession.factions[homeBase->faction].human) {
             FrmCustomAlert(GAME_ALERT_SHIPBUILDFINISHED, NULL, NULL, NULL);
         }
@@ -594,7 +586,7 @@ static Boolean gameSession_handleNonGameMenuTap(Coordinate selectedTile) {
 static Boolean gameSession_handleTileTap() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
-    Pawn *selectedPawn = gameSession_pawnAtTile(selectedTile);
+    Pawn *selectedPawn = level_pawnAtTile(selectedTile, &gameSession.level);
     if (gameSession.menuScreenType != MENUSCREEN_GAME) {
         return gameSession_handleNonGameMenuTap(selectedTile);
     }
@@ -638,7 +630,7 @@ static void gameSession_resetHighlightTiles() {
 static void gameSession_handleTargetSelection() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
-    Pawn *selectedPawn = gameSession_pawnAtTile(selectedTile);
+    Pawn *selectedPawn = level_pawnAtTile(selectedTile, &gameSession.level);
     if (!gameSession_highlightTilesContains(selectedTile)) {
         gameSession_resetHighlightTiles();
         gameSession.state = GAMESTATE_DEFAULT;

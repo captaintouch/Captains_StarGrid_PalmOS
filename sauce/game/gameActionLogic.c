@@ -54,7 +54,7 @@ static void gameActionLogic_showScore() {
         DmReleaseResource(resourceHandle);
     }
     level_addScorePawns(&gameSession.level, gameSession.activePawn->faction);
-    gameSession.activePawn = gameSession_pawnAtTile(oldPosition);
+    gameSession.activePawn = level_pawnAtTile(oldPosition, &gameSession.level);
     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, 0});
 }
 
@@ -180,6 +180,12 @@ static Boolean gameActionLogic_checkForGameOver() {
 Boolean gameActionLogic_afterMove() {
     Boolean didScheduleMovement = false;
     Pawn *selectedPawn = gameSession.movement->targetPawn;
+
+    if (gameSession.movement->pawn != NULL && gameSession.movement->pawn == &gameSession.cameraPawn) {
+        gameActionLogic_clearMovement();
+        gameSession.state = GAMESTATE_DEFAULT;
+        return false;
+    }
 
     StrCopy(gameSession.cpuActionText, "");
     // Check if flag was captured
