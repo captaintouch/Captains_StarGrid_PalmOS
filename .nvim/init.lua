@@ -33,7 +33,13 @@ function launchSimHiRes()
 	--	vim.fn.jobstart({ "cp-uarm", "emu/uarm.session", "-s", "emu/sdcard.image" })
 end
 
+function installHiRes()
+	buildHiRes()
+	vim.cmd("!pilot-xfer -pusb: -i artifacts/StarGrid_hires.prc")
+end
+
 vim.keymap.set("n", "<leader>lc", launchSimLowResColor, { desc = "Cloudpilot lowres color" })
 vim.keymap.set("n", "<leader>lb", launchSimLowResBW, { desc = "Cloudpilot lowres black white" })
 vim.keymap.set("n", "<leader>ld", launchSimDebug, { desc = "Cloudpilot debug" })
 vim.keymap.set("n", "<leader>lh", launchSimHiRes, { desc = "Cloudpilot hires" })
+vim.keymap.set("n", "<leader>li", installHiRes, { desc = "Install HIRES to Palm" })
