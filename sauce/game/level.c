@@ -6,6 +6,7 @@
 #include "../graphicResources.h"
 #include "mathIsFun.h"
 #include "movement.h"
+#include "pawn.h"
 
 LEVEL_SECTION
 static void level_scoreText(char *fixedText, DmResID textResource, int value) {
@@ -141,12 +142,76 @@ NewGameConfig level_getNewGameConfig(Level *level, NewGameConfig oldConfig) {
 }
 
 LEVEL_SECTION
+Boolean level_movesLeftForFaction(int faction, int currentTurn, Level *level) {
+    int i;
+    for (i = 0; i < level->pawnCount; i++) {
+        Boolean turnComplete;
+        switch (level->pawns[i].type) {
+            case PAWNTYPE_SHIP:
+                turnComplete = level->pawns[i].turnComplete;
+                break;
+            case PAWNTYPE_BASE:
+                turnComplete = level->pawns[i].turnComplete || pawn_baseTurnsLeft(currentTurn, level->pawns[i].inventory.baseActionLastActionTurn, level->pawns[i].inventory.lastBaseAction) > 0;
+                break;
+        }
+        if (level->pawns[i].faction == faction && !turnComplete && !isInvalidCoordinate(level->pawns[i].position)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+LEVEL_SECTION
+Pawn *level_nextPawn(Pawn *currentPawn, int factionTurn, int currentTurn, Level *level) {
+    Pawn *firstPawn = NULL;
+    int i;
+    int startMatching = false;
+    currentPawn = currentPawn->faction == factionTurn ? currentPawn : NULL;
+    for (i = 0; i < level->pawnCount; i++) {
+        if (level->pawns[i].faction == factionTurn && !isInvalidCoordinate(level->pawns[i].position)) {
+            if (level->pawns[i].type == PAWNTYPE_BASE && pawn_baseTurnsLeft(currentTurn, level->pawns[i].inventory.baseActionLastActionTurn, level->pawns[i].inventory.lastBaseAction) > 0) {
+                continue;
+            }
+            if (startMatching) {
+                return &level->pawns[i];
+            }
+            if (firstPawn == NULL) {
+                firstPawn = &level->pawns[i];
+            }
+            if (currentPawn == &level->pawns[i]) {
+                startMatching = true;
+            }
+        }
+    }
+    return firstPawn;
+}
+
+LEVEL_SECTION
+void level_reorderPawnsByDistance(Level *level) {
+    int i, j;
+    if (level->pawnCount < 2) {
+        return;
+    }
+    for (i = 0; i < level->pawnCount - 1; i++) {
+        for (j = 0; j < level->pawnCount - i - 1; j++) {
+            int distA = abs(level->pawns[j].position.x) + abs(level->pawns[j].position.y);
+            int distB = abs(level->pawns[j + 1].position.x) + abs(level->pawns[j + 1].position.y);
+            if (distA > distB) {
+                Pawn temp = level->pawns[j];
+                level->pawns[j] = level->pawns[j + 1];
+                level->pawns[j + 1] = temp;
+            }
+        }
+    }
+}
+
+LEVEL_SECTION
 void level_removePawnAtIndex(int index, Level *level) {
     int i;
     for (i = index; i < level->pawnCount - 1; i++) {
         level->pawns[i] = level->pawns[i + 1];
     }
-    level->pawnCount = level->pawnCount - 1;
+    level->pawnCount--;
     MemPtrResize(level->pawns, sizeof(Pawn) * level->pawnCount);
 }
 
@@ -166,9 +231,10 @@ static int level_removePawnsOfFaction(int factionIndex, Level *level) {
 
 LEVEL_SECTION
 void level_removePawn(Pawn *pawn, Level *level) {
+    
     int i;
     for (i = 0; i < level->pawnCount; i++) {
-        if (pawn == &level->pawns[i]) {
+        if (isEqualCoordinate(pawn->position, level->pawns[i].position)) { //if (pawn == &level->pawns[i]) {
             level_removePawnAtIndex(i, level);
             return;
         }
@@ -314,8 +380,8 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
 
     index = level->actionTileCount - 4;
     level->actionTiles[index] = (ActionTile){(Coordinate){8, 7}, false, ACTIONTILEIDENTIFIER_TWOPLAYERS, false, 2};        // 2 player config
-    level->actionTiles[index + 1] = (ActionTile){(Coordinate){9, 7}, true, ACTIONTILEIDENTIFIER_THREEPLAYERS, false, 3};  // 3 player config
-    level->actionTiles[index + 2] = (ActionTile){(Coordinate){10, 7}, false, ACTIONTILEIDENTIFIER_FOURPLAYERS, false, 4};   // 4 player config
+    level->actionTiles[index + 1] = (ActionTile){(Coordinate){9, 7}, true, ACTIONTILEIDENTIFIER_THREEPLAYERS, false, 3};   // 3 player config
+    level->actionTiles[index + 2] = (ActionTile){(Coordinate){10, 7}, false, ACTIONTILEIDENTIFIER_FOURPLAYERS, false, 4};  // 4 player config
 
     level->actionTiles[index + 3] = (ActionTile){(Coordinate){13, 7}, true, ACTIONTILEIDENTIFIER_LAUNCHGAME, false, 0};  // Start the game
 

@@ -27,6 +27,7 @@ typedef struct CPUStrategyResult {
     CPUAction CPUAction;
     Pawn *target;
     Coordinate targetPosition;
+    Boolean allowMoveToBase;
 } CPUStrategyResult;
 
 CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int currentTurn, CPUFactionProfile factionProfile) CPULOGIC_SECTION;

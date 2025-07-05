@@ -12,6 +12,7 @@
 #include "models.h"
 #include "movement.h"
 #include "pawnActionMenuViewModel.h"
+#include "pawn.h"
 #include "viewport.h"
 
 #define WARPINITIALTIME 0.4
@@ -275,7 +276,7 @@ static void gameSession_showPawnActions() {
         FrmCustomAlert(GAME_ALERT_NOMOREACTIONS, NULL, NULL, NULL);
         return;
     }
-    baseTurnsLeft = pawnActionMenuViewModel_baseTurnsLeft(gameSession.currentTurn, gameSession.activePawn->inventory.baseActionLastActionTurn, gameSession.activePawn->inventory.lastBaseAction);
+    baseTurnsLeft = pawn_baseTurnsLeft(gameSession.currentTurn, gameSession.activePawn->inventory.baseActionLastActionTurn, gameSession.activePawn->inventory.lastBaseAction);
     if (gameSession.activePawn->type == PAWNTYPE_BASE && gameSession.activePawn->inventory.lastBaseAction == BASEACTION_BUILD_SHIP && baseTurnsLeft > 0) {
         char baseTurnsLeftText[4];
         StrIToA(baseTurnsLeftText, baseTurnsLeft);
@@ -296,55 +297,16 @@ static void gameSession_enableActionsForFaction(int faction) {
     }
 }
 
-static Boolean gameSession_movesLeftForFaction(int faction) {
-    int i;
-    for (i = 0; i < gameSession.level.pawnCount; i++) {
-        Boolean turnComplete;
-        switch (gameSession.level.pawns[i].type) {
-            case PAWNTYPE_SHIP:
-                turnComplete = gameSession.level.pawns[i].turnComplete;
-                break;
-            case PAWNTYPE_BASE:
-                turnComplete = gameSession.level.pawns[i].turnComplete || pawnActionMenuViewModel_baseTurnsLeft(gameSession.currentTurn, gameSession.level.pawns[i].inventory.baseActionLastActionTurn, gameSession.level.pawns[i].inventory.lastBaseAction) > 0;
-                break;
-        }
-        if (gameSession.level.pawns[i].faction == faction && !turnComplete && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
-            return true;
-        }
-    }
-    return false;
-}
-
 static int gameSession_nextAvailableFaction(int currentFaction) {
     int nextFaction = (currentFaction + 1) % gameSession.factionCount;
-    while (!gameSession_movesLeftForFaction(nextFaction)) {
+    while (!level_movesLeftForFaction(nextFaction, gameSession.currentTurn, &gameSession.level)) {
         nextFaction = (nextFaction + 1) % gameSession.factionCount;
     }
     return nextFaction;
 }
 
 static Pawn *gameSession_nextPawn() {
-    Pawn *firstPawn = NULL;
-    Pawn *currentPawn = gameSession.activePawn->faction == gameSession.factionTurn ? gameSession.activePawn : NULL;
-    int i;
-    int startMatching = false;
-    for (i = 0; i < gameSession.level.pawnCount; i++) {
-        if (gameSession.level.pawns[i].faction == gameSession.factionTurn && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
-            if (gameSession.level.pawns[i].type == PAWNTYPE_BASE && pawnActionMenuViewModel_baseTurnsLeft(gameSession.currentTurn, gameSession.level.pawns[i].inventory.baseActionLastActionTurn, gameSession.level.pawns[i].inventory.lastBaseAction) > 0) {
-                continue;
-            }
-            if (startMatching) {
-                return &gameSession.level.pawns[i];
-            }
-            if (firstPawn == NULL) {
-                firstPawn = &gameSession.level.pawns[i];
-            }
-            if (currentPawn == &gameSession.level.pawns[i]) {
-                startMatching = true;
-            }
-        }
-    }
-    return firstPawn;
+    return level_nextPawn(gameSession.activePawn, gameSession.factionTurn, gameSession.currentTurn, &gameSession.level);
 }
 
 static void gameSession_moveCameraToPawn(Pawn *pawn) {
@@ -364,10 +326,11 @@ static void gameSession_buildShip(Pawn *homeBase) {
 static void gameSession_startTurn() {
     Pawn *nextPawn;
     Pawn *homeBase;
+    level_reorderPawnsByDistance(&gameSession.level);
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
     nextPawn = gameSession_nextPawn();
     homeBase = movement_homeBase(gameSession.factionTurn, gameSession.level.pawns, gameSession.level.pawnCount);
-    if (homeBase != NULL && homeBase->inventory.lastBaseAction == BASEACTION_BUILD_SHIP && pawnActionMenuViewModel_baseTurnsLeft(gameSession.currentTurn, homeBase->inventory.baseActionLastActionTurn, homeBase->inventory.lastBaseAction) == 0) {
+    if (homeBase != NULL && homeBase->inventory.lastBaseAction == BASEACTION_BUILD_SHIP && pawn_baseTurnsLeft(gameSession.currentTurn, homeBase->inventory.baseActionLastActionTurn, homeBase->inventory.lastBaseAction) == 0) {
         homeBase->inventory.lastBaseAction = BASEACTION_NONE;
         gameSession_buildShip(homeBase);
         nextPawn = movement_homeBase(gameSession.factionTurn, gameSession.level.pawns, gameSession.level.pawnCount);
@@ -780,7 +743,7 @@ static void gameSession_progressUpdateAttack() {
 
     if (timePassedScale >= 1) {
         gameActionLogic_afterAttack();
-        if (gameSession.targetSelectionType == TARGETSELECTIONTYPE_TORPEDO || isInvalidCoordinate(gameSession.attackAnimation->targetPawn->position)) {  // show explosion when destroyed or always when torpedo is used
+        if (gameSession.targetSelectionType == TARGETSELECTIONTYPE_TORPEDO || gameSession.attackAnimation->targetPawn == NULL) {  // show explosion when destroyed or always when torpedo is used
             gameSession.attackAnimation->explosionPosition = targetCenter;
             gameSession.attackAnimation->explosionTimestamp = TimGetTicks();
             gameSession.attackAnimation->explosionDurationSeconds = 0.5;
@@ -896,12 +859,14 @@ static void gameSession_cpuTurn() {
     if (gameSession_animating() || gameSession.state != GAMESTATE_DEFAULT || gameSession.menuScreenType != MENUSCREEN_GAME || gameSession.factions[gameSession.factionTurn].human) {
         return;
     }
-    if (pawn->turnComplete) {
-        pawn = gameSession_nextPawn();
-    }
-    if (pawn == NULL || !gameSession_movesLeftForFaction(gameSession.factionTurn)) {
+
+    if (!level_movesLeftForFaction(gameSession.factionTurn, gameSession.currentTurn, &gameSession.level)) {
         gameSession_startTurnForNextFaction();
         return;
+    }
+
+    while (pawn->turnComplete) {
+        pawn = gameSession_nextPawn();
     }
 
     // move camera to active pawn
@@ -988,7 +953,7 @@ void gameSession_progressLogic() {
         if (!gameSession.factions[gameSession.factionTurn].human) {
             gameSession_cpuTurn();
         } else {
-            if (!gameSession_movesLeftForFaction(gameSession.factionTurn)) {
+            if (!level_movesLeftForFaction(gameSession.factionTurn, gameSession.currentTurn, &gameSession.level)) {
                 gameSession_startTurnForNextFaction();
                 return;
             }

@@ -72,6 +72,9 @@ void level_addScorePawns(Level *level, int faction) LEVEL_SECTION;
 void level_addRank(Level *level, Score score) LEVEL_SECTION;
 void level_removePawn(Pawn *pawn, Level *level) LEVEL_SECTION;
 void level_removePawnAtIndex(int index, Level *level) LEVEL_SECTION;
+void level_reorderPawnsByDistance(Level *level) LEVEL_SECTION;
+Pawn *level_nextPawn(Pawn *currentPawn, int factionTurn, int currentTurn, Level *level) LEVEL_SECTION;
+Boolean level_movesLeftForFaction(int faction, int currentTurn, Level *level) LEVEL_SECTION;
 NewGameConfig level_defaultNewGameConfig(int rank) LEVEL_SECTION;
 
 Pawn *level_pawnAtTile(Coordinate tileCoordinate, Level *level) LEVEL_SECTION;

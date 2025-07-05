@@ -50,7 +50,7 @@ static void gameActionLogic_showScore() {
     if (newRank != oldRank) {
         MemHandle resourceHandle = DmGetResource(strRsc, newRank);
         Char *rankText = (char *)MemHandleLock(resourceHandle);
-        FrmCustomAlert(GAME_ALERT_PROMOTED, rankText, "" ,"");
+        FrmCustomAlert(GAME_ALERT_PROMOTED, rankText, "", "");
         DmReleaseResource(resourceHandle);
     }
     level_addScorePawns(&gameSession.level, gameSession.activePawn->faction);
@@ -209,7 +209,9 @@ Boolean gameActionLogic_afterMove() {
 
                 gameActionLogic_returnFlagToBase(&gameSession.level.pawns[i]);
                 if (gameSession.level.pawns[i].type == PAWNTYPE_BASE) {
+                    Coordinate activePawnPosition = gameSession.activePawn->position;
                     level_removePawnAtIndex(i, &gameSession.level);
+                    gameSession.activePawn = level_pawnAtTile(activePawnPosition, &gameSession.level);
                 }
             }
         }
@@ -251,6 +253,7 @@ void gameActionLogic_afterAttack() {
     }
 
     if (gameSession.attackAnimation->targetPawn->inventory.health <= 0) {
+        Coordinate activePawnPosition;
         gameSession.attackAnimation->targetPawn->inventory.health = 0;
         gameSession.level.scores[gameSession.activePawn->faction].shipsDestroyed[gameSession.attackAnimation->targetPawn->faction]++;
 
@@ -267,7 +270,11 @@ void gameActionLogic_afterAttack() {
             FrmCustomAlert(GAME_ALERT_BASEDESTROYED, NULL, NULL, NULL);
         }
         gameActionLogic_returnFlagToBase(gameSession.attackAnimation->targetPawn);
+
+        activePawnPosition = gameSession.activePawn->position;
         level_removePawn(gameSession.attackAnimation->targetPawn, &gameSession.level);
+        gameSession.activePawn = level_pawnAtTile(activePawnPosition, &gameSession.level);
+        gameSession.attackAnimation->targetPawn = NULL;
     }
 
     if (gameActionLogic_checkForGameOver()) {

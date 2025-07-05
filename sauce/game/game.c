@@ -343,6 +343,7 @@ static void game_drawPawns() {
 
     // DRAW BASES
     for (i = 0; i < gameSession.level.pawnCount; i++) {
+        AppColor baseActivityColor;
         Pawn *pawn = &gameSession.level.pawns[i];
         Coordinate pawnPosition, pawnPositionConverted;
         RectangleType rect;
@@ -355,6 +356,14 @@ static void game_drawPawns() {
         drawhelper_applyForeColor(pawn_factionColor(pawn->faction, gameSession.colorSupport));
         drawhelper_fillRectangle(&rect, 0);
         hexgrid_drawSpriteAtTile(&spriteLibrary.baseSprite, pawn->position);
+
+        // Draw base activity indicator
+        baseActivityColor = pawn_baseActivityIndicatorColor(pawn, gameSession.colorSupport, gameSession.currentTurn);
+        pawnPositionConverted = viewport_convertedCoordinate((Coordinate){pawnPosition.x + 7, pawnPosition.y - 6});
+        drawhelper_applyForeColor(ASBESTOS);
+        drawhelper_drawCircle(pawnPositionConverted, 4);
+        drawhelper_applyForeColor(baseActivityColor);
+        drawhelper_drawCircle(pawnPositionConverted, 3);
     }
 
     // DRAW SHIPS
@@ -406,7 +415,6 @@ static void game_drawPawns() {
         if (pawn->inventory.carryingFlag) {
             game_drawFlag(viewport_convertedCoordinate(pawnPosition), pawn_factionColor(pawn->inventory.flagOfFaction, gameSession.colorSupport));
         }
-
         // Draw faction indicator
         if (gameSession.colorSupport) {
             /*
