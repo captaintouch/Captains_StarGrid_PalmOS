@@ -594,7 +594,7 @@ static void gameSession_handleTargetSelection() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
     Pawn *selectedPawn = level_pawnAtTile(selectedTile, &gameSession.level);
-    if (!gameSession_highlightTilesContains(selectedTile)) {
+    if (!gameSession_highlightTilesContains(selectedTile) || selectedPawn == NULL) {
         gameSession_resetHighlightTiles();
         gameSession.state = GAMESTATE_DEFAULT;
         gameSession.drawingState.shouldRedrawOverlay = true;
@@ -949,7 +949,10 @@ Boolean gameSession_handleFormButtonTap(UInt16 buttonID) {
 }
 
 void gameSession_progressLogic() {
-    if (!gameSession_animating()) {
+    if (gameSession_animating()) {
+        // disregard all input while animating
+        gameSession.lastPenInput.wasUpdatedFlag = false;
+    } else {
         if (!gameSession.factions[gameSession.factionTurn].human) {
             gameSession_cpuTurn();
         } else {
@@ -974,7 +977,9 @@ void gameSession_progressLogic() {
                 if (gameSession.lastPenInput.moving && gameSession.state == GAMESTATE_DEFAULT && gameSession.menuScreenType == MENUSCREEN_GAME && gameSession_handleMiniMapTap()) {
                     gameSession.drawingState.awaitingEndMiniMapScrolling = true;
                 } else {
-                    if ((gameSession.state == GAMESTATE_SELECTTARGET && gameSession.lastPenInput.moving || isInvalidCoordinate(gameSession.lastPenInput.touchCoordinate))) {
+                    if ((gameSession.state != GAMESTATE_DEFAULT && gameSession.lastPenInput.moving || isInvalidCoordinate(gameSession.lastPenInput.touchCoordinate))) {
+                        // note for later: if this gives unresponsive tap issues, only process the initial tap (when gamestate not default) and disregard all further taps until pen up
+                        gameSession.lastPenInput.wasUpdatedFlag = false;
                         return;
                     }
 
