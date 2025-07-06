@@ -148,7 +148,7 @@ END
 ALERT ID GAME_ALERT_CPUCONTINUEPLAYING
 BEGIN
     TITLE "Game Over"
-    MESSAGE "Continue watching the cpu players?"
+    MESSAGE "Continue watching the cpu players? (Use the menu to exit the game)"
     BUTTONS "Yes" "No"
 END
 
