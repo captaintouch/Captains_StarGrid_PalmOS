@@ -594,7 +594,8 @@ static void gameSession_handleTargetSelection() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
     Pawn *selectedPawn = level_pawnAtTile(selectedTile, &gameSession.level);
-    if (!gameSession_highlightTilesContains(selectedTile) || selectedPawn == NULL) {
+    Boolean invalidTile = gameSession.targetSelectionType != TARGETSELECTIONTYPE_MOVE && selectedPawn == NULL;
+    if (!gameSession_highlightTilesContains(selectedTile) || invalidTile) {
         gameSession_resetHighlightTiles();
         gameSession.state = GAMESTATE_DEFAULT;
         gameSession.drawingState.shouldRedrawOverlay = true;
