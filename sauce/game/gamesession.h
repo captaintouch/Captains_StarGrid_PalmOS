@@ -66,6 +66,7 @@ typedef struct GameSession {
     Level level;
     UInt8 currentTurn;
     Pawn *activePawn;
+    Boolean disableAutoMoveToNextPawn;
     Pawn cameraPawn;
 
     Char cpuActionText[15];

@@ -11,8 +11,8 @@
 #include "minimap.h"
 #include "models.h"
 #include "movement.h"
-#include "pawnActionMenuViewModel.h"
 #include "pawn.h"
+#include "pawnActionMenuViewModel.h"
 #include "viewport.h"
 
 #define WARPINITIALTIME 0.4
@@ -305,8 +305,8 @@ static int gameSession_nextAvailableFaction(int currentFaction) {
     return nextFaction;
 }
 
-static Pawn *gameSession_nextPawn() {
-    return level_nextPawn(gameSession.activePawn, gameSession.factionTurn, gameSession.currentTurn, &gameSession.level);
+static Pawn *gameSession_nextPawn(Boolean allPawns) {
+    return level_nextPawn(gameSession.activePawn, allPawns, gameSession.factionTurn, gameSession.currentTurn, &gameSession.level);
 }
 
 static void gameSession_moveCameraToPawn(Pawn *pawn) {
@@ -328,7 +328,7 @@ static void gameSession_startTurn() {
     Pawn *homeBase;
     level_reorderPawnsByDistance(&gameSession.level);
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
-    nextPawn = gameSession_nextPawn();
+    nextPawn = gameSession_nextPawn(false);
     homeBase = movement_homeBase(gameSession.factionTurn, gameSession.level.pawns, gameSession.level.pawnCount);
     if (homeBase != NULL && homeBase->inventory.lastBaseAction == BASEACTION_BUILD_SHIP && pawn_baseTurnsLeft(gameSession.currentTurn, homeBase->inventory.baseActionLastActionTurn, homeBase->inventory.lastBaseAction) == 0) {
         homeBase->inventory.lastBaseAction = BASEACTION_NONE;
@@ -342,6 +342,7 @@ static void gameSession_startTurn() {
     gameSession.activePawn = nextPawn;
     gameSession.lastPenInput.wasUpdatedFlag = false;
     gameSession.drawingState.shouldRedrawOverlay = true;
+    gameSession.disableAutoMoveToNextPawn = false;
 }
 
 static void gameSession_startTurnForNextFaction() {
@@ -354,8 +355,10 @@ static void gameSession_startTurnForNextFaction() {
 }
 
 static Boolean gameSession_handleBarButtonsTap() {
+
     if (gameSession.lastPenInput.touchCoordinate.x > gameSession.drawingState.barButtonPositions[0].x && gameSession.lastPenInput.touchCoordinate.y > gameSession.drawingState.barButtonPositions[0].y && gameSession.lastPenInput.touchCoordinate.y < gameSession.drawingState.barButtonPositions[0].y + gameSession.drawingState.barButtonHeight) {  // Next button
-        gameSession.activePawn = gameSession_nextPawn();
+        gameSession.activePawn = gameSession_nextPawn(true);
+        gameSession.disableAutoMoveToNextPawn = gameSession.activePawn->turnComplete;
         gameSession_updateViewPortOffset(true);
         gameSession.drawingState.shouldRedrawOverlay = true;
         inputPen_temporarylyBlockPenInput(&gameSession.lastPenInput);
@@ -861,21 +864,6 @@ static void gameSession_cpuTurn() {
         return;
     }
 
-    if (!level_movesLeftForFaction(gameSession.factionTurn, gameSession.currentTurn, &gameSession.level)) {
-        gameSession_startTurnForNextFaction();
-        return;
-    }
-
-    while (pawn->turnComplete) {
-        pawn = gameSession_nextPawn();
-    }
-
-    // move camera to active pawn
-    if (!gameSession_isViewPortOffsetToPawn(pawn)) {
-        gameSession_moveCameraToPawn(pawn);
-        gameSession.activePawn = pawn;
-        return;
-    }
     strategy = cpuLogic_getStrategy(pawn, gameSession.level.pawns, gameSession.level.pawnCount, gameSession.currentTurn, gameSession.factions[pawn->faction].profile);
     pawn->turnComplete = true;
     gameSession.activePawn = pawn;
@@ -949,18 +937,44 @@ Boolean gameSession_handleFormButtonTap(UInt16 buttonID) {
     return about_buttonHandler(buttonID);
 }
 
+static Boolean moveToNextPawnIfNeeded() {
+    Pawn *pawn = gameSession.activePawn;
+    if (!pawn->turnComplete || gameSession.disableAutoMoveToNextPawn) {
+        return false;
+    }
+
+    if (!level_movesLeftForFaction(gameSession.factionTurn, gameSession.currentTurn, &gameSession.level)) {
+        gameSession_startTurnForNextFaction();
+        return true;
+    }
+    
+    while (pawn->turnComplete) {
+        pawn = gameSession_nextPawn(false);
+    }
+
+    // move camera to active pawn
+    if (!gameSession_isViewPortOffsetToPawn(pawn)) {
+        gameSession_moveCameraToPawn(pawn);
+        gameSession.activePawn = pawn;
+    } else {
+        gameSession.activePawn = pawn;
+        gameSession.drawingState.shouldRedrawOverlay = true;
+    }
+    
+    return true;
+}
+
 void gameSession_progressLogic() {
     if (gameSession_animating()) {
         // disregard all input while animating
         gameSession.lastPenInput.wasUpdatedFlag = false;
     } else {
+        if(moveToNextPawnIfNeeded()) {
+            return;
+        }
         if (!gameSession.factions[gameSession.factionTurn].human) {
             gameSession_cpuTurn();
         } else {
-            if (!level_movesLeftForFaction(gameSession.factionTurn, gameSession.currentTurn, &gameSession.level)) {
-                gameSession_startTurnForNextFaction();
-                return;
-            }
             if (gameSession.drawingState.awaitingEndMiniMapScrolling && gameSession.lastPenInput.penUpOccured) {
                 gameSession.lastPenInput.penUpOccured = false;
                 gameSession.drawingState.awaitingEndMiniMapScrolling = false;
