@@ -58,7 +58,7 @@ static void gameActionLogic_showScore() {
     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, 0});
 }
 
-static Boolean gameActionLogic_humanShipsLeft() {
+Boolean gameActionLogic_humanShipsLeft() {
     int i;
     for (i = 0; i < gameSession.level.pawnCount; i++) {
         if (gameSession.factions[gameSession.level.pawns[i].faction].human && gameSession.level.pawns[i].type == PAWNTYPE_SHIP && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
@@ -165,7 +165,7 @@ static Boolean gameActionLogic_baseOnPosition(Coordinate position) {
 }
 
 static Boolean gameActionLogic_checkForGameOver() {
-    if (!gameSession.continueCPUPlay && !gameActionLogic_humanShipsLeft()) {
+    if (!gameSession.continueCPUPlay && !gameActionLogic_humanShipsLeft(&gameSession.level)) {
         if (FrmCustomAlert(GAME_ALERT_CPUCONTINUEPLAYING, NULL, NULL, NULL) != 0) {  // Do not continue playing
             gameActionLogic_showScore();
             return true;

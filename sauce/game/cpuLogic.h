@@ -30,6 +30,6 @@ typedef struct CPUStrategyResult {
     Boolean allowMoveToBase;
 } CPUStrategyResult;
 
-CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int currentTurn, CPUFactionProfile factionProfile) CPULOGIC_SECTION;
+CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int currentTurn, CPUFactionProfile factionProfile, Boolean cpuPlayersOnly) CPULOGIC_SECTION;
 
 #endif

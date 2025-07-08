@@ -7,6 +7,7 @@
 #include "drawhelper.h"
 #include "gameActionLogic.h"
 #include "hexgrid.h"
+#include "level.h"
 #include "mathIsFun.h"
 #include "minimap.h"
 #include "models.h"
@@ -864,7 +865,7 @@ static void gameSession_cpuTurn() {
         return;
     }
 
-    strategy = cpuLogic_getStrategy(pawn, gameSession.level.pawns, gameSession.level.pawnCount, gameSession.currentTurn, gameSession.factions[pawn->faction].profile);
+    strategy = cpuLogic_getStrategy(pawn, gameSession.level.pawns, gameSession.level.pawnCount, gameSession.currentTurn, gameSession.factions[pawn->faction].profile, !gameActionLogic_humanShipsLeft());
     pawn->turnComplete = true;
     gameSession.activePawn = pawn;
     switch (strategy.CPUAction) {

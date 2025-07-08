@@ -16,5 +16,6 @@ void gameActionLogic_scheduleMovement(Pawn *sourcePawn, Pawn *targetPawn, Coordi
 void gameActionLogic_scheduleAttack(Pawn *targetPawn, Coordinate selectedTile, TargetSelectionType attackType);
 void gameActionLogic_scheduleShockwave(Pawn *basePawn);
 UInt8 gameActionLogic_maxRange(TargetSelectionType targetSelectionType);
+Boolean gameActionLogic_humanShipsLeft();
 
 #endif

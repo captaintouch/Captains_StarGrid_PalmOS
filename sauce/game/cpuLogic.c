@@ -111,12 +111,11 @@ static int cpuLogic_damageAssementForTile(Coordinate position, Pawn *pawn, Pawn 
 
 // This function is used to find a safe position for the pawn to move to, avoiding enemy ships
 CPULOGIC_SECTION
-static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPawnCount, Pawn *target, Boolean canGoToBase) {
+static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPawnCount, Pawn *target, Boolean canGoToBase, Boolean cpuPlayersOnly) {
     int maxRange = GAMEMECHANICS_MAXTILEMOVERANGE;
     int dx, dy;
     int minDistance = 9999;
-    int maxDamage = cpuLogic_enemyWithStolenFlag(pawn, allPawns, totalPawnCount, 0) != NULL ? 9999 : random(0, 5) >= 4 ? (pawn->inventory.health * 1.3)
-                                                                                                                    : 10;
+    int maxDamage = cpuLogic_enemyWithStolenFlag(pawn, allPawns, totalPawnCount, 0) != NULL ? 9999 : (random(0, 5) >= 4 || cpuPlayersOnly) ? (pawn->inventory.health * 1.3) : 10;
     Coordinate targetPosition, safePosition;
     if (target == NULL || isInvalidCoordinate(target->position)) {
         return (Coordinate){-1, -1};
@@ -346,7 +345,7 @@ static CPUStrategyResult cpuLogic_baseStrategy(Pawn *pawn, Pawn *allPawns, int t
 }
 
 CPULOGIC_SECTION
-CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int currentTurn, CPUFactionProfile factionProfile) {
+CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int currentTurn, CPUFactionProfile factionProfile, Boolean cpuPlayersOnly) {
     int i;
     CPUStrategyResult bestStrategy;
     CPUStrategyResult strategyResult[4];
@@ -378,7 +377,7 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
         }
     }
     // bestStrategy = strategyResult[CPUSTRATEGY_DEFENDBASE];
-    bestStrategy.targetPosition = cpuLogic_safePosition(pawn, allPawns, totalPawnCount, bestStrategy.target, bestStrategy.allowMoveToBase);
+    bestStrategy.targetPosition = cpuLogic_safePosition(pawn, allPawns, totalPawnCount, bestStrategy.target, bestStrategy.allowMoveToBase, cpuPlayersOnly);
 
 #ifdef DEBUG
     /*c
