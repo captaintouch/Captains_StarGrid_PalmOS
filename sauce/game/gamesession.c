@@ -356,7 +356,6 @@ static void gameSession_startTurnForNextFaction() {
 }
 
 static Boolean gameSession_handleBarButtonsTap() {
-
     if (gameSession.lastPenInput.touchCoordinate.x > gameSession.drawingState.barButtonPositions[0].x && gameSession.lastPenInput.touchCoordinate.y > gameSession.drawingState.barButtonPositions[0].y && gameSession.lastPenInput.touchCoordinate.y < gameSession.drawingState.barButtonPositions[0].y + gameSession.drawingState.barButtonHeight) {  // Next button
         gameSession.activePawn = gameSession_nextPawn(true);
         gameSession.disableAutoMoveToNextPawn = gameSession.activePawn->turnComplete;
@@ -414,6 +413,7 @@ static Boolean gameSession_handleScoreMenuTap(Coordinate selectedTile) {
     int i;
     for (i = 0; i < gameSession.level.actionTileCount; i++) {
         if (isEqualCoordinate(gameSession.level.actionTiles[i].position, selectedTile)) {
+            Pawn oldPawn;
             switch (gameSession.level.actionTiles[i].identifier) {
                 case ACTIONTILEIDENTIFIER_HUMANPLAYER:
                 case ACTIONTILEIDENTIFIER_CPUPLAYER:
@@ -428,8 +428,14 @@ static Boolean gameSession_handleScoreMenuTap(Coordinate selectedTile) {
                 case ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS:
                     gameSession.drawingState.shouldRedrawHeader = true;
                     gameSession.menuScreenType = MENUSCREEN_RANK;
+
+                    oldPawn = *gameSession.activePawn;
                     level_addRank(&gameSession.level, scoring_loadSavedScore());
-                    gameSession.activePawn->type = PAWNTYPE_SHIP;
+                    gameSession.activePawn = level_pawnAtTile(oldPawn.position, &gameSession.level);
+                    if (gameSession.activePawn == NULL) {
+                        level_addPawn(oldPawn, &gameSession.level);
+                        gameSession.activePawn = level_pawnAtTile(oldPawn.position, &gameSession.level);
+                    }
                     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0});
                     return true;
             }
@@ -948,7 +954,7 @@ static Boolean moveToNextPawnIfNeeded() {
         gameSession_startTurnForNextFaction();
         return true;
     }
-    
+
     while (pawn->turnComplete) {
         pawn = gameSession_nextPawn(false);
     }
@@ -961,7 +967,7 @@ static Boolean moveToNextPawnIfNeeded() {
         gameSession.activePawn = pawn;
         gameSession.drawingState.shouldRedrawOverlay = true;
     }
-    
+
     return true;
 }
 
@@ -970,7 +976,7 @@ void gameSession_progressLogic() {
         // disregard all input while animating
         gameSession.lastPenInput.wasUpdatedFlag = false;
     } else {
-        if(moveToNextPawnIfNeeded()) {
+        if (moveToNextPawnIfNeeded()) {
             return;
         }
         if (!gameSession.factions[gameSession.factionTurn].human) {

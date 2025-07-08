@@ -2,9 +2,11 @@
 
 #include "../constants.h"
 #include "../deviceinfo.h"
+#include "MemoryMgr.h"
 #include "drawhelper.h"
 #include "gamesession.h"
 #include "hexgrid.h"
+#include "level.h"
 #include "models.h"
 #include "movement.h"
 
@@ -28,8 +30,9 @@ static UInt8 gameActionLogic_nonCapturedFlagsLeft(UInt8 faction) {
 static void gameActionLogic_showScore() {
     DmResID oldRank = scoring_rankForScore(scoring_loadSavedScore());
     DmResID newRank;
-    Coordinate oldPosition = gameSession.activePawn->position;
+    Pawn oldPawn;
     int i, humanCount = 0;
+    oldPawn = *gameSession.activePawn;
     for (i = 0; i < gameSession.factionCount; i++) {
         if (gameSession.factions[i].human) {
             humanCount++;
@@ -46,6 +49,7 @@ static void gameActionLogic_showScore() {
     gameSession.drawingState.shouldRedrawOverlay = true;
     gameSession.activePawn->type = PAWNTYPE_SHIP;
     scoring_saveScore(gameSession.level.scores, gameSession.activePawn->faction);
+
     newRank = scoring_rankForScore(scoring_loadSavedScore());
     if (newRank != oldRank) {
         MemHandle resourceHandle = DmGetResource(strRsc, newRank);
@@ -54,7 +58,13 @@ static void gameActionLogic_showScore() {
         DmReleaseResource(resourceHandle);
     }
     level_addScorePawns(&gameSession.level, gameSession.activePawn->faction);
-    gameSession.activePawn = level_pawnAtTile(oldPosition, &gameSession.level);
+
+    gameSession.activePawn = level_pawnAtTile(oldPawn.position, &gameSession.level);
+    if (gameSession.activePawn == NULL) {
+        level_addPawn(oldPawn, &gameSession.level);
+
+        gameSession.activePawn = level_pawnAtTile(oldPawn.position, &gameSession.level);
+    }
     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, 0});
 }
 

@@ -231,10 +231,9 @@ static int level_removePawnsOfFaction(int factionIndex, Level *level) {
 
 LEVEL_SECTION
 void level_removePawn(Pawn *pawn, Level *level) {
-    
     int i;
     for (i = 0; i < level->pawnCount; i++) {
-        if (isEqualCoordinate(pawn->position, level->pawns[i].position)) { //if (pawn == &level->pawns[i]) {
+        if (isEqualCoordinate(pawn->position, level->pawns[i].position)) {  // if (pawn == &level->pawns[i]) {
             level_removePawnAtIndex(i, level);
             return;
         }
@@ -292,32 +291,36 @@ void level_addScorePawns(Level *level, int faction) {
     level->actionTiles[0] = (ActionTile){(Coordinate){6, 7}, true, ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS, false, 0};
 
     // add destroyed ships
-    newPawns = MemPtrNew(sizeof(Pawn) * totalDestroyed);
-    pawnCount = 0;
-    for (factionIndex = 0; factionIndex < GAMEMECHANICS_MAXPLAYERCOUNT; factionIndex++) {
-        if (score.basesDestroyed[factionIndex]) {
-            newPawns[pawnCount] = (Pawn){PAWNTYPE_BASE, (Coordinate){1 + pawnCount, 2}, (Inventory){1, 0, 0, 0, BASEACTION_NONE, false}, 4, factionIndex, false, false};
-            pawnCount++;
+    if (totalDestroyed > 0) {
+        newPawns = MemPtrNew(sizeof(Pawn) * totalDestroyed);
+        pawnCount = 0;
+        for (factionIndex = 0; factionIndex < GAMEMECHANICS_MAXPLAYERCOUNT; factionIndex++) {
+            if (score.basesDestroyed[factionIndex]) {
+                newPawns[pawnCount] = (Pawn){PAWNTYPE_BASE, (Coordinate){1 + pawnCount, 2}, (Inventory){1, 0, 0, 0, BASEACTION_NONE, false}, 4, factionIndex, false, false};
+                pawnCount++;
+            }
+            for (i = 0; i < score.shipsDestroyed[factionIndex]; i++) {
+                newPawns[pawnCount] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1 + pawnCount, 2}, (Inventory){1, 0, 0, 0, BASEACTION_NONE, false}, 4, factionIndex, false, false};
+                pawnCount++;
+            }
         }
-        for (i = 0; i < score.shipsDestroyed[factionIndex]; i++) {
-            newPawns[pawnCount] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1 + pawnCount, 2}, (Inventory){1, 0, 0, 0, BASEACTION_NONE, false}, 4, factionIndex, false, false};
-            pawnCount++;
-        }
+        level_addPawns(newPawns, pawnCount, level);
+        MemPtrFree(newPawns);
     }
-    level_addPawns(newPawns, pawnCount, level);
-    MemPtrFree(newPawns);
 
     // add captured ships
-    newPawns = MemPtrNew(sizeof(Pawn) * totalCaptured);
-    pawnCount = 0;
-    for (factionIndex = 0; factionIndex < GAMEMECHANICS_MAXPLAYERCOUNT; factionIndex++) {
-        for (i = 0; i < score.shipsCaptured[factionIndex]; i++) {
-            newPawns[pawnCount] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1 + pawnCount, 4}, (Inventory){1, 0, 0, 0, BASEACTION_NONE, false}, 4, factionIndex, false, false};
-            pawnCount++;
+    if (totalCaptured > 0) {
+        newPawns = MemPtrNew(sizeof(Pawn) * totalCaptured);
+        pawnCount = 0;
+        for (factionIndex = 0; factionIndex < GAMEMECHANICS_MAXPLAYERCOUNT; factionIndex++) {
+            for (i = 0; i < score.shipsCaptured[factionIndex]; i++) {
+                newPawns[pawnCount] = (Pawn){PAWNTYPE_SHIP, (Coordinate){1 + pawnCount, 4}, (Inventory){1, 0, 0, 0, BASEACTION_NONE, false}, 4, factionIndex, false, false};
+                pawnCount++;
+            }
         }
+        level_addPawns(newPawns, pawnCount, level);
+        MemPtrFree(newPawns);
     }
-    level_addPawns(newPawns, pawnCount, level);
-    MemPtrFree(newPawns);
 }
 
 LEVEL_SECTION
