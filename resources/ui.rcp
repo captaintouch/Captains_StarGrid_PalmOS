@@ -74,6 +74,13 @@ BEGIN
     BUTTONS "Yes, reset" "No"
 END
 
+ALERT ID GAME_ALERT_ENDOFGAME
+BEGIN
+    TITLE "Another round?"
+    MESSAGE "Directly play another game or go back to the start menu if you want to customize the game options."
+    BUTTONS "New game" "Back to start menu"
+END
+
 ALERT ID GAME_ALERT_PROMOTED
 BEGIN
     TITLE "Promotion!"

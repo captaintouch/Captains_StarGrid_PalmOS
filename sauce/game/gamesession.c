@@ -4,6 +4,7 @@
 #include "../constants.h"
 #include "../database.h"
 #include "../deviceinfo.h"
+#include "Form.h"
 #include "drawhelper.h"
 #include "gameActionLogic.h"
 #include "hexgrid.h"
@@ -423,7 +424,11 @@ static Boolean gameSession_handleScoreMenuTap(Coordinate selectedTile) {
                 case ACTIONTILEIDENTIFIER_FOURPLAYERS:
                     break;
                 case ACTIONTILEIDENTIFIER_ENDGAME:
-                    gameSession_reset(false);
+                    if (FrmCustomAlert(GAME_ALERT_ENDOFGAME, NULL, NULL, NULL) == 0) {  // new game
+                        gameSession_reset(true);
+                    } else {
+                        gameSession_reset(false);
+                    }
                     return true;
                 case ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS:
                     gameSession.drawingState.shouldRedrawHeader = true;
