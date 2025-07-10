@@ -406,6 +406,7 @@ DmResID gameSession_menuTopTitleResource() {
         case MENUSCREEN_SCORE:
             return STRING_LEVELSCORE;
         case MENUSCREEN_RANK:
+        case MENUSCREEN_RANK_AFTERGAME:
             return scoring_rankForScore(scoring_loadSavedScore());
         case MENUSCREEN_GAME:
             return 0;
@@ -428,6 +429,7 @@ DmResID gameSession_menuBottomTitleResource() {
         case MENUSCREEN_PLAYERCONFIG:
             return STRING_CONFIG;
         case MENUSCREEN_RANK:
+        case MENUSCREEN_RANK_AFTERGAME:
         case MENUSCREEN_SCORE:
         case MENUSCREEN_GAME:
             return 0;
@@ -449,7 +451,7 @@ static Boolean gameSession_handleScoreMenuTap(Coordinate selectedTile) {
                 case ACTIONTILEIDENTIFIER_FOURPLAYERS:
                     break;
                 case ACTIONTILEIDENTIFIER_ENDGAME:
-                    if (FrmCustomAlert(GAME_ALERT_ENDOFGAME, NULL, NULL, NULL) == 0) {  // new game
+                    if (gameSession.menuScreenType == MENUSCREEN_RANK_AFTERGAME && FrmCustomAlert(GAME_ALERT_ENDOFGAME, NULL, NULL, NULL) == 0) {  // new game
                         gameSession_reset(true);
                     } else {
                         gameSession_reset(false);
@@ -457,7 +459,7 @@ static Boolean gameSession_handleScoreMenuTap(Coordinate selectedTile) {
                     return true;
                 case ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS:
                     gameSession.drawingState.shouldRedrawHeader = true;
-                    gameSession.menuScreenType = MENUSCREEN_RANK;
+                    gameSession.menuScreenType = MENUSCREEN_RANK_AFTERGAME;
 
                     oldPawn = *gameSession.activePawn;
                     level_addRank(&gameSession.level, scoring_loadSavedScore());
@@ -556,6 +558,7 @@ static Boolean gameSession_handleNonGameMenuTap(Coordinate selectedTile) {
         case MENUSCREEN_GAME:
             break;
         case MENUSCREEN_RANK:
+        case MENUSCREEN_RANK_AFTERGAME:
         case MENUSCREEN_SCORE:
             return gameSession_handleScoreMenuTap(selectedTile);
     }

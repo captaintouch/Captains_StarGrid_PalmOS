@@ -543,7 +543,7 @@ static void game_drawGameStartHeader() {
     MemHandleUnlock(resourceHandle);
     DmReleaseResource(resourceHandle);
 
-    if (gameSession.menuScreenType == MENUSCREEN_RANK) {
+    if (gameSession.menuScreenType == MENUSCREEN_RANK || gameSession.menuScreenType == MENUSCREEN_RANK_AFTERGAME) {
         int barWidth = 55;
         int currValue = gameSession_menuTopTitleResource() - STRING_RANK0;
         int maxValue = RANK_COUNT;
@@ -563,7 +563,7 @@ static void game_drawGameStartHeader() {
         FntSetFont(oldFont);
     }
 
-    if (!gameSession_useValueForBottomTitle() && gameSession.menuScreenType != MENUSCREEN_RANK) {
+    if (!gameSession_useValueForBottomTitle() && gameSession.menuScreenType != MENUSCREEN_RANK && gameSession.menuScreenType != MENUSCREEN_RANK_AFTERGAME) {
         MemHandleUnlock(resourceHandle);
         DmReleaseResource(resourceHandle);
     }

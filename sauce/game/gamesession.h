@@ -1,12 +1,13 @@
 #ifndef GAMESESSION_H_
 #define GAMESESSION_H_
 #include <PalmOS.h>
-#include "inputPen.h"
-#include "models.h"
-#include "colors.h"
+
 #include "bottomMenu.h"
+#include "colors.h"
 #include "cpuLogic.h"
+#include "inputPen.h"
 #include "level.h"
+#include "models.h"
 
 typedef enum TargetSelectionType {
     TARGETSELECTIONTYPE_MOVE,
@@ -19,7 +20,8 @@ typedef enum MenuScreenType {
     MENUSCREEN_PLAYERCONFIG,
     MENUSCREEN_GAME,
     MENUSCREEN_SCORE,
-    MENUSCREEN_RANK
+    MENUSCREEN_RANK,
+    MENUSCREEN_RANK_AFTERGAME
 } MenuScreenType;
 
 typedef enum GameState {
@@ -82,10 +84,10 @@ typedef struct GameSession {
 
     TargetSelectionType targetSelectionType;
 
-    Coordinate viewportOffset; 
+    Coordinate viewportOffset;
 
-    Boolean diaSupport; // Support for large screens that can hide the input area like the T3/T5 ...
-    Boolean colorSupport; // Support for color screens
+    Boolean diaSupport;    // Support for large screens that can hide the input area like the T3/T5 ...
+    Boolean colorSupport;  // Support for color screens
 
     Boolean continueCPUPlay;
     Boolean paused;
