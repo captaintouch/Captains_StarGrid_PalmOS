@@ -49,6 +49,30 @@ static void gameSession_loadStartMenu() {
     gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
+static void gameSession_launchGame(NewGameConfig config) {
+    int faction;
+    level_destroy(&gameSession.level);
+    gameSession.menuScreenType = MENUSCREEN_GAME;
+    gameSession.level = level_create(config);
+    gameSession.factionCount = level_factionCount(config);
+    // setup factions
+    for (faction = 0; faction < gameSession.factionCount; faction++) {
+        if (!config.playerConfig[faction].active) {
+            continue;
+        }
+        if (config.playerConfig[faction].isHuman) {
+            gameSession.factionTurn = faction;
+            gameSession.factions[faction] = (Faction){(CPUFactionProfile){0, 0, 0}, true};
+        } else {
+            gameSession.factions[faction] = gameSession_factionWithRandomizedCPUProfile();
+        }
+    }
+    gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
+    gameSession.drawingState.shouldRedrawBackground = true;
+    gameSession.drawingState.shouldRedrawOverlay = true;
+    gameSession_startTurn();
+}
+
 void gameSession_reset(Boolean newGame) {
     gameActionLogic_clearAttack();
     gameActionLogic_clearMovement();
@@ -79,7 +103,8 @@ void gameSession_reset(Boolean newGame) {
     level_destroy(&gameSession.level);
 
     if (newGame) {
-        gameSession_loadStartMenu();  // TODO: implement new game logic
+        NewGameConfig config = level_defaultNewGameConfig(scoring_rankValue(scoring_loadSavedScore()));
+        gameSession_launchGame(config);
     } else {
         if (gameSession_restoreGameState()) {
             gameSession.menuScreenType = MENUSCREEN_GAME;
@@ -478,30 +503,6 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
             return true;
         }
     }
-}
-
-static void gameSession_launchGame(NewGameConfig config) {
-    int faction;
-    level_destroy(&gameSession.level);
-    gameSession.menuScreenType = MENUSCREEN_GAME;
-    gameSession.level = level_create(config);
-    gameSession.factionCount = level_factionCount(config);
-    // setup factions
-    for (faction = 0; faction < gameSession.factionCount; faction++) {
-        if (!config.playerConfig[faction].active) {
-            continue;
-        }
-        if (config.playerConfig[faction].isHuman) {
-            gameSession.factionTurn = faction;
-            gameSession.factions[faction] = (Faction){(CPUFactionProfile){0, 0, 0}, true};
-        } else {
-            gameSession.factions[faction] = gameSession_factionWithRandomizedCPUProfile();
-        }
-    }
-    gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
-    gameSession.drawingState.shouldRedrawBackground = true;
-    gameSession.drawingState.shouldRedrawOverlay = true;
-    gameSession_startTurn();
 }
 
 static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {

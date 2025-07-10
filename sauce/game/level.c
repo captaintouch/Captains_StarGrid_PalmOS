@@ -498,17 +498,23 @@ Level level_create(NewGameConfig config) {
 
 LEVEL_SECTION
 void level_destroy(Level *level) {
+    if (level == NULL) {
+        return;
+    }
     if (level->pawns != NULL) {
         level->pawnCount = 0;
         MemPtrFree(level->pawns);
+        level->pawns = NULL;
     }
     if (level->gridTexts != NULL) {
         level->gridTextCount = 0;
         MemPtrFree(level->gridTexts);
+        level->gridTexts = NULL;
     }
     if (level->actionTiles != NULL) {
         level->actionTileCount = 0;
         MemPtrFree(level->actionTiles);
+        level->actionTiles = NULL;
     }
 }
 
