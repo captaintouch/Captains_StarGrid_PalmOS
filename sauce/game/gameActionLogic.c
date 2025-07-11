@@ -154,20 +154,6 @@ void gameActionLogic_scheduleMovement(Pawn *sourcePawn, Pawn *targetPawn, Coordi
     sourcePawn->position = selectedTile;
 }
 
-static void gameActionLogic_returnFlagToBase(Pawn *pawn) {
-    int i;
-    if (!pawn->inventory.carryingFlag) {
-        return;
-    }
-    pawn->inventory.carryingFlag = false;
-    for (i = 0; i < gameSession.level.pawnCount; i++) {
-        if (gameSession.level.pawns[i].faction == pawn->inventory.flagOfFaction && gameSession.level.pawns[i].type == PAWNTYPE_BASE) {
-            gameSession.level.pawns[i].inventory.carryingFlag = true;
-            return;
-        }
-    }
-}
-
 static Boolean gameActionLogic_baseOnPosition(Coordinate position) {
     int i;
     for (i = 0; i < gameSession.level.pawnCount; i++) {
@@ -221,7 +207,7 @@ Boolean gameActionLogic_afterMove() {
                 gameSession.level.scores[gameSession.activePawn->faction].shipsCaptured[gameSession.level.pawns[i].faction]++;
                 gameSession.level.pawns[i].faction = gameSession.activePawn->faction;
 
-                gameActionLogic_returnFlagToBase(&gameSession.level.pawns[i]);
+                level_returnFlagFromPawnToOriginalBase(&gameSession.level.pawns[i], &gameSession.level);
                 if (gameSession.level.pawns[i].type == PAWNTYPE_BASE) {
                     Coordinate activePawnPosition = gameSession.activePawn->position;
                     level_removePawnAtIndex(i, &gameSession.level);
@@ -285,7 +271,7 @@ void gameActionLogic_afterAttack() {
             }
             FrmCustomAlert(GAME_ALERT_BASEDESTROYED, NULL, NULL, NULL);
         }
-        gameActionLogic_returnFlagToBase(gameSession.attackAnimation->targetPawn);
+        level_returnFlagFromPawnToOriginalBase(gameSession.attackAnimation->targetPawn, &gameSession.level);
 
         activePawnPosition = gameSession.activePawn->position;
         level_removePawn(gameSession.attackAnimation->targetPawn, &gameSession.level);

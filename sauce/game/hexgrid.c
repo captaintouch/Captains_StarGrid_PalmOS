@@ -39,6 +39,7 @@ static void hexgrid_tileCoords(int startX, int startY, Coordinate coordinates[],
     coordinates[5] = (Coordinate){startX + hexTileSize, coordinates[1].y};
 }
 
+#ifndef HIRESBUILD
 HEXGRID_SECTION
 static Boolean hexgrid_drawTileFromCache(int startX, int startY, WinHandle drawWindow, WinHandle tileWindow, IndexedColorType cacheColor) {
     RectangleType rect;
@@ -66,6 +67,8 @@ static Boolean hexgrid_createFilledTileCache(WinHandle drawWindow) {
     }
     return hexgrid_filledTileCacheWindow != NULL;;
 }
+
+#endif
 
 HEXGRID_SECTION
 static void hexgrid_drawTile(int startX, int startY) {

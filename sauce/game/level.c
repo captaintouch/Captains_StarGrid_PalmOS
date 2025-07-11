@@ -546,3 +546,16 @@ Pawn *level_pawnAtTile(Coordinate tileCoordinate, Level *level) {
     }
     return NULL;
 }
+
+LEVEL_SECTION
+void level_returnFlagFromPawnToOriginalBase(Pawn *pawn, Level *level) {
+    Pawn *flagHomeBase;
+    if (!pawn->inventory.carryingFlag) {
+        return;
+    }
+    flagHomeBase = movement_homeBase(pawn->inventory.flagOfFaction, level->pawns, level->pawnCount);
+    if (flagHomeBase != NULL) {
+        flagHomeBase->inventory.carryingFlag = true;
+    }
+    pawn->inventory.carryingFlag = false;
+}

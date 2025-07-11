@@ -77,5 +77,6 @@ Pawn *level_nextPawn(Pawn *currentPawn, Boolean allPawns, int factionTurn, int c
 Boolean level_movesLeftForFaction(int faction, int currentTurn, Level *level) LEVEL_SECTION;
 NewGameConfig level_defaultNewGameConfig(int rank) LEVEL_SECTION;
 
+void level_returnFlagFromPawnToOriginalBase(Pawn *pawn, Level *level);
 Pawn *level_pawnAtTile(Coordinate tileCoordinate, Level *level) LEVEL_SECTION;
 #endif
