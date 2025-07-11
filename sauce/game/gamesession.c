@@ -70,6 +70,7 @@ static void gameSession_launchGame(NewGameConfig config) {
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
     gameSession.drawingState.shouldRedrawBackground = true;
     gameSession.drawingState.shouldRedrawOverlay = true;
+    gameSession.continueCPUPlay = !gameActionLogic_humanShipsLeft(&gameSession.level);
     gameSession_startTurn();
 }
 

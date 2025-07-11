@@ -27,6 +27,10 @@ static UInt8 gameActionLogic_nonCapturedFlagsLeft(UInt8 faction) {
     return flagsLeft;
 }
 
+static void gameActionLogic_askForAfterGameOptions() {
+    FrmCustomAlert(GAME_ALERT_ENDOFGAME, NULL, NULL, NULL) == 0 ? gameSession_reset(true) : gameSession_reset(false);
+}
+
 static void gameActionLogic_showScore() {
     DmResID oldRank = scoring_rankForScore(scoring_loadSavedScore());
     DmResID newRank;
@@ -235,10 +239,12 @@ Boolean gameActionLogic_afterMove() {
         } else {  // Game over, all flags captured
             if (gameSession.factions[gameSession.activePawn->faction].human) {
                 FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_ALLFLAGSCAPTURED, NULL, NULL, NULL);
+                gameActionLogic_showScore();
             } else {
                 FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_CPUALLFLAGSCAPTURED, NULL, NULL, NULL);
+                gameActionLogic_askForAfterGameOptions();
             }
-            gameActionLogic_showScore();
+            return false;
         }
     }
 
@@ -295,10 +301,12 @@ void gameActionLogic_afterAttack() {
     if (!gameActionLogic_enemyShipsLeft()) {
         if (gameSession.factions[gameSession.activePawn->faction].human) {
             FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_TOTALDESTRUCTION, NULL, NULL, NULL);
+            gameActionLogic_showScore();
         } else {
             FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_CPUTOTALDESTRUCTION, NULL, NULL, NULL);
+            gameActionLogic_askForAfterGameOptions();
         }
-        gameActionLogic_showScore();
+        return;
     }
 }
 

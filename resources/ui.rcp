@@ -159,13 +159,6 @@ BEGIN
     BUTTONS "Yes" "No"
 END
 
-ALERT ID GAME_ALERT_ENDOFGAMETECHDEMO
-BEGIN
-    TITLE "Thanks for playing!"
-    MESSAGE "This game is a work in progress, more levels, scoring system and a smarter AI arriving soon! For progress updates, check out https://quarters.captaintouch.com or hang around the PalmDB discord."
-    BUTTONS "Ok"
-END
-
 STRING STRING_MOVE "Move"
 STRING STRING_PHASER "Phaser"
 STRING STRING_TORPEDO "Torpedo"
