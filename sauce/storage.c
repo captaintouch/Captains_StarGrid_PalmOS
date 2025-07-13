@@ -9,12 +9,12 @@
 #define DB_TYPE 'DATA'
 #define DBSCORE_NAME "StarGrid ScoreDB"
 
-DB_SECTION
+STORAGE_SECTION
 static LocalID storage_scoreDatabaseId() {
     return DmFindDatabase(0, DBSCORE_NAME);
 }
 
-DB_SECTION
+STORAGE_SECTION
 void storage_reset() {
     LocalID dbId = dbId = storage_scoreDatabaseId();
     if (dbId > 0) {
@@ -22,7 +22,7 @@ void storage_reset() {
     }
 }
 
-DB_SECTION
+STORAGE_SECTION
 static LocalID storage_recreateScoreDatabase() {
     LocalID dbId;
     DmOpenRef dbRef;
@@ -44,7 +44,7 @@ static LocalID storage_recreateScoreDatabase() {
     return dbId;
 }
 
-DB_SECTION
+STORAGE_SECTION
 void storage_writeScore(Score *score) {
     DmOpenRef dbRef;
     UInt16 recordIndex;
@@ -79,7 +79,7 @@ void storage_writeScore(Score *score) {
     
 }
 
-DB_SECTION
+STORAGE_SECTION
 Score storage_readScore() {
     LocalID dbId;
     DmOpenRef dbRef;
@@ -116,13 +116,13 @@ Score storage_readScore() {
     return score;
 }
 
-DB_SECTION
+STORAGE_SECTION
 static void storage_clearSavedGameState() {
     FtrUnregister(APP_CREATOR_ID, FEATUREMEM_SAVESTATE_SESSIONDATA);
     FtrUnregister(APP_CREATOR_ID, FEATUREMEM_SAVESTATE_PAWNS);
 }
 
-DB_SECTION
+STORAGE_SECTION
 void storage_saveGameState(int currentTurn, int pawnCount, int factionCount, int factionTurn, Pawn *pawns, Faction factions[GAMEMECHANICS_MAXPLAYERCOUNT], LevelScore scores[GAMEMECHANICS_MAXPLAYERCOUNT]) {
     void *sessionDataPtr;
     void *pawnDataPtr;
@@ -145,7 +145,7 @@ void storage_saveGameState(int currentTurn, int pawnCount, int factionCount, int
     DmWrite(pawnDataPtr, 0, pawns, sizeof(Pawn) * pawnCount);
 }
 
-DB_SECTION
+STORAGE_SECTION
 Boolean storage_restoreGameState(UInt8 *currentTurn, int *pawnCount, int *factionCount, int *factionTurn, Pawn **pawns, Faction *factions, LevelScore *scores) {
     UInt32 sessionDataPtr, pawnDataPtr;
     GameRestorableSessionData *sessionData;
