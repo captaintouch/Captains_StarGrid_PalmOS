@@ -3,7 +3,7 @@
 #include <PalmOS.h>
 
 #include "../constants.h"
-#include "../database.h"
+#include "../storage.h"
 
 SCORING_SECTION
 Score scoring_scoreFromLevelScores(LevelScore *levelScores, int faction) {
@@ -109,18 +109,18 @@ int scoring_scoreNeededUntilNextRank(Score score) {
 
 SCORING_SECTION
 Score scoring_loadSavedScore() {
-    return database_readScore();
+    return storage_readScore();
 }
 
 SCORING_SECTION
 void scoring_saveScore(LevelScore *levelScores, int faction) {
-    Score oldScore = database_readScore();
+    Score oldScore = storage_readScore();
     Score score = scoring_scoreFromLevelScores(levelScores, faction);
     Score combinedScore = scoring_appendScore(oldScore, score);
-    database_writeScore(&combinedScore);
+    storage_writeScore(&combinedScore);
 }
 
 SCORING_SECTION
 void scoring_reset() {
-    database_reset();
+    storage_reset();
 }

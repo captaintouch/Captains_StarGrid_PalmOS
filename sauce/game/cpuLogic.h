@@ -5,13 +5,6 @@
 
 #include "models.h"
 
-
-typedef struct CPUFactionProfile {
-    int defendBasePriority;
-    int captureFlagPriority;
-    int attackPriority;
-} CPUFactionProfile;
-
 typedef enum CPUAction {
     CPUACTION_NONE,
     CPUACTION_MOVE,

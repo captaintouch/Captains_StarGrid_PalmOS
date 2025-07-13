@@ -31,6 +31,17 @@ typedef enum {
     BASEACTION_BUILD_SHIP,
 } BaseAction;
 
+typedef struct CPUFactionProfile {
+    int defendBasePriority;
+    int captureFlagPriority;
+    int attackPriority;
+} CPUFactionProfile;
+
+typedef struct Faction {
+    CPUFactionProfile profile;
+    Boolean human;
+} Faction;
+
 typedef struct Inventory {
     int health;
     UInt8 flagOfFaction;

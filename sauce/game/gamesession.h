@@ -46,20 +46,6 @@ typedef struct DrawingState {
     int barButtonHeight;
 } DrawingState;
 
-typedef struct Faction {
-    CPUFactionProfile profile;
-    Boolean human;
-} Faction;
-
-typedef struct GameRestorableSessionData {
-    int pawnCount;
-    Faction factions[GAMEMECHANICS_MAXPLAYERCOUNT];
-    LevelScore scores[GAMEMECHANICS_MAXPLAYERCOUNT];
-    int factionCount;
-    int factionTurn;
-    int currentTurn;
-} GameRestorableSessionData;
-
 typedef struct GameSession {
     GameState state;
     MenuScreenType menuScreenType;
@@ -73,7 +59,7 @@ typedef struct GameSession {
 
     Char cpuActionText[15];
 
-    Faction factions[4];
+    Faction factions[GAMEMECHANICS_MAXPLAYERCOUNT];
     int factionCount;
     int factionTurn;
     CPUStrategyResult *cpuStrategyResult;
