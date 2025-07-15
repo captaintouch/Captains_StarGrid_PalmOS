@@ -529,8 +529,8 @@ NewGameConfig level_defaultNewGameConfig(int rank) {
         config.playerConfig[i].active = true;
         config.playerConfig[i].isHuman = i == 0;
     }
-    config.playerConfig[GAMEMECHANICS_MAXPLAYERCOUNT - 1].active = rank > 1;
-    config.playerConfig[GAMEMECHANICS_MAXPLAYERCOUNT - 2].active = rank > 0;
+    config.playerConfig[GAMEMECHANICS_MAXPLAYERCOUNT - 2].active = rank > 1;
+    config.playerConfig[GAMEMECHANICS_MAXPLAYERCOUNT - 3].active = rank > 0;
     if (rank < 1) {
         config.placementStrategy = PLAYERPLACEMENTSTRATEGY_CORNERS;
     } else {
