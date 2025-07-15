@@ -526,9 +526,10 @@ NewGameConfig level_defaultNewGameConfig(int rank) {
         config.playerConfig[i].active = true;
         config.playerConfig[i].isHuman = i == 0;
     }
+    config.playerConfig[GAMEMECHANICS_MAXPLAYERCOUNT - 1].active = rank > 1;
+    config.playerConfig[GAMEMECHANICS_MAXPLAYERCOUNT - 2].active = rank > 0;
     if (rank < 1) {
         config.placementStrategy = PLAYERPLACEMENTSTRATEGY_CORNERS;
-        config.playerConfig[GAMEMECHANICS_MAXPLAYERCOUNT - 1].active = false;
     } else {
         config.placementStrategy = random(0, 1);
     }

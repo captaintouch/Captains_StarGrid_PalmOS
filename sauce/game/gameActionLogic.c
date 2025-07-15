@@ -200,19 +200,19 @@ Boolean gameActionLogic_afterMove() {
         // Flag dissapears, enemy base dissapears, enemy ships join the players fleet
         int i;
         for (i = 0; i < gameSession.level.pawnCount; i++) {
-            if (isInvalidCoordinate(gameSession.level.pawns[i].position)) {
-                continue;
+            if (gameSession.level.pawns[i].faction == gameSession.activePawn->inventory.flagOfFaction && gameSession.level.pawns[i].type == PAWNTYPE_BASE) {
+                Coordinate activePawnPosition = gameSession.activePawn->position;
+                level_removePawnAtIndex(i, &gameSession.level);
+                gameSession.activePawn = level_pawnAtTile(activePawnPosition, &gameSession.level);
+                break;
             }
+        }
+        for (i = 0; i < gameSession.level.pawnCount; i++) {
             if (gameSession.level.pawns[i].faction == gameSession.activePawn->inventory.flagOfFaction) {
+                level_returnFlagFromPawnToOriginalBase(&gameSession.level.pawns[i], &gameSession.level);
+
                 gameSession.level.scores[gameSession.activePawn->faction].shipsCaptured[gameSession.level.pawns[i].faction]++;
                 gameSession.level.pawns[i].faction = gameSession.activePawn->faction;
-
-                level_returnFlagFromPawnToOriginalBase(&gameSession.level.pawns[i], &gameSession.level);
-                if (gameSession.level.pawns[i].type == PAWNTYPE_BASE) {
-                    Coordinate activePawnPosition = gameSession.activePawn->position;
-                    level_removePawnAtIndex(i, &gameSession.level);
-                    gameSession.activePawn = level_pawnAtTile(activePawnPosition, &gameSession.level);
-                }
             }
         }
         gameSession.activePawn->inventory.carryingFlag = false;
