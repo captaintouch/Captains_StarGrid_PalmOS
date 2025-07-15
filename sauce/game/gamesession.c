@@ -2,8 +2,8 @@
 
 #include "../about.h"
 #include "../constants.h"
-#include "../storage.h"
 #include "../deviceinfo.h"
+#include "../storage.h"
 #include "Form.h"
 #include "drawhelper.h"
 #include "gameActionLogic.h"
@@ -125,8 +125,7 @@ void gameSession_cleanup() {
             gameSession.factionTurn,
             gameSession.level.pawns,
             gameSession.factions,
-            gameSession.level.scores
-        );
+            gameSession.level.scores);
     }
     level_destroy(&gameSession.level);
     gameActionLogic_clearAttack();
@@ -902,12 +901,18 @@ Boolean gameSession_handleFormButtonTap(UInt16 buttonID) {
 }
 
 static Boolean moveToNextPawnIfNeeded() {
+#ifdef DEBUG
+    int i;
+#endif
     Pawn *pawn = gameSession.activePawn;
     if (!pawn->turnComplete || gameSession.disableAutoMoveToNextPawn) {
         return false;
     }
 
     while (pawn->turnComplete) {
+#ifdef DEBUG
+        drawhelper_drawTextWithValue("", i++, (Coordinate){140, 0});
+#endif
         pawn = gameSession_nextPawn(false);
         if (pawn == NULL || !level_movesLeftForFaction(gameSession.factionTurn, gameSession.currentTurn, &gameSession.level)) {
             gameSession_startTurnForNextFaction();
