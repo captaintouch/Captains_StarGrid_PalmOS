@@ -825,13 +825,12 @@ static void gameSession_cpuTurn() {
     CPUStrategyResult strategy;
     Pawn *homeBase;
     Pawn *pawn = gameSession.activePawn;
-    if (gameSession_animating() || gameSession.state != GAMESTATE_DEFAULT || gameSession.menuScreenType != MENUSCREEN_GAME || gameSession.factions[gameSession.factionTurn].human) {
+    if (gameSession_animating() || gameSession.state != GAMESTATE_DEFAULT || gameSession.menuScreenType != MENUSCREEN_GAME || gameSession.factions[gameSession.factionTurn].human || pawn->turnComplete) {
         return;
     }
 
     strategy = cpuLogic_getStrategy(pawn, gameSession.level.pawns, gameSession.level.pawnCount, gameSession.currentTurn, gameSession.factions[pawn->faction].profile, !gameActionLogic_humanShipsLeft());
     pawn->turnComplete = true;
-    gameSession.activePawn = pawn;
     switch (strategy.CPUAction) {
         case CPUACTION_MOVE:
             closestTile = strategy.targetPosition;
@@ -908,13 +907,12 @@ static Boolean moveToNextPawnIfNeeded() {
         return false;
     }
 
-    if (!level_movesLeftForFaction(gameSession.factionTurn, gameSession.currentTurn, &gameSession.level)) {
-        gameSession_startTurnForNextFaction();
-        return true;
-    }
-
     while (pawn->turnComplete) {
         pawn = gameSession_nextPawn(false);
+        if (pawn == NULL || !level_movesLeftForFaction(pawn->faction, gameSession.currentTurn, &gameSession.level)) {
+            gameSession_startTurnForNextFaction();
+            return true;
+        }
     }
 
     // move camera to active pawn
