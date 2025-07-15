@@ -176,6 +176,26 @@ static Boolean gameActionLogic_checkForGameOver() {
     return false;
 }
 
+static void gameActionLogic_removeBase(int baseFaction, int newFaction) {
+    int i;
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
+        if (gameSession.level.pawns[i].faction == baseFaction && gameSession.level.pawns[i].type == PAWNTYPE_BASE) {
+            Coordinate activePawnPosition = gameSession.activePawn->position;
+            level_removePawnAtIndex(i, &gameSession.level);
+            gameSession.activePawn = level_pawnAtTile(activePawnPosition, &gameSession.level);
+            break;
+        }
+    }
+    for (i = 0; i < gameSession.level.pawnCount; i++) {
+        if (gameSession.level.pawns[i].faction == baseFaction) {
+            level_returnFlagFromPawnToOriginalBase(&gameSession.level.pawns[i], &gameSession.level);
+
+            gameSession.level.scores[newFaction].shipsCaptured[baseFaction]++;
+            gameSession.level.pawns[i].faction = newFaction;
+        }
+    }
+}
+
 // returns true when another movement has been scheduled
 Boolean gameActionLogic_afterMove() {
     Boolean didScheduleMovement = false;
@@ -198,23 +218,7 @@ Boolean gameActionLogic_afterMove() {
     // Check if flag was returned to player's base
     if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->faction == gameSession.activePawn->faction && gameSession.activePawn->inventory.carryingFlag) {
         // Flag dissapears, enemy base dissapears, enemy ships join the players fleet
-        int i;
-        for (i = 0; i < gameSession.level.pawnCount; i++) {
-            if (gameSession.level.pawns[i].faction == gameSession.activePawn->inventory.flagOfFaction && gameSession.level.pawns[i].type == PAWNTYPE_BASE) {
-                Coordinate activePawnPosition = gameSession.activePawn->position;
-                level_removePawnAtIndex(i, &gameSession.level);
-                gameSession.activePawn = level_pawnAtTile(activePawnPosition, &gameSession.level);
-                break;
-            }
-        }
-        for (i = 0; i < gameSession.level.pawnCount; i++) {
-            if (gameSession.level.pawns[i].faction == gameSession.activePawn->inventory.flagOfFaction) {
-                level_returnFlagFromPawnToOriginalBase(&gameSession.level.pawns[i], &gameSession.level);
-
-                gameSession.level.scores[gameSession.activePawn->faction].shipsCaptured[gameSession.level.pawns[i].faction]++;
-                gameSession.level.pawns[i].faction = gameSession.activePawn->faction;
-            }
-        }
+        gameActionLogic_removeBase(gameSession.activePawn->inventory.flagOfFaction, gameSession.activePawn->faction);
         gameSession.activePawn->inventory.carryingFlag = false;
         gameSession.level.scores[gameSession.activePawn->faction].flagsCaptured[gameSession.activePawn->inventory.flagOfFaction]++;
         if (gameActionLogic_nonCapturedFlagsLeft(gameSession.activePawn->faction) > 0) {  // Still some flags left to capture
@@ -256,31 +260,19 @@ void gameActionLogic_afterAttack() {
 
     if (gameSession.attackAnimation->targetPawn->inventory.health <= 0) {
         Coordinate activePawnPosition;
-        gameSession.attackAnimation->targetPawn->inventory.health = 0;
-        gameSession.level.scores[gameSession.activePawn->faction].shipsDestroyed[gameSession.attackAnimation->targetPawn->faction]++;
+        int oldFaction = gameSession.attackAnimation->targetPawn->faction;
 
         if (gameSession.attackAnimation->targetPawn->type == PAWNTYPE_BASE) {
-            int i;
-            for (i = 0; i < gameSession.level.pawnCount; i++) {
-                if (isInvalidCoordinate(gameSession.level.pawns[i].position)) {
-                    continue;
-                }
-                if (gameSession.level.pawns[i].faction == gameSession.attackAnimation->targetPawn->faction) {
-                    gameSession.level.pawns[i].faction = gameSession.activePawn->faction;
-                }
-            }
+            gameActionLogic_removeBase(oldFaction, gameSession.activePawn->faction);
+            gameSession.level.scores[gameSession.activePawn->faction].basesDestroyed[oldFaction] = true;
             FrmCustomAlert(GAME_ALERT_BASEDESTROYED, NULL, NULL, NULL);
+        } else {
+            gameSession.level.scores[gameSession.activePawn->faction].shipsDestroyed[oldFaction]++;
+            activePawnPosition = gameSession.activePawn->position;
+            level_removePawn(gameSession.attackAnimation->targetPawn, &gameSession.level);
+            gameSession.activePawn = level_pawnAtTile(activePawnPosition, &gameSession.level);
+            gameSession.attackAnimation->targetPawn = NULL;
         }
-        level_returnFlagFromPawnToOriginalBase(gameSession.attackAnimation->targetPawn, &gameSession.level);
-
-        activePawnPosition = gameSession.activePawn->position;
-        level_removePawn(gameSession.attackAnimation->targetPawn, &gameSession.level);
-        gameSession.activePawn = level_pawnAtTile(activePawnPosition, &gameSession.level);
-        gameSession.attackAnimation->targetPawn = NULL;
-    }
-
-    if (gameActionLogic_checkForGameOver()) {
-        return;
     }
 
     // Check for game over if no enemy units left
@@ -292,6 +284,10 @@ void gameActionLogic_afterAttack() {
             FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_CPUTOTALDESTRUCTION, NULL, NULL, NULL);
             gameActionLogic_askForAfterGameOptions();
         }
+        return;
+    }
+
+    if (gameActionLogic_checkForGameOver()) {
         return;
     }
 }
