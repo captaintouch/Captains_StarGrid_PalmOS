@@ -280,8 +280,8 @@ static int gameSession_nextAvailableFaction(int currentFaction) {
     return nextFaction;
 }
 
-static Pawn *gameSession_nextPawn(Boolean allPawns) {
-    return level_nextPawn(gameSession.activePawn, allPawns, gameSession.factionTurn, gameSession.currentTurn, &gameSession.level);
+static Pawn *gameSession_nextPawn(Boolean allPawns, Boolean onlyWithAvailableActions) {
+    return level_nextPawn(gameSession.activePawn, allPawns, onlyWithAvailableActions, gameSession.factionTurn, gameSession.currentTurn, &gameSession.level);
 }
 
 static void gameSession_moveCameraToPawn(Pawn *pawn) {
@@ -303,7 +303,7 @@ static void gameSession_startTurn() {
     Pawn *homeBase;
     level_reorderPawnsByDistance(&gameSession.level);
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
-    nextPawn = gameSession_nextPawn(false);
+    nextPawn = gameSession_nextPawn(false, true);
     homeBase = movement_homeBase(gameSession.factionTurn, gameSession.level.pawns, gameSession.level.pawnCount);
     if (homeBase != NULL && homeBase->inventory.lastBaseAction == BASEACTION_BUILD_SHIP && pawn_baseTurnsLeft(gameSession.currentTurn, homeBase->inventory.baseActionLastActionTurn, homeBase->inventory.lastBaseAction) == 0) {
         homeBase->inventory.lastBaseAction = BASEACTION_NONE;
@@ -331,7 +331,7 @@ static void gameSession_startTurnForNextFaction() {
 
 static Boolean gameSession_handleBarButtonsTap() {
     if (gameSession.lastPenInput.touchCoordinate.x > gameSession.drawingState.barButtonPositions[0].x && gameSession.lastPenInput.touchCoordinate.y > gameSession.drawingState.barButtonPositions[0].y && gameSession.lastPenInput.touchCoordinate.y < gameSession.drawingState.barButtonPositions[0].y + gameSession.drawingState.barButtonHeight) {  // Next button
-        gameSession.activePawn = gameSession_nextPawn(true);
+        gameSession.activePawn = gameSession_nextPawn(true, false);
         gameSession.disableAutoMoveToNextPawn = gameSession.activePawn->turnComplete;
         gameSession_updateViewPortOffset(true);
         gameSession.drawingState.shouldRedrawOverlay = true;
@@ -913,7 +913,7 @@ static Boolean moveToNextPawnIfNeeded() {
 #ifdef DEBUG
         drawhelper_drawTextWithValue("", i++, (Coordinate){140, 0});
 #endif
-        pawn = gameSession_nextPawn(false);
+        pawn = gameSession_nextPawn(false, true);
         if (pawn == NULL || !level_movesLeftForFaction(gameSession.factionTurn, gameSession.currentTurn, &gameSession.level)) {
             gameSession_startTurnForNextFaction();
             return true;
