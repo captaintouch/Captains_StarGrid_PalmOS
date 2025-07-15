@@ -44,9 +44,10 @@ static Boolean pawnActionMenuViewModel_isDisabled(MenuActionType actionType, Paw
 static void appendTurnsRequiredForAction(MenuActionType actionType, char *text, UInt8 currentTurn, Pawn *pawn) {
     int turnsRequired;
     char valueText[20];
-    if (actionType != MenuActionTypeShockwave && actionType != MenuActionTypeBuildShip && !pawnActionMenuViewModel_isDisabled(actionType, pawn, currentTurn)) {
+    if (pawn->type == PAWNTYPE_SHIP || !pawnActionMenuViewModel_isDisabled(actionType, pawn, currentTurn)) {
         return;
     }
+
     turnsRequired = pawn_baseTurnsLeft(currentTurn, pawn->inventory.baseActionLastActionTurn, pawn->inventory.lastBaseAction);
     if (turnsRequired > 0) {
         StrCat(text, " (in ");
