@@ -418,7 +418,7 @@ static void level_applyPlacementCorners(Level *level, NewGameConfig config) {
     // Set the bases
     for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
         int faction = indices[i];
-        Coordinate baseCoordinate = baseCoordinates[faction];
+        Coordinate baseCoordinate = baseCoordinates[i];
         Pawn *basePawn;
         if (!config.playerConfig[faction].active) {
             continue;
