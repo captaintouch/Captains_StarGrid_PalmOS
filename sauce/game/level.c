@@ -154,7 +154,7 @@ Boolean level_movesLeftForFaction(int faction, int currentTurn, Level *level) {
                 turnComplete = level->pawns[i].turnComplete || pawn_baseTurnsLeft(currentTurn, level->pawns[i].inventory.baseActionLastActionTurn, level->pawns[i].inventory.lastBaseAction) > 0;
                 break;
         }
-        if (level->pawns[i].faction == faction && !turnComplete && !isInvalidCoordinate(level->pawns[i].position)) {
+        if (level->pawns[i].faction == faction && !turnComplete) {
             return true;
         }
     }
@@ -172,11 +172,11 @@ Pawn *level_nextPawn(Pawn *currentPawn, Boolean allPawns, int factionTurn, int c
             if (!allPawns && level->pawns[i].type == PAWNTYPE_BASE && pawn_baseTurnsLeft(currentTurn, level->pawns[i].inventory.baseActionLastActionTurn, level->pawns[i].inventory.lastBaseAction) > 0) {
                 continue;
             }
-            if (startMatching) {
-                return &level->pawns[i];
-            }
             if (firstPawn == NULL) {
                 firstPawn = &level->pawns[i];
+            }
+            if (startMatching) {
+                return &level->pawns[i];
             }
             if (currentPawn == &level->pawns[i]) {
                 startMatching = true;

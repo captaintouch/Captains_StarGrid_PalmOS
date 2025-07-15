@@ -909,7 +909,7 @@ static Boolean moveToNextPawnIfNeeded() {
 
     while (pawn->turnComplete) {
         pawn = gameSession_nextPawn(false);
-        if (pawn == NULL || !level_movesLeftForFaction(pawn->faction, gameSession.currentTurn, &gameSession.level)) {
+        if (pawn == NULL || !level_movesLeftForFaction(gameSession.factionTurn, gameSession.currentTurn, &gameSession.level)) {
             gameSession_startTurnForNextFaction();
             return true;
         }
