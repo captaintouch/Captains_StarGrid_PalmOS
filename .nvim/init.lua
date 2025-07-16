@@ -1,13 +1,13 @@
 function buildLowRes()
-	vim.cmd("make lowres")
+	vim.cmd("!bear -- make lowres")
 end
 
 function buildHiRes()
-	vim.cmd("make hires")
+	vim.cmd("!bear -- make hires")
 end
 
 function buildDebug()
-	vim.cmd("make debug")
+	vim.cmd("!bear -- make debug")
 end
 
 function launchSimLowResColor()
