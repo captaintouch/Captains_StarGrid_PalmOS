@@ -632,11 +632,13 @@ static void gameSession_handlePawnActionButtonSelection() {
             gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
             break;
         case MenuActionTypeShockwave:
+            gameSession.activePawn->turnComplete = true;
             gameActionLogic_scheduleShockwave(gameSession.activePawn);
             gameSession.activePawn->inventory.baseActionLastActionTurn = gameSession.currentTurn;
             gameSession.activePawn->inventory.lastBaseAction = BASEACTION_SHOCKWAVE;
             break;
         case MenuActionTypeBuildShip:
+            gameSession.activePawn->turnComplete = true;
             gameSession.activePawn->inventory.baseActionLastActionTurn = gameSession.currentTurn;
             gameSession.activePawn->inventory.lastBaseAction = BASEACTION_BUILD_SHIP;
             // TODO: Show alert that ship is being built
