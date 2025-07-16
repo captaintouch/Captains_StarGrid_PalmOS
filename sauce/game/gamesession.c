@@ -665,6 +665,7 @@ static void gameSession_progressUpdateExplosion() {
     timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * gameSession.attackAnimation->explosionDurationSeconds);
     if (timePassedScale >= 1) {
         gameActionLogic_clearAttack();
+        gameActionLogic_afterExplosion();
         gameSession.state = GAMESTATE_DEFAULT;
     }
 }

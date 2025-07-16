@@ -5,6 +5,7 @@
 #include "gamesession.h"
 
 void gameActionLogic_afterAttack();
+void gameActionLogic_afterExplosion(); 
 Boolean gameActionLogic_afterMove();
 
 void gameActionLogic_clearMovement();
