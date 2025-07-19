@@ -14,7 +14,7 @@ PALMINC = /opt/palmdev/sdk-5r3/include
 PILRC = pilrc
 MULTIGEN = m68k-palmos-multigen
 BUILDPRC = build-prc
-PALMCFLAGS = -O2 -mshort -DPALMOS -DSDK_$(SDK_VERSION) \
+PALMCFLAGS = -O2 -DPALMOS -DSDK_$(SDK_VERSION) \
 	-I$(PALMINC) \
 	-I$(PALMINC)/Dynamic \
 	-I$(PALMINC)/Core \
