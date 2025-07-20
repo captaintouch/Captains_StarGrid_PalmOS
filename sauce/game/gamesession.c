@@ -301,7 +301,9 @@ static void gameSession_buildShip(Pawn *homeBase) {
 static void gameSession_startTurn() {
     Pawn *nextPawn;
     Pawn *homeBase;
+    Coordinate oldActivePawnPosition = gameSession.activePawn->position;
     level_reorderPawnsByDistance(&gameSession.level);
+    gameSession.activePawn = level_pawnAtTile(oldActivePawnPosition, &gameSession.level);
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
     nextPawn = gameSession_nextPawn(false, true);
     homeBase = movement_homeBase(gameSession.factionTurn, gameSession.level.pawns, gameSession.level.pawnCount);
