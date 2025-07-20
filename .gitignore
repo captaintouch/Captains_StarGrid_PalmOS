@@ -1,3 +1,5 @@
+compile_commands.json
 artifacts/StarGrid*prc
 emu/*.image
 emu/*.session
+.cache/
