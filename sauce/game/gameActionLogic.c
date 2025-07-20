@@ -186,8 +186,9 @@ static void gameActionLogic_removeBase(int baseFaction, int newFaction) {
             break;
         }
     }
+    //For all remaining ships of the removed faction, return any flags they carry AND update them to the new faction
     for (i = 0; i < gameSession.level.pawnCount; i++) {
-        if (gameSession.level.pawns[i].faction == baseFaction) {
+        if (gameSession.level.pawns[i].faction == baseFaction && gameSession.level.pawns[i].type == PAWNTYPE_SHIP) {
             level_returnFlagFromPawnToOriginalBase(&gameSession.level.pawns[i], &gameSession.level);
 
             gameSession.level.scores[newFaction].shipsCaptured[baseFaction]++;
@@ -218,9 +219,9 @@ Boolean gameActionLogic_afterMove() {
     // Check if flag was returned to player's base
     if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->faction == gameSession.activePawn->faction && gameSession.activePawn->inventory.carryingFlag) {
         // Flag dissapears, enemy base dissapears, enemy ships join the players fleet
-        gameActionLogic_removeBase(gameSession.activePawn->inventory.flagOfFaction, gameSession.activePawn->faction);
         gameSession.activePawn->inventory.carryingFlag = false;
         gameSession.level.scores[gameSession.activePawn->faction].flagsCaptured[gameSession.activePawn->inventory.flagOfFaction]++;
+        gameActionLogic_removeBase(gameSession.activePawn->inventory.flagOfFaction, gameSession.activePawn->faction);
         if (gameActionLogic_nonCapturedFlagsLeft(gameSession.activePawn->faction) > 0) {  // Still some flags left to capture
             FrmCustomAlert(GAME_ALERT_FLAGCAPTURED, NULL, NULL, NULL);
             if (gameActionLogic_checkForGameOver()) {
