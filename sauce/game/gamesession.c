@@ -243,7 +243,8 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
 
 static void gameSession_showPawnActions() {
     int baseTurnsLeft;
-    if (!gameSession.factions[gameSession.activePawn->faction].human) {
+    Boolean isCurrentPlayer = gameSession.factionTurn == gameSession.activePawn->faction && gameSession.factions[gameSession.activePawn->faction].human; 
+    if (!isCurrentPlayer) {
         gameSession.drawingState.shouldRedrawOverlay = true;
         return;
     }
