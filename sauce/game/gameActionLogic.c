@@ -114,6 +114,7 @@ void gameActionLogic_scheduleWarp(Pawn *sourcePawn, Coordinate target) {
 
 void gameActionLogic_scheduleShockwave(Pawn *basePawn) {
     int i, affectedPawnCount = 0;
+    gameActionLogic_clearShockwave();
     gameSession.shockWaveAnimation = (ShockWaveAnimation *)MemPtrNew(sizeof(ShockWaveAnimation));
     MemSet(gameSession.shockWaveAnimation, sizeof(ShockWaveAnimation), 0);
     gameSession.shockWaveAnimation->launchTimestamp = TimGetTicks();

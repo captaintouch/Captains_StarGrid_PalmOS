@@ -4,7 +4,7 @@
 #include "game/models.h"
 
 Boolean deviceinfo_colorSupported();
-Int32 deviceinfo_maxDepth();
+UInt32 deviceinfo_maxDepth();
 Int32 deviceinfo_currentDepth();
 Coordinate deviceinfo_screenSize();
 Boolean deviceinfo_diaSupported();

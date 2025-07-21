@@ -312,6 +312,7 @@ static void gameSession_startTurn() {
         homeBase->inventory.lastBaseAction = BASEACTION_NONE;
         gameSession_buildShip(homeBase);
         nextPawn = movement_homeBase(gameSession.factionTurn, gameSession.level.pawns, gameSession.level.pawnCount);
+        homeBase = nextPawn;
         if (gameSession.factions[homeBase->faction].human) {
             FrmCustomAlert(GAME_ALERT_SHIPBUILDFINISHED, NULL, NULL, NULL);
         }

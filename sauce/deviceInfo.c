@@ -13,7 +13,7 @@ Int32 deviceinfo_currentDepth() {
     return depth;
 }
 
-Int32 deviceinfo_maxDepth() {
+UInt32 deviceinfo_maxDepth() {
     UInt32 supportedDepths = 0;
     WinScreenMode(winScreenModeGetSupportedDepths, NULL, NULL, &supportedDepths, NULL);
     if (supportedDepths & 0x80) {

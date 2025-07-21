@@ -23,8 +23,8 @@ LEVEL_SECTION
 static void level_addPawns(Pawn *newPawns, int additionalPawnCount, Level *level) {
     int i;
     Pawn *updatedPawns = MemPtrNew(sizeof(Pawn) * (level->pawnCount + additionalPawnCount));
+    MemSet(updatedPawns, sizeof(Pawn) * (level->pawnCount + additionalPawnCount), 0);
     if (level->pawns != NULL) {
-        MemSet(updatedPawns, sizeof(Pawn) * (level->pawnCount + additionalPawnCount), 0);
         MemMove(updatedPawns, level->pawns, sizeof(Pawn) * level->pawnCount);
         MemPtrFree(level->pawns);
     }
