@@ -121,6 +121,7 @@ void gameActionLogic_scheduleShockwave(Pawn *basePawn) {
     gameSession.shockWaveAnimation->basePawn = basePawn;
     gameSession.shockWaveAnimation->affectedPawnIndices = (int *)MemPtrNew(sizeof(int) * gameSession.level.pawnCount);
     gameSession.shockWaveAnimation->pawnOriginalPositions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.level.pawnCount);
+    gameSession.shockWaveAnimation->pawnIntermediatePositions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.level.pawnCount);
 
     for (i = 0; i < gameSession.level.pawnCount; i++) {
         if (!isInvalidCoordinate(gameSession.level.pawns[i].position) && gameSession.level.pawns[i].type == PAWNTYPE_SHIP && movement_distance(basePawn->position, gameSession.level.pawns[i].position) < GAMEMECHANICS_SHOCKWAVERANGE - 1) {
@@ -187,7 +188,7 @@ static void gameActionLogic_removeBase(int baseFaction, int newFaction) {
             break;
         }
     }
-    //For all remaining ships of the removed faction, return any flags they carry AND update them to the new faction
+    // For all remaining ships of the removed faction, return any flags they carry AND update them to the new faction
     for (i = 0; i < gameSession.level.pawnCount; i++) {
         if (gameSession.level.pawns[i].faction == baseFaction && gameSession.level.pawns[i].type == PAWNTYPE_SHIP) {
             level_returnFlagFromPawnToOriginalBase(&gameSession.level.pawns[i], &gameSession.level);
@@ -294,7 +295,6 @@ void gameActionLogic_afterAttack() {
             gameSession.attackAnimation->targetPawn = NULL;
         }
     }
-
 }
 
 UInt8 gameActionLogic_maxRange(TargetSelectionType targetSelectionType) {
@@ -341,6 +341,10 @@ void gameActionLogic_clearShockwave() {
         if (gameSession.shockWaveAnimation->affectedPawnIndices != NULL) {
             MemPtrFree(gameSession.shockWaveAnimation->affectedPawnIndices);
             gameSession.shockWaveAnimation->affectedPawnIndices = NULL;
+        }
+        if (gameSession.shockWaveAnimation->pawnIntermediatePositions != NULL) {
+            MemPtrFree(gameSession.shockWaveAnimation->pawnIntermediatePositions);
+            gameSession.shockWaveAnimation->pawnIntermediatePositions = NULL;
         }
         if (gameSession.shockWaveAnimation->pawnOriginalPositions != NULL) {
             MemPtrFree(gameSession.shockWaveAnimation->pawnOriginalPositions);
