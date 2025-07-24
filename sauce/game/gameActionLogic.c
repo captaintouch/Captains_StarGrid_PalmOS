@@ -50,7 +50,6 @@ static void gameActionLogic_showScore() {
     gameSession.menuScreenType = MENUSCREEN_SCORE;
     gameSession.drawingState.shouldRedrawBackground = true;
     gameSession.drawingState.shouldRedrawHeader = true;
-    gameSession.drawingState.shouldRedrawOverlay = true;
     gameSession.activePawn->type = PAWNTYPE_SHIP;
     scoring_saveScore(gameSession.level.scores, gameSession.activePawn->faction);
 

@@ -911,7 +911,7 @@ static Boolean moveToNextPawnIfNeeded() {
     int i;
 #endif
     Pawn *pawn = gameSession.activePawn;
-    if (!pawn->turnComplete || gameSession.disableAutoMoveToNextPawn) {
+    if (!pawn->turnComplete || gameSession.disableAutoMoveToNextPawn || gameSession.menuScreenType != MENUSCREEN_GAME) {
         return false;
     }
 
