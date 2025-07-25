@@ -287,6 +287,7 @@ void gameActionLogic_afterAttack() {
             gameSession.level.scores[gameSession.activePawn->faction].basesDestroyed[oldFaction] = true;
             FrmCustomAlert(GAME_ALERT_BASEDESTROYED, NULL, NULL, NULL);
         } else {
+            level_returnFlagFromPawnToOriginalBase(gameSession.attackAnimation->targetPawn, &gameSession.level);
             gameSession.level.scores[gameSession.activePawn->faction].shipsDestroyed[oldFaction]++;
             activePawnPosition = gameSession.activePawn->position;
             level_removePawn(gameSession.attackAnimation->targetPawn, &gameSession.level);
