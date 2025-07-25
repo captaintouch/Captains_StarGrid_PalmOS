@@ -99,10 +99,11 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
     int maxDamage = cpuLogic_pawnWithStolenFlag(pawn, allPawns, totalPawnCount, 0, true) != NULL ? 9999 : (random(0, 5) >= 4 || cpuPlayersOnly) ? (pawn->inventory.health * 0.5)
                                                                                                                                                 : 10;
     Coordinate targetPosition, safePosition;
-    int indicesX[maxRange * 2];
-    int indicesY[maxRange * 2];
-    mathIsFun_shuffleIndices(indicesX, maxRange * 2);
-    mathIsFun_shuffleIndices(indicesY, maxRange * 2);
+    int rangeIndicesCount = maxRange * 2 + 1;
+    int indicesX[rangeIndicesCount];
+    int indicesY[rangeIndicesCount];
+    mathIsFun_shuffleIndices(indicesX, rangeIndicesCount);
+    mathIsFun_shuffleIndices(indicesY, rangeIndicesCount);
     
     if (target == NULL || isInvalidCoordinate(target->position)) {
         return (Coordinate){-1, -1};
