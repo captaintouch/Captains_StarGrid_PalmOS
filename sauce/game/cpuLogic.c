@@ -96,17 +96,24 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
     int maxRange = GAMEMECHANICS_MAXTILEMOVERANGE;
     int dx, dy;
     int minDistance = 9999;
-    int maxDamage = cpuLogic_pawnWithStolenFlag(pawn, allPawns, totalPawnCount, 0, true) != NULL ? 9999 : (random(0, 5) >= 4 || cpuPlayersOnly) ? (pawn->inventory.health * 1.3)
+    int maxDamage = cpuLogic_pawnWithStolenFlag(pawn, allPawns, totalPawnCount, 0, true) != NULL ? 9999 : (random(0, 5) >= 4 || cpuPlayersOnly) ? (pawn->inventory.health * 0.5)
                                                                                                                                                 : 10;
     Coordinate targetPosition, safePosition;
+    int indicesX[maxRange * 2];
+    int indicesY[maxRange * 2];
+    mathIsFun_shuffleIndices(indicesX, maxRange * 2);
+    mathIsFun_shuffleIndices(indicesY, maxRange * 2);
+    
     if (target == NULL || isInvalidCoordinate(target->position)) {
         return (Coordinate){-1, -1};
     }
     targetPosition = movement_closestTileToTargetInRange(pawn, target->position, allPawns, totalPawnCount, canGoToBase);
     safePosition = targetPosition;
     for (dx = -maxRange; dx <= maxRange; dx++) {
+        int deltaX = indicesX[dx + maxRange] - maxRange;
         for (dy = -maxRange; dy <= maxRange; dy++) {
-            Coordinate candidateTile = {pawn->position.x + dx, pawn->position.y + dy};
+            int deltaY = indicesY[dy + maxRange] - maxRange;
+            Coordinate candidateTile = {pawn->position.x + deltaX, pawn->position.y + deltaY};
             int possibleDamage = cpuLogic_damageAssementForTile(candidateTile, pawn, allPawns, totalPawnCount);
             if (movement_shipAtTarget(candidateTile, allPawns, totalPawnCount) != NULL) {
                 continue;
