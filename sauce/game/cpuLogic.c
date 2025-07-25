@@ -188,12 +188,17 @@ static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns,
         Pawn *enemyWithFlag = cpuLogic_pawnWithStolenFlag(pawn, allPawns, totalPawnCount, 0, true);
         strategyResult.score += 50;
         if (enemyWithFlag != NULL) {
-            if (!cpuLogic_attackIfInRange(pawn, enemyWithFlag, &strategyResult)) {  // Attack if we can, if not, move to enemy home base
+            if (!cpuLogic_attackIfInRange(pawn, enemyWithFlag, &strategyResult)) {  // Attack if we can, if not, move to enemy home base or enemy with flag, whichever is closer
                 Pawn *enemyHomeBase = movement_homeBase(enemyWithFlag->faction, allPawns, totalPawnCount);
-                if (enemyHomeBase != NULL) {
+                int distanceFromEnemy = movement_distance(enemyWithFlag->position, pawn->position);
+                int distanceFromEnemyBase = movement_distance(enemyHomeBase->position, pawn->position);
+                if (enemyHomeBase != NULL && distanceFromEnemyBase < distanceFromEnemy) {
                     strategyResult.CPUAction = CPUACTION_MOVE;
                     strategyResult.target = enemyHomeBase;
-                }
+                } else {
+                    strategyResult.CPUAction = CPUACTION_MOVE;
+                    strategyResult.target = enemyWithFlag;
+                } 
             }
         }  // No else case, this means the flag was succesfully brought to the enemy base
     } else {
