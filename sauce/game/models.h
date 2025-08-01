@@ -1,8 +1,8 @@
 #ifndef MODELS_H_
 #define MODELS_H_
 #include <PalmOS.h>
-#include "colors.h"
 
+#include "colors.h"
 #define WARPCIRCLECOUNT 3
 
 typedef struct Coordinate {
@@ -16,7 +16,7 @@ typedef struct Line {
 } Line;
 
 typedef struct Trajectory {
-    Coordinate* tileCoordinates;
+    Coordinate *tileCoordinates;
     UInt8 tileCount;
 } Trajectory;
 
@@ -46,7 +46,7 @@ typedef struct Inventory {
     int health;
     UInt8 flagOfFaction;
     UInt8 torpedoCount;
-    UInt8 baseActionLastActionTurn; // last round when shockwave or build ship was used
+    UInt8 baseActionLastActionTurn;  // last round when shockwave or build ship was used
     BaseAction lastBaseAction;
     Boolean carryingFlag;
 } Inventory;
@@ -109,6 +109,12 @@ typedef struct HighlightTile {
     AppColor color;
     Boolean filled;
 } HighlightTile;
+
+typedef struct SceneAnimation {
+    Coordinate currentPosition;
+    Line trajectory;
+    Int32 launchTimestamp;
+} SceneAnimation;
 
 Boolean isEqualCoordinate(Coordinate coordA, Coordinate coordB);
 Boolean isInvalidCoordinate(Coordinate coord);

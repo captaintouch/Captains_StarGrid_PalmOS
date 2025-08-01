@@ -330,6 +330,13 @@ static void game_drawGridTexts() {
     FntSetFont(oldFont);
 }
 
+static void game_drawSceneAnimation() {
+    if (gameSession.sceneAnimation == NULL) {
+        return;
+    }
+    drawhelper_drawSprite(&spriteLibrary.cpuSprite, gameSession.sceneAnimation->currentPosition); 
+}
+
 static void game_drawPawns() {
     int i, j;
     if (gameSession.activePawn != NULL && gameSession.menuScreenType == MENUSCREEN_GAME) {
@@ -642,6 +649,7 @@ static void game_drawDynamicViews() {  // ships, special tiles, etc.
     game_drawGridTexts();
     game_drawActionTiles();
     game_drawPawns();
+    game_drawSceneAnimation();
     game_drawAttackAnimation();
     game_drawDebugTrajectoryMovement();
 }

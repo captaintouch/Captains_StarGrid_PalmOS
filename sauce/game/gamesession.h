@@ -85,6 +85,9 @@ typedef struct GameSession {
     AttackAnimation *attackAnimation;
     WarpAnimation warpAnimation;
     ShockWaveAnimation *shockWaveAnimation;
+    SceneAnimation *sceneAnimation;
+
+    Int32 nextSceneAnimationLaunchTimestamp;
 } GameSession;
 
 GameSession gameSession;

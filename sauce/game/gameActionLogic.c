@@ -91,6 +91,14 @@ static Boolean gameActionLogic_enemyShipsLeft() {
     return false;
 }
 
+void gameActionLogic_clearSceneAnimation() {
+    if (gameSession.sceneAnimation == NULL) {
+        return;
+    }
+    MemPtrFree(gameSession.sceneAnimation);
+    gameSession.sceneAnimation = NULL;
+}
+
 void gameActionLogic_clearMovement() {
     if (gameSession.movement != NULL) {
         if (gameSession.movement->trajectory.tileCoordinates != NULL) {

@@ -5,6 +5,9 @@
 #include "../deviceinfo.h"
 #include "../storage.h"
 #include "Form.h"
+#include "MemoryMgr.h"
+#include "SystemMgr.h"
+#include "TimeMgr.h"
 #include "drawhelper.h"
 #include "gameActionLogic.h"
 #include "hexgrid.h"
@@ -15,6 +18,7 @@
 #include "movement.h"
 #include "pawn.h"
 #include "pawnActionMenuViewModel.h"
+#include "spriteLibrary.h"
 #include "viewport.h"
 
 #define WARPINITIALTIME 0.4
@@ -47,6 +51,18 @@ static void gameSession_loadStartMenu() {
     gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
+static void gameSession_scheduleSceneAnimationIfNeeded() {
+    Coordinate screenSize;
+    if (gameSession.nextSceneAnimationLaunchTimestamp == 0 || gameSession.state != GAMESTATE_DEFAULT || gameSession.menuScreenType != MENUSCREEN_GAME|| gameSession.sceneAnimation != NULL || gameSession.nextSceneAnimationLaunchTimestamp > TimGetTicks()) {
+        return;
+    }
+    gameSession.nextSceneAnimationLaunchTimestamp = 0;
+    screenSize = deviceinfo_screenSize();
+    gameSession.sceneAnimation = (SceneAnimation *)MemPtrNew(sizeof(SceneAnimation));
+    gameSession.sceneAnimation->launchTimestamp = TimGetTicks();
+    gameSession.sceneAnimation->trajectory = (Line){(Coordinate){screenSize.x + 20, random(20, screenSize.y - 20)}, (Coordinate){-20, random(20, screenSize.y - 20)}};
+}
+
 static void gameSession_launchGame(NewGameConfig config) {
     int faction;
     level_destroy(&gameSession.level);
@@ -68,7 +84,9 @@ static void gameSession_launchGame(NewGameConfig config) {
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
     gameSession.drawingState.shouldRedrawBackground = true;
     gameSession.drawingState.shouldRedrawOverlay = true;
-    gameSession.continueCPUPlay = !gameActionLogic_humanShipsLeft(&gameSession.level);
+    gameSession.continueCPUPlay = !gameActionLogic_humanShipsLeft();
+    gameSession.nextSceneAnimationLaunchTimestamp = TimGetTicks() + SysTicksPerSecond() * 5;
+    gameSession_scheduleSceneAnimationIfNeeded();
     gameSession_startTurn();
 }
 
@@ -76,6 +94,7 @@ void gameSession_reset(Boolean newGame) {
     gameActionLogic_clearAttack();
     gameActionLogic_clearMovement();
     gameActionLogic_clearShockwave();
+    gameActionLogic_clearSceneAnimation();
     gameSession.diaSupport = deviceinfo_diaSupported();
     gameSession.colorSupport = deviceinfo_colorSupported();
 
@@ -95,6 +114,7 @@ void gameSession_reset(Boolean newGame) {
 
     gameSession.attackAnimation = NULL;
     gameSession.movement = NULL;
+    gameSession.sceneAnimation = NULL;
 
     gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
 
@@ -243,7 +263,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
 
 static void gameSession_showPawnActions() {
     int baseTurnsLeft;
-    Boolean isCurrentPlayer = gameSession.factionTurn == gameSession.activePawn->faction && gameSession.factions[gameSession.activePawn->faction].human; 
+    Boolean isCurrentPlayer = gameSession.factionTurn == gameSession.activePawn->faction && gameSession.factions[gameSession.activePawn->faction].human;
     if (!isCurrentPlayer) {
         gameSession.drawingState.shouldRedrawOverlay = true;
         return;
@@ -675,6 +695,23 @@ static void gameSession_progressUpdateExplosion() {
     }
 }
 
+static void gameSession_progressUpdateSceneAnimation() {
+    Int32 timeSinceLaunch;
+    float timePassedScale;
+    if (gameSession.sceneAnimation == NULL) {
+        return;
+    }
+    timeSinceLaunch = TimGetTicks() - gameSession.sceneAnimation->launchTimestamp;
+    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * 2.5);
+    gameSession.sceneAnimation->currentPosition = movement_coordinateAtPercentageOfLine(gameSession.sceneAnimation->trajectory, timePassedScale);
+    gameSession.drawingState.shouldRedrawOverlay = true;
+
+    if (timePassedScale > 1.0) {
+        gameActionLogic_clearSceneAnimation();
+        gameSession.nextSceneAnimationLaunchTimestamp = TimGetTicks() + SysTicksPerSecond() * 60;
+    }
+}
+
 static void gameSession_progressUpdateAttack() {
     Int32 timeSinceLaunch;
     float timePassedScale;
@@ -946,6 +983,7 @@ void gameSession_progressLogic() {
         if (moveToNextPawnIfNeeded()) {
             return;
         }
+        gameSession_scheduleSceneAnimationIfNeeded();
         if (!gameSession.factions[gameSession.factionTurn].human) {
             gameSession_cpuTurn();
         } else {
@@ -994,4 +1032,5 @@ void gameSession_progressLogic() {
     gameSession_progressUpdateAttack();
     gameSession_progressUpdateWarp();
     gameSession_progressUpdateShockWave();
+    gameSession_progressUpdateSceneAnimation();
 }
