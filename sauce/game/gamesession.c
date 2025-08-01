@@ -53,14 +53,24 @@ static void gameSession_loadStartMenu() {
 
 static void gameSession_scheduleSceneAnimationIfNeeded() {
     Coordinate screenSize;
+    int randomImage;
     if (gameSession.nextSceneAnimationLaunchTimestamp == 0 || gameSession.state != GAMESTATE_DEFAULT || gameSession.menuScreenType != MENUSCREEN_GAME|| gameSession.sceneAnimation != NULL || gameSession.nextSceneAnimationLaunchTimestamp > TimGetTicks()) {
         return;
     }
+    randomImage = random(0, 1);
     gameSession.nextSceneAnimationLaunchTimestamp = 0;
     screenSize = deviceinfo_screenSize();
     gameSession.sceneAnimation = (SceneAnimation *)MemPtrNew(sizeof(SceneAnimation));
     gameSession.sceneAnimation->launchTimestamp = TimGetTicks();
     gameSession.sceneAnimation->trajectory = (Line){(Coordinate){screenSize.x + 20, random(20, screenSize.y - 20)}, (Coordinate){-20, random(20, screenSize.y - 20)}};
+    switch (randomImage) {
+        case 0:
+        gameSession.sceneAnimation->image = &spriteLibrary.ufoSprite;
+        break;
+        case 1:
+        gameSession.sceneAnimation->image = &spriteLibrary.cometSprite;
+        break;
+    }
 }
 
 static void gameSession_launchGame(NewGameConfig config) {

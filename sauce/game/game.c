@@ -334,7 +334,7 @@ static void game_drawSceneAnimation() {
     if (gameSession.sceneAnimation == NULL) {
         return;
     }
-    drawhelper_drawSprite(&spriteLibrary.cpuSprite, gameSession.sceneAnimation->currentPosition); 
+    drawhelper_drawSprite(gameSession.sceneAnimation->image, gameSession.sceneAnimation->currentPosition); 
 }
 
 static void game_drawPawns() {

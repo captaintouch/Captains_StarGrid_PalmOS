@@ -15,6 +15,14 @@ typedef struct ImageSprite {
     ImageData *imageData;
 } ImageSprite;
 
+
+typedef struct SceneAnimation {
+    Coordinate currentPosition;
+    Line trajectory;
+    Int32 launchTimestamp;
+    ImageSprite *image;
+} SceneAnimation;
+
 typedef struct SpriteLibrary {
     Boolean initialized;
     ImageSprite shipOneSprite[GFX_FRAMECOUNT_SHIPA];
@@ -27,6 +35,8 @@ typedef struct SpriteLibrary {
     ImageSprite healthSprite;
     ImageSprite humanSprite;
     ImageSprite cpuSprite;
+    ImageSprite ufoSprite;
+    ImageSprite cometSprite;
 } SpriteLibrary;
 
 SpriteLibrary spriteLibrary;

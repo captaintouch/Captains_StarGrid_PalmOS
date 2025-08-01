@@ -8,6 +8,7 @@
 #include "inputPen.h"
 #include "level.h"
 #include "models.h"
+#include "spriteLibrary.h"
 
 typedef enum TargetSelectionType {
     TARGETSELECTIONTYPE_MOVE,

@@ -81,6 +81,20 @@ void spriteLibrary_initialize() {
     spriteLibrary.humanSprite.imageData =
         drawhelper_loadImage(spriteLibrary.humanSprite.resourceId);
 
+    spriteLibrary.ufoSprite = (ImageSprite){
+        GFX_RES_UFO,
+        (Coordinate){16, 16},
+    };
+    spriteLibrary.ufoSprite.imageData =
+        drawhelper_loadImage(spriteLibrary.ufoSprite.resourceId);
+    
+    spriteLibrary.cometSprite = (ImageSprite){
+        GFX_RES_COMET,
+        (Coordinate){16, 16},
+    };
+    spriteLibrary.cometSprite.imageData =
+        drawhelper_loadImage(spriteLibrary.cometSprite.resourceId);
+
     spriteLibrary.cpuSprite = (ImageSprite){
         GFX_RES_CPUPLAYER,
         (Coordinate){16, 16},
@@ -132,6 +146,8 @@ void spriteLibrary_clean() {
     drawhelper_releaseImage(spriteLibrary.baseSprite.imageData);
     drawhelper_releaseImage(spriteLibrary.healthSprite.imageData);
     drawhelper_releaseImage(spriteLibrary.humanSprite.imageData);
+    drawhelper_releaseImage(spriteLibrary.ufoSprite.imageData);
+    drawhelper_releaseImage(spriteLibrary.cometSprite.imageData);
     spriteLibrary.initialized = false;
 }
 

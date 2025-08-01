@@ -110,11 +110,6 @@ typedef struct HighlightTile {
     Boolean filled;
 } HighlightTile;
 
-typedef struct SceneAnimation {
-    Coordinate currentPosition;
-    Line trajectory;
-    Int32 launchTimestamp;
-} SceneAnimation;
 
 Boolean isEqualCoordinate(Coordinate coordA, Coordinate coordB);
 Boolean isInvalidCoordinate(Coordinate coord);
