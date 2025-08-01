@@ -10,35 +10,38 @@
 #include "models.h"
 #include "movement.h"
 
-static UInt8 gameActionLogic_nonCapturedFlagsLeft(UInt8 faction) {
+GAMEACTIONLOGIC_SECTION
+static UInt8 gameActionLogic_nonCapturedFlagsLeft(UInt8 faction, GameSession *session) {
     int i;
     UInt8 flagsLeft = 0;
-    for (i = 0; i < gameSession.level.pawnCount; i++) {
+    for (i = 0; i < session->level.pawnCount; i++) {
         // Count of enemies that are currently carrying a flag (including bases)
         // + Count of own ships that are currently carrying a flag (excluding home base)
-        if (isInvalidCoordinate(gameSession.level.pawns[i].position)) {
+        if (isInvalidCoordinate(session->level.pawns[i].position)) {
             continue;
         }
-        if ((gameSession.level.pawns[i].faction != faction && gameSession.level.pawns[i].inventory.carryingFlag) ||
-            (gameSession.level.pawns[i].faction == faction && gameSession.level.pawns[i].inventory.carryingFlag && gameSession.level.pawns[i].type != PAWNTYPE_BASE)) {
+        if ((session->level.pawns[i].faction != faction && session->level.pawns[i].inventory.carryingFlag) ||
+            (session->level.pawns[i].faction == faction && session->level.pawns[i].inventory.carryingFlag && session->level.pawns[i].type != PAWNTYPE_BASE)) {
             flagsLeft++;
         }
     }
     return flagsLeft;
 }
 
+GAMEACTIONLOGIC_SECTION
 static void gameActionLogic_askForAfterGameOptions() {
     FrmCustomAlert(GAME_ALERT_ENDOFGAME, NULL, NULL, NULL) == 0 ? gameSession_reset(true) : gameSession_reset(false);
 }
 
-static void gameActionLogic_showScore() {
+GAMEACTIONLOGIC_SECTION
+static void gameActionLogic_showScore(GameSession *session) {
     DmResID oldRank = scoring_rankForScore(scoring_loadSavedScore());
     DmResID newRank;
     Pawn oldPawn;
     int i, humanCount = 0;
-    oldPawn = *gameSession.activePawn;
-    for (i = 0; i < gameSession.factionCount; i++) {
-        if (gameSession.factions[i].human) {
+    oldPawn = *session->activePawn;
+    for (i = 0; i < session->factionCount; i++) {
+        if (session->factions[i].human) {
             humanCount++;
         }
     }
@@ -47,11 +50,11 @@ static void gameActionLogic_showScore() {
         gameSession_reset(false);
         return;
     }
-    gameSession.menuScreenType = MENUSCREEN_SCORE;
-    gameSession.drawingState.shouldRedrawBackground = true;
-    gameSession.drawingState.shouldRedrawHeader = true;
-    gameSession.activePawn->type = PAWNTYPE_SHIP;
-    scoring_saveScore(gameSession.level.scores, gameSession.activePawn->faction);
+    session->menuScreenType = MENUSCREEN_SCORE;
+    session->drawingState.shouldRedrawBackground = true;
+    session->drawingState.shouldRedrawHeader = true;
+    session->activePawn->type = PAWNTYPE_SHIP;
+    scoring_saveScore(session->level.scores, session->activePawn->faction);
 
     newRank = scoring_rankForScore(scoring_loadSavedScore());
     if (newRank != oldRank) {
@@ -60,186 +63,197 @@ static void gameActionLogic_showScore() {
         FrmCustomAlert(GAME_ALERT_PROMOTED, rankText, "", "");
         DmReleaseResource(resourceHandle);
     }
-    level_addScorePawns(&gameSession.level, gameSession.activePawn->faction);
+    level_addScorePawns(&session->level, session->activePawn->faction);
 
-    gameSession.activePawn = level_pawnAtTile(oldPawn.position, &gameSession.level);
-    if (gameSession.activePawn == NULL) {
-        level_addPawn(oldPawn, &gameSession.level);
+    session->activePawn = level_pawnAtTile(oldPawn.position, &session->level);
+    if (session->activePawn == NULL) {
+        level_addPawn(oldPawn, &session->level);
 
-        gameSession.activePawn = level_pawnAtTile(oldPawn.position, &gameSession.level);
+        session->activePawn = level_pawnAtTile(oldPawn.position, &session->level);
     }
-    gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, 0});
+    gameActionLogic_scheduleMovement(session->activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, 0}, session);
 }
 
-Boolean gameActionLogic_humanShipsLeft() {
+GAMEACTIONLOGIC_SECTION
+Boolean gameActionLogic_humanShipsLeft(GameSession *session) {
     int i;
-    for (i = 0; i < gameSession.level.pawnCount; i++) {
-        if (gameSession.factions[gameSession.level.pawns[i].faction].human && gameSession.level.pawns[i].type == PAWNTYPE_SHIP && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
+    for (i = 0; i < session->level.pawnCount; i++) {
+        if (session->factions[session->level.pawns[i].faction].human && session->level.pawns[i].type == PAWNTYPE_SHIP && !isInvalidCoordinate(session->level.pawns[i].position)) {
             return true;
         }
     }
     return false;
 }
 
-static Boolean gameActionLogic_enemyShipsLeft() {
+GAMEACTIONLOGIC_SECTION
+static Boolean gameActionLogic_enemyShipsLeft(GameSession *session) {
     int i;
-    for (i = 0; i < gameSession.level.pawnCount; i++) {
-        if (gameSession.level.pawns[i].type == PAWNTYPE_SHIP && gameSession.level.pawns[i].faction != gameSession.activePawn->faction && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
+    for (i = 0; i < session->level.pawnCount; i++) {
+        if (session->level.pawns[i].type == PAWNTYPE_SHIP && session->level.pawns[i].faction != session->activePawn->faction && !isInvalidCoordinate(session->level.pawns[i].position)) {
             return true;
         }
     }
     return false;
 }
 
-void gameActionLogic_clearSceneAnimation() {
-    if (gameSession.sceneAnimation == NULL) {
+GAMEACTIONLOGIC_SECTION
+void gameActionLogic_clearSceneAnimation(GameSession *session) {
+    if (session->sceneAnimation == NULL) {
         return;
     }
-    MemPtrFree(gameSession.sceneAnimation);
-    gameSession.sceneAnimation = NULL;
+    MemPtrFree(session->sceneAnimation);
+    session->sceneAnimation = NULL;
 }
 
-void gameActionLogic_clearMovement() {
-    if (gameSession.movement != NULL) {
-        if (gameSession.movement->trajectory.tileCoordinates != NULL) {
-            MemPtrFree(gameSession.movement->trajectory.tileCoordinates);
-            gameSession.movement->trajectory.tileCoordinates = NULL;
+GAMEACTIONLOGIC_SECTION
+void gameActionLogic_clearMovement(GameSession *session) {
+    if (session->movement != NULL) {
+        if (session->movement->trajectory.tileCoordinates != NULL) {
+            MemPtrFree(session->movement->trajectory.tileCoordinates);
+            session->movement->trajectory.tileCoordinates = NULL;
         }
-        MemPtrFree(gameSession.movement);
-        gameSession.movement = NULL;
+        MemPtrFree(session->movement);
+        session->movement = NULL;
     }
 }
 
-void gameActionLogic_scheduleWarp(Pawn *sourcePawn, Coordinate target) {
-    gameSession.warpAnimation.pawn = sourcePawn;
-    gameSession.warpAnimation.isWarping = true;
-    gameSession.warpAnimation.currentPosition = sourcePawn->position;
-    gameSession.warpAnimation.endPosition = target;
-    gameSession.warpAnimation.launchTimestamp = TimGetTicks();
-    gameSession.warpAnimation.shipVisible = true;
+GAMEACTIONLOGIC_SECTION
+void gameActionLogic_scheduleWarp(Pawn *sourcePawn, Coordinate target, GameSession *session) {
+    session->warpAnimation.pawn = sourcePawn;
+    session->warpAnimation.isWarping = true;
+    session->warpAnimation.currentPosition = sourcePawn->position;
+    session->warpAnimation.endPosition = target;
+    session->warpAnimation.launchTimestamp = TimGetTicks();
+    session->warpAnimation.shipVisible = true;
 }
 
-void gameActionLogic_scheduleShockwave(Pawn *basePawn) {
+GAMEACTIONLOGIC_SECTION
+void gameActionLogic_scheduleShockwave(Pawn *basePawn, GameSession *session) {
     int i, affectedPawnCount = 0;
-    gameActionLogic_clearShockwave();
-    gameSession.shockWaveAnimation = (ShockWaveAnimation *)MemPtrNew(sizeof(ShockWaveAnimation));
-    MemSet(gameSession.shockWaveAnimation, sizeof(ShockWaveAnimation), 0);
-    gameSession.shockWaveAnimation->launchTimestamp = TimGetTicks();
-    gameSession.shockWaveAnimation->basePawn = basePawn;
-    gameSession.shockWaveAnimation->affectedPawnIndices = (int *)MemPtrNew(sizeof(int) * gameSession.level.pawnCount);
-    gameSession.shockWaveAnimation->pawnOriginalPositions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.level.pawnCount);
-    gameSession.shockWaveAnimation->pawnIntermediatePositions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.level.pawnCount);
+    gameActionLogic_clearShockwave(session);
+    session->shockWaveAnimation = (ShockWaveAnimation *)MemPtrNew(sizeof(ShockWaveAnimation));
+    MemSet(session->shockWaveAnimation, sizeof(ShockWaveAnimation), 0);
+    session->shockWaveAnimation->launchTimestamp = TimGetTicks();
+    session->shockWaveAnimation->basePawn = basePawn;
+    session->shockWaveAnimation->affectedPawnIndices = (int *)MemPtrNew(sizeof(int) * session->level.pawnCount);
+    session->shockWaveAnimation->pawnOriginalPositions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * session->level.pawnCount);
+    session->shockWaveAnimation->pawnIntermediatePositions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * session->level.pawnCount);
 
-    for (i = 0; i < gameSession.level.pawnCount; i++) {
-        if (!isInvalidCoordinate(gameSession.level.pawns[i].position) && gameSession.level.pawns[i].type == PAWNTYPE_SHIP && movement_distance(basePawn->position, gameSession.level.pawns[i].position) < GAMEMECHANICS_SHOCKWAVERANGE - 1) {
-            gameSession.shockWaveAnimation->affectedPawnIndices[affectedPawnCount] = i;
-            gameSession.shockWaveAnimation->pawnOriginalPositions[affectedPawnCount] = gameSession.level.pawns[i].position;
-            gameSession.level.pawns[i].position = movement_positionAwayFrom(basePawn->position, &gameSession.level.pawns[i], gameSession.level.pawns, gameSession.level.pawnCount, GAMEMECHANICS_SHOCKWAVERANGE);
+    for (i = 0; i < session->level.pawnCount; i++) {
+        if (!isInvalidCoordinate(session->level.pawns[i].position) && session->level.pawns[i].type == PAWNTYPE_SHIP && movement_distance(basePawn->position, session->level.pawns[i].position) < GAMEMECHANICS_SHOCKWAVERANGE - 1) {
+            session->shockWaveAnimation->affectedPawnIndices[affectedPawnCount] = i;
+            session->shockWaveAnimation->pawnOriginalPositions[affectedPawnCount] = session->level.pawns[i].position;
+            session->level.pawns[i].position = movement_positionAwayFrom(basePawn->position, &session->level.pawns[i], session->level.pawns, session->level.pawnCount, GAMEMECHANICS_SHOCKWAVERANGE);
             affectedPawnCount++;
         }
     }
-    gameSession.shockWaveAnimation->affectedPawnCount = affectedPawnCount;
-    MemPtrResize(gameSession.shockWaveAnimation->affectedPawnIndices, sizeof(int) * affectedPawnCount);
+    session->shockWaveAnimation->affectedPawnCount = affectedPawnCount;
+    MemPtrResize(session->shockWaveAnimation->affectedPawnIndices, sizeof(int) * affectedPawnCount);
 }
 
-void gameActionLogic_scheduleMovement(Pawn *sourcePawn, Pawn *targetPawn, Coordinate selectedTile) {
-    gameActionLogic_clearMovement();
+GAMEACTIONLOGIC_SECTION
+void gameActionLogic_scheduleMovement(Pawn *sourcePawn, Pawn *targetPawn, Coordinate selectedTile, GameSession *session) {
+    gameActionLogic_clearMovement(session);
 
-    gameSession.movement = (Movement *)MemPtrNew(sizeof(Movement));
-    MemSet(gameSession.movement, sizeof(Movement), 0);
-    gameSession.movement->launchTimestamp = TimGetTicks();
-    gameSession.movement->targetPawn = targetPawn;
+    session->movement = (Movement *)MemPtrNew(sizeof(Movement));
+    MemSet(session->movement, sizeof(Movement), 0);
+    session->movement->launchTimestamp = TimGetTicks();
+    session->movement->targetPawn = targetPawn;
 
-    if (sourcePawn == &gameSession.cameraPawn) {
-        gameSession.movement->trajectory.tileCoordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * 2);
-        gameSession.movement->trajectory.tileCount = 2;
-        gameSession.movement->trajectory.tileCoordinates[0] = (Coordinate){gameSession.cameraPawn.position.x, gameSession.cameraPawn.position.y};
-        gameSession.movement->trajectory.tileCoordinates[1] = selectedTile;
+    if (sourcePawn == &session->cameraPawn) {
+        session->movement->trajectory.tileCoordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * 2);
+        session->movement->trajectory.tileCount = 2;
+        session->movement->trajectory.tileCoordinates[0] = (Coordinate){session->cameraPawn.position.x, session->cameraPawn.position.y};
+        session->movement->trajectory.tileCoordinates[1] = selectedTile;
     } else {
-        gameSession.movement->trajectory = movement_trajectoryBetween((Coordinate){sourcePawn->position.x, sourcePawn->position.y}, selectedTile);
+        session->movement->trajectory = movement_trajectoryBetween((Coordinate){sourcePawn->position.x, sourcePawn->position.y}, selectedTile);
     }
-    gameSession.movement->pawnPosition = hexgrid_tileCenterPosition(sourcePawn->position);
-    gameSession.movement->pawn = sourcePawn;
+    session->movement->pawnPosition = hexgrid_tileCenterPosition(sourcePawn->position);
+    session->movement->pawn = sourcePawn;
     sourcePawn->position = selectedTile;
 }
 
-static Boolean gameActionLogic_baseOnPosition(Coordinate position) {
+GAMEACTIONLOGIC_SECTION
+static Boolean gameActionLogic_baseOnPosition(Coordinate position, GameSession *session) {
     int i;
-    for (i = 0; i < gameSession.level.pawnCount; i++) {
-        if (!isInvalidCoordinate(gameSession.level.pawns[i].position) && isEqualCoordinate(gameSession.level.pawns[i].position, position) && gameSession.level.pawns[i].type == PAWNTYPE_BASE) {
+    for (i = 0; i < session->level.pawnCount; i++) {
+        if (!isInvalidCoordinate(session->level.pawns[i].position) && isEqualCoordinate(session->level.pawns[i].position, position) && session->level.pawns[i].type == PAWNTYPE_BASE) {
             return true;
         }
     }
     return false;
 }
 
-static Boolean gameActionLogic_checkForGameOver() {
-    if (!gameSession.continueCPUPlay && !gameActionLogic_humanShipsLeft(&gameSession.level)) {
+GAMEACTIONLOGIC_SECTION
+static Boolean gameActionLogic_checkForGameOver(GameSession *session) {
+    if (!session->continueCPUPlay && !gameActionLogic_humanShipsLeft(session)) {
         if (FrmCustomAlert(GAME_ALERT_CPUCONTINUEPLAYING, NULL, NULL, NULL) != 0) {  // Do not continue playing
-            gameActionLogic_showScore();
+            gameActionLogic_showScore(session);
             return true;
         } else {
-            gameSession.continueCPUPlay = true;
+            session->continueCPUPlay = true;
         }
     }
     return false;
 }
 
-static void gameActionLogic_removeBase(int baseFaction, int newFaction) {
+GAMEACTIONLOGIC_SECTION
+static void gameActionLogic_removeBase(int baseFaction, int newFaction, GameSession *session) {
     int i;
-    for (i = 0; i < gameSession.level.pawnCount; i++) {
-        if (gameSession.level.pawns[i].faction == baseFaction && gameSession.level.pawns[i].type == PAWNTYPE_BASE) {
-            Coordinate activePawnPosition = gameSession.activePawn->position;
-            level_removePawnAtIndex(i, &gameSession.level);
-            gameSession.activePawn = level_pawnAtTile(activePawnPosition, &gameSession.level);
+    for (i = 0; i < session->level.pawnCount; i++) {
+        if (session->level.pawns[i].faction == baseFaction && session->level.pawns[i].type == PAWNTYPE_BASE) {
+            Coordinate activePawnPosition = session->activePawn->position;
+            level_removePawnAtIndex(i, &session->level);
+            session->activePawn = level_pawnAtTile(activePawnPosition, &session->level);
             break;
         }
     }
     // For all remaining ships of the removed faction, return any flags they carry AND update them to the new faction
-    for (i = 0; i < gameSession.level.pawnCount; i++) {
-        if (gameSession.level.pawns[i].faction == baseFaction && gameSession.level.pawns[i].type == PAWNTYPE_SHIP) {
-            level_returnFlagFromPawnToOriginalBase(&gameSession.level.pawns[i], &gameSession.level);
+    for (i = 0; i < session->level.pawnCount; i++) {
+        if (session->level.pawns[i].faction == baseFaction && session->level.pawns[i].type == PAWNTYPE_SHIP) {
+            level_returnFlagFromPawnToOriginalBase(&session->level.pawns[i], &session->level);
 
-            gameSession.level.scores[newFaction].shipsCaptured[baseFaction]++;
-            gameSession.level.pawns[i].faction = newFaction;
+            session->level.scores[newFaction].shipsCaptured[baseFaction]++;
+            session->level.pawns[i].faction = newFaction;
         }
     }
 }
 
 // returns true when another movement has been scheduled
-Boolean gameActionLogic_afterMove() {
+GAMEACTIONLOGIC_SECTION
+Boolean gameActionLogic_afterMove(GameSession *session) {
     Boolean didScheduleMovement = false;
-    Pawn *selectedPawn = gameSession.movement->targetPawn;
+    Pawn *selectedPawn = session->movement->targetPawn;
 
-    if (gameSession.movement->pawn != NULL && gameSession.movement->pawn == &gameSession.cameraPawn) {
-        gameActionLogic_clearMovement();
-        gameSession.state = GAMESTATE_DEFAULT;
+    if (session->movement->pawn != NULL && session->movement->pawn == &session->cameraPawn) {
+        gameActionLogic_clearMovement(session);
+        session->state = GAMESTATE_DEFAULT;
         return false;
     }
 
-    StrCopy(gameSession.cpuActionText, "");
+    StrCopy(session->cpuActionText, "");
     // Check if flag was captured
-    if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->inventory.carryingFlag && !gameSession.activePawn->inventory.carryingFlag && selectedPawn->inventory.flagOfFaction != gameSession.activePawn->faction) {
-        gameSession.activePawn->inventory.carryingFlag = true;
-        gameSession.activePawn->inventory.flagOfFaction = selectedPawn->inventory.flagOfFaction;
+    if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->inventory.carryingFlag && !session->activePawn->inventory.carryingFlag && selectedPawn->inventory.flagOfFaction != session->activePawn->faction) {
+        session->activePawn->inventory.carryingFlag = true;
+        session->activePawn->inventory.flagOfFaction = selectedPawn->inventory.flagOfFaction;
         selectedPawn->inventory.carryingFlag = false;
-        gameSession.level.scores[gameSession.activePawn->faction].flagsStolen++;
+        session->level.scores[session->activePawn->faction].flagsStolen++;
     }
     // Check if flag was returned to player's base
-    if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->faction == gameSession.activePawn->faction && gameSession.activePawn->inventory.carryingFlag) {
+    if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->faction == session->activePawn->faction && session->activePawn->inventory.carryingFlag) {
         // Flag dissapears, enemy base dissapears, enemy ships join the players fleet
-        gameSession.activePawn->inventory.carryingFlag = false;
-        gameSession.level.scores[gameSession.activePawn->faction].flagsCaptured[gameSession.activePawn->inventory.flagOfFaction]++;
-        gameActionLogic_removeBase(gameSession.activePawn->inventory.flagOfFaction, gameSession.activePawn->faction);
-        if (gameActionLogic_nonCapturedFlagsLeft(gameSession.activePawn->faction) > 0) {  // Still some flags left to capture
+        session->activePawn->inventory.carryingFlag = false;
+        session->level.scores[session->activePawn->faction].flagsCaptured[session->activePawn->inventory.flagOfFaction]++;
+        gameActionLogic_removeBase(session->activePawn->inventory.flagOfFaction, session->activePawn->faction, session);
+        if (gameActionLogic_nonCapturedFlagsLeft(session->activePawn->faction, session) > 0) {  // Still some flags left to capture
             FrmCustomAlert(GAME_ALERT_FLAGCAPTURED, NULL, NULL, NULL);
-            if (gameActionLogic_checkForGameOver()) {
+            if (gameActionLogic_checkForGameOver(session)) {
                 return false;
             }
         } else {  // Game over, all flags captured
-            if (gameSession.factions[gameSession.activePawn->faction].human) {
+            if (session->factions[session->activePawn->faction].human) {
                 FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_ALLFLAGSCAPTURED, NULL, NULL, NULL);
-                gameActionLogic_showScore();
+                gameActionLogic_showScore(session);
             } else {
                 FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_CPUALLFLAGSCAPTURED, NULL, NULL, NULL);
                 gameActionLogic_askForAfterGameOptions();
@@ -249,23 +263,24 @@ Boolean gameActionLogic_afterMove() {
     }
 
     // if currentposition is on a base, move away from it
-    if (gameSession.activePawn->type != PAWNTYPE_BASE && gameActionLogic_baseOnPosition(gameSession.activePawn->position)) {
-        Coordinate finalCoordinate = movement_closestTileToTargetInRange(gameSession.activePawn, gameSession.activePawn->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
-        gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, finalCoordinate);
+    if (session->activePawn->type != PAWNTYPE_BASE && gameActionLogic_baseOnPosition(session->activePawn->position, session)) {
+        Coordinate finalCoordinate = movement_closestTileToTargetInRange(session->activePawn, session->activePawn->position, session->level.pawns, session->level.pawnCount, false);
+        gameActionLogic_scheduleMovement(session->activePawn, NULL, finalCoordinate, session);
         didScheduleMovement = true;
     } else {
-        gameActionLogic_clearMovement();
-        gameSession.state = GAMESTATE_DEFAULT;
+        gameActionLogic_clearMovement(session);
+        session->state = GAMESTATE_DEFAULT;
     }
     return didScheduleMovement;
 }
 
-void gameActionLogic_afterExplosion() {
+GAMEACTIONLOGIC_SECTION
+void gameActionLogic_afterExplosion(GameSession *session) {
     // Check for game over if no enemy units left
-    if (!gameActionLogic_enemyShipsLeft()) {
-        if (gameSession.factions[gameSession.activePawn->faction].human) {
+    if (!gameActionLogic_enemyShipsLeft(session)) {
+        if (session->factions[session->activePawn->faction].human) {
             FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_TOTALDESTRUCTION, NULL, NULL, NULL);
-            gameActionLogic_showScore();
+            gameActionLogic_showScore(session);
         } else {
             FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_CPUTOTALDESTRUCTION, NULL, NULL, NULL);
             gameActionLogic_askForAfterGameOptions();
@@ -273,38 +288,40 @@ void gameActionLogic_afterExplosion() {
         return;
     }
 
-    if (gameActionLogic_checkForGameOver()) {
+    if (gameActionLogic_checkForGameOver(session)) {
         return;
     }
 }
 
-void gameActionLogic_afterAttack() {
-    StrCopy(gameSession.cpuActionText, "");
+GAMEACTIONLOGIC_SECTION
+void gameActionLogic_afterAttack(GameSession *session) {
+    StrCopy(session->cpuActionText, "");
     // Update inventory stats
-    gameSession.attackAnimation->targetPawn->inventory.health -= gameSession.attackAnimation->healthImpact;
-    if (gameSession.targetSelectionType == TARGETSELECTIONTYPE_TORPEDO) {
-        gameSession.activePawn->inventory.torpedoCount--;
+    session->attackAnimation->targetPawn->inventory.health -= session->attackAnimation->healthImpact;
+    if (session->targetSelectionType == TARGETSELECTIONTYPE_TORPEDO) {
+        session->activePawn->inventory.torpedoCount--;
     }
 
-    if (gameSession.attackAnimation->targetPawn->inventory.health <= 0) {
+    if (session->attackAnimation->targetPawn->inventory.health <= 0) {
         Coordinate activePawnPosition;
-        int oldFaction = gameSession.attackAnimation->targetPawn->faction;
+        int oldFaction = session->attackAnimation->targetPawn->faction;
 
-        if (gameSession.attackAnimation->targetPawn->type == PAWNTYPE_BASE) {
-            gameActionLogic_removeBase(oldFaction, gameSession.activePawn->faction);
-            gameSession.level.scores[gameSession.activePawn->faction].basesDestroyed[oldFaction] = true;
+        if (session->attackAnimation->targetPawn->type == PAWNTYPE_BASE) {
+            gameActionLogic_removeBase(oldFaction, session->activePawn->faction, session);
+            session->level.scores[session->activePawn->faction].basesDestroyed[oldFaction] = true;
             FrmCustomAlert(GAME_ALERT_BASEDESTROYED, NULL, NULL, NULL);
         } else {
-            level_returnFlagFromPawnToOriginalBase(gameSession.attackAnimation->targetPawn, &gameSession.level);
-            gameSession.level.scores[gameSession.activePawn->faction].shipsDestroyed[oldFaction]++;
-            activePawnPosition = gameSession.activePawn->position;
-            level_removePawn(gameSession.attackAnimation->targetPawn, &gameSession.level);
-            gameSession.activePawn = level_pawnAtTile(activePawnPosition, &gameSession.level);
-            gameSession.attackAnimation->targetPawn = NULL;
+            level_returnFlagFromPawnToOriginalBase(session->attackAnimation->targetPawn, &session->level);
+            session->level.scores[session->activePawn->faction].shipsDestroyed[oldFaction]++;
+            activePawnPosition = session->activePawn->position;
+            level_removePawn(session->attackAnimation->targetPawn, &session->level);
+            session->activePawn = level_pawnAtTile(activePawnPosition, &session->level);
+            session->attackAnimation->targetPawn = NULL;
         }
     }
 }
 
+GAMEACTIONLOGIC_SECTION
 UInt8 gameActionLogic_maxRange(TargetSelectionType targetSelectionType) {
     switch (targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
@@ -316,6 +333,7 @@ UInt8 gameActionLogic_maxRange(TargetSelectionType targetSelectionType) {
     }
 }
 
+GAMEACTIONLOGIC_SECTION
 static UInt8 gameActionLogic_healthImpact(Coordinate source, Coordinate target, TargetSelectionType attackType) {
     int maxRange;
     int distance;
@@ -332,6 +350,7 @@ static UInt8 gameActionLogic_healthImpact(Coordinate source, Coordinate target, 
     }
 }
 
+GAMEACTIONLOGIC_SECTION
 static float gameActionLogic_attackDuration(Coordinate source, Coordinate target, TargetSelectionType attackType) {
     int distance;
     switch (attackType) {
@@ -344,51 +363,54 @@ static float gameActionLogic_attackDuration(Coordinate source, Coordinate target
     }
 }
 
-void gameActionLogic_clearShockwave() {
-    if (gameSession.shockWaveAnimation != NULL) {
-        if (gameSession.shockWaveAnimation->affectedPawnIndices != NULL) {
-            MemPtrFree(gameSession.shockWaveAnimation->affectedPawnIndices);
-            gameSession.shockWaveAnimation->affectedPawnIndices = NULL;
+GAMEACTIONLOGIC_SECTION
+void gameActionLogic_clearShockwave(GameSession *session) {
+    if (session->shockWaveAnimation != NULL) {
+        if (session->shockWaveAnimation->affectedPawnIndices != NULL) {
+            MemPtrFree(session->shockWaveAnimation->affectedPawnIndices);
+            session->shockWaveAnimation->affectedPawnIndices = NULL;
         }
-        if (gameSession.shockWaveAnimation->pawnIntermediatePositions != NULL) {
-            MemPtrFree(gameSession.shockWaveAnimation->pawnIntermediatePositions);
-            gameSession.shockWaveAnimation->pawnIntermediatePositions = NULL;
+        if (session->shockWaveAnimation->pawnIntermediatePositions != NULL) {
+            MemPtrFree(session->shockWaveAnimation->pawnIntermediatePositions);
+            session->shockWaveAnimation->pawnIntermediatePositions = NULL;
         }
-        if (gameSession.shockWaveAnimation->pawnOriginalPositions != NULL) {
-            MemPtrFree(gameSession.shockWaveAnimation->pawnOriginalPositions);
-            gameSession.shockWaveAnimation->pawnOriginalPositions = NULL;
+        if (session->shockWaveAnimation->pawnOriginalPositions != NULL) {
+            MemPtrFree(session->shockWaveAnimation->pawnOriginalPositions);
+            session->shockWaveAnimation->pawnOriginalPositions = NULL;
         }
-        MemPtrFree(gameSession.shockWaveAnimation);
-        gameSession.shockWaveAnimation = NULL;
+        MemPtrFree(session->shockWaveAnimation);
+        session->shockWaveAnimation = NULL;
     }
 }
 
-void gameActionLogic_clearAttack() {
-    if (gameSession.attackAnimation != NULL) {
-        if (gameSession.attackAnimation->lines != NULL) {
-            MemPtrFree(gameSession.attackAnimation->lines);
-            gameSession.attackAnimation->lines = NULL;
+GAMEACTIONLOGIC_SECTION
+void gameActionLogic_clearAttack(GameSession *session) {
+    if (session->attackAnimation != NULL) {
+        if (session->attackAnimation->lines != NULL) {
+            MemPtrFree(session->attackAnimation->lines);
+            session->attackAnimation->lines = NULL;
         }
-        MemPtrFree(gameSession.attackAnimation);
-        gameSession.attackAnimation = NULL;
+        MemPtrFree(session->attackAnimation);
+        session->attackAnimation = NULL;
     }
 }
 
-void gameActionLogic_scheduleAttack(Pawn *targetPawn, Coordinate selectedTile, TargetSelectionType attackType) {
-    gameActionLogic_clearAttack();
+GAMEACTIONLOGIC_SECTION
+void gameActionLogic_scheduleAttack(Pawn *targetPawn, Coordinate selectedTile, TargetSelectionType attackType, GameSession *session) {
+    gameActionLogic_clearAttack(session);
     if (targetPawn != NULL) {
-        gameSession.targetSelectionType = attackType;
-        gameSession.attackAnimation = (AttackAnimation *)MemPtrNew(sizeof(AttackAnimation));
-        MemSet(gameSession.attackAnimation, sizeof(AttackAnimation), 0);
-        gameSession.attackAnimation->torpedoPosition = (Coordinate){-1, -1};
-        gameSession.attackAnimation->explosionPosition = (Coordinate){-1, -1};
-        gameSession.attackAnimation->launchTimestamp = TimGetTicks();
-        gameSession.attackAnimation->target = selectedTile;
-        gameSession.attackAnimation->targetPawn = targetPawn;
-        gameSession.attackAnimation->healthImpact = gameActionLogic_healthImpact(gameSession.activePawn->position, selectedTile, gameSession.targetSelectionType);
-        gameSession.attackAnimation->durationSeconds = gameActionLogic_attackDuration(gameSession.activePawn->position, selectedTile, gameSession.targetSelectionType);
-        gameSession.activePawn->orientation = movement_orientationBetween(gameSession.activePawn->position, selectedTile);
+        session->targetSelectionType = attackType;
+        session->attackAnimation = (AttackAnimation *)MemPtrNew(sizeof(AttackAnimation));
+        MemSet(session->attackAnimation, sizeof(AttackAnimation), 0);
+        session->attackAnimation->torpedoPosition = (Coordinate){-1, -1};
+        session->attackAnimation->explosionPosition = (Coordinate){-1, -1};
+        session->attackAnimation->launchTimestamp = TimGetTicks();
+        session->attackAnimation->target = selectedTile;
+        session->attackAnimation->targetPawn = targetPawn;
+        session->attackAnimation->healthImpact = gameActionLogic_healthImpact(session->activePawn->position, selectedTile, session->targetSelectionType);
+        session->attackAnimation->durationSeconds = gameActionLogic_attackDuration(session->activePawn->position, selectedTile, session->targetSelectionType);
+        session->activePawn->orientation = movement_orientationBetween(session->activePawn->position, selectedTile);
     } else {
-        gameSession.state = GAMESTATE_DEFAULT;
+        session->state = GAMESTATE_DEFAULT;
     }
 }

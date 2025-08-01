@@ -45,7 +45,7 @@ static void gameSession_loadStartMenu() {
     gameSession.factionTurn = 0;
     gameSession.activePawn = &gameSession.level.pawns[0];
     gameSession_updateViewPortOffset(true);
-    gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, gameSession.activePawn->position.y});
+    gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, gameSession.activePawn->position.y}, &gameSession);
     gameSession.drawingState.shouldRedrawBackground = true;
     gameSession.drawingState.shouldRedrawHeader = true;
     gameSession.drawingState.shouldRedrawOverlay = true;
@@ -94,17 +94,17 @@ static void gameSession_launchGame(NewGameConfig config) {
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
     gameSession.drawingState.shouldRedrawBackground = true;
     gameSession.drawingState.shouldRedrawOverlay = true;
-    gameSession.continueCPUPlay = !gameActionLogic_humanShipsLeft();
+    gameSession.continueCPUPlay = !gameActionLogic_humanShipsLeft(&gameSession);
     gameSession.nextSceneAnimationLaunchTimestamp = TimGetTicks() + SysTicksPerSecond() * 5;
     gameSession_scheduleSceneAnimationIfNeeded();
     gameSession_startTurn();
 }
 
 void gameSession_reset(Boolean newGame) {
-    gameActionLogic_clearAttack();
-    gameActionLogic_clearMovement();
-    gameActionLogic_clearShockwave();
-    gameActionLogic_clearSceneAnimation();
+    gameActionLogic_clearAttack(&gameSession);
+    gameActionLogic_clearMovement(&gameSession);
+    gameActionLogic_clearShockwave(&gameSession);
+    gameActionLogic_clearSceneAnimation(&gameSession);
     gameSession.diaSupport = deviceinfo_diaSupported();
     gameSession.colorSupport = deviceinfo_colorSupported();
 
@@ -158,9 +158,9 @@ void gameSession_cleanup() {
             gameSession.level.scores);
     }
     level_destroy(&gameSession.level);
-    gameActionLogic_clearAttack();
-    gameActionLogic_clearMovement();
-    gameActionLogic_clearShockwave();
+    gameActionLogic_clearAttack(&gameSession);
+    gameActionLogic_clearMovement(&gameSession);
+    gameActionLogic_clearShockwave(&gameSession);
     gameSession_resetHighlightTiles();
     spriteLibrary_clean();
 }
@@ -317,7 +317,7 @@ static Pawn *gameSession_nextPawn(Boolean allPawns, Boolean onlyWithAvailableAct
 
 static void gameSession_moveCameraToPawn(Pawn *pawn) {
     gameSession.cameraPawn = (Pawn){PAWNTYPE_SHIP, gameSession.activePawn->position, (Inventory){-1, 0, 0, BASEACTION_NONE, false}, 0, 0, false, false};
-    gameActionLogic_scheduleMovement(&gameSession.cameraPawn, NULL, pawn->position);
+    gameActionLogic_scheduleMovement(&gameSession.cameraPawn, NULL, pawn->position, &gameSession);
 }
 
 static void gameSession_buildShip(Pawn *homeBase) {
@@ -450,7 +450,7 @@ static Boolean gameSession_handleScoreMenuTap(Coordinate selectedTile) {
                         level_addPawn(oldPawn, &gameSession.level);
                         gameSession.activePawn = level_pawnAtTile(oldPawn.position, &gameSession.level);
                     }
-                    gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0});
+                    gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0}, &gameSession);
                     return true;
             }
         }
@@ -470,7 +470,7 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
                     gameSession.menuScreenType = MENUSCREEN_PLAYERCONFIG;
                     level_addPlayerConfigPawns(&gameSession.level, level_defaultNewGameConfig(0));
                     gameSession.activePawn = &gameSession.level.pawns[0];
-                    gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, gameSession.activePawn->position.y});
+                    gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, gameSession.activePawn->position.y}, &gameSession);
                     break;
                 case STRING_ABOUT:
                     about_show();
@@ -482,7 +482,7 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
                     gameSession.menuScreenType = MENUSCREEN_RANK;
                     level_addRank(&gameSession.level, scoring_loadSavedScore());
                     gameSession.activePawn->type = PAWNTYPE_SHIP;
-                    gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0});
+                    gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0}, &gameSession);
             }
             return true;
         }
@@ -606,11 +606,11 @@ static void gameSession_handleTargetSelection() {
     gameSession.activePawn->turnComplete = true;
     switch (gameSession.targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
-            gameActionLogic_scheduleMovement(gameSession.activePawn, selectedPawn, selectedTile);
+            gameActionLogic_scheduleMovement(gameSession.activePawn, selectedPawn, selectedTile, &gameSession);
             break;
         case TARGETSELECTIONTYPE_PHASER:
         case TARGETSELECTIONTYPE_TORPEDO:
-            gameActionLogic_scheduleAttack(selectedPawn, selectedTile, gameSession.targetSelectionType);
+            gameActionLogic_scheduleAttack(selectedPawn, selectedTile, gameSession.targetSelectionType, &gameSession);
             break;
     }
 
@@ -650,7 +650,7 @@ static void gameSession_handlePawnActionButtonSelection() {
             gameSession.activePawn->warped = true;
             closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
             gameSession.state = GAMESTATE_DEFAULT;
-            gameActionLogic_scheduleWarp(gameSession.activePawn, closestTile);
+            gameActionLogic_scheduleWarp(gameSession.activePawn, closestTile, &gameSession);
             gameSession.activePawn->position = closestTile;
             break;
         case MenuActionTypeTorpedo:
@@ -667,7 +667,7 @@ static void gameSession_handlePawnActionButtonSelection() {
             break;
         case MenuActionTypeShockwave:
             gameSession.activePawn->turnComplete = true;
-            gameActionLogic_scheduleShockwave(gameSession.activePawn);
+            gameActionLogic_scheduleShockwave(gameSession.activePawn, &gameSession);
             gameSession.activePawn->inventory.baseActionLastActionTurn = gameSession.currentTurn;
             gameSession.activePawn->inventory.lastBaseAction = BASEACTION_SHOCKWAVE;
             break;
@@ -699,8 +699,8 @@ static void gameSession_progressUpdateExplosion() {
     timeSinceLaunch = TimGetTicks() - gameSession.attackAnimation->explosionTimestamp;
     timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * gameSession.attackAnimation->explosionDurationSeconds);
     if (timePassedScale >= 1) {
-        gameActionLogic_clearAttack();
-        gameActionLogic_afterExplosion();
+        gameActionLogic_clearAttack(&gameSession);
+        gameActionLogic_afterExplosion(&gameSession);
         gameSession.state = GAMESTATE_DEFAULT;
     }
 }
@@ -717,7 +717,7 @@ static void gameSession_progressUpdateSceneAnimation() {
     gameSession.drawingState.shouldRedrawOverlay = true;
 
     if (timePassedScale > 1.0) {
-        gameActionLogic_clearSceneAnimation();
+        gameActionLogic_clearSceneAnimation(&gameSession);
         gameSession.nextSceneAnimationLaunchTimestamp = TimGetTicks() + SysTicksPerSecond() * 60;
     }
 }
@@ -763,13 +763,13 @@ static void gameSession_progressUpdateAttack() {
     }
 
     if (timePassedScale >= 1) {
-        gameActionLogic_afterAttack();
+        gameActionLogic_afterAttack(&gameSession);
         if (gameSession.targetSelectionType == TARGETSELECTIONTYPE_TORPEDO || gameSession.attackAnimation->targetPawn == NULL) {  // show explosion when destroyed or always when torpedo is used
             gameSession.attackAnimation->explosionPosition = targetCenter;
             gameSession.attackAnimation->explosionTimestamp = TimGetTicks();
             gameSession.attackAnimation->explosionDurationSeconds = 0.5;
         } else {
-            gameActionLogic_clearAttack();
+            gameActionLogic_clearAttack(&gameSession);
             gameSession.state = GAMESTATE_DEFAULT;
         }
     }
@@ -807,7 +807,7 @@ static void gameSession_progressUpdateShockWave() {
     gameSession.shockWaveAnimation->maskCircleDiameter = timePassedScale * timePassedScale * WARPCIRCLECOUNT * 30;
 
     if (timePassedScale >= 1) {
-        gameActionLogic_clearShockwave();
+        gameActionLogic_clearShockwave(&gameSession);
         gameSession.state = GAMESTATE_DEFAULT;
     }
 }
@@ -858,7 +858,7 @@ static void gameSession_progressUpdateMovement() {
     gameSession_updateViewPortOffset(false);
 
     if (timePassedScale >= 1) {
-        if (!gameActionLogic_afterMove()) {
+        if (!gameActionLogic_afterMove(&gameSession)) {
             gameSession_updateViewPortOffset(true);
         }
     }
@@ -881,7 +881,7 @@ static void gameSession_cpuTurn() {
         return;
     }
 
-    strategy = cpuLogic_getStrategy(pawn, gameSession.level.pawns, gameSession.level.pawnCount, gameSession.currentTurn, gameSession.factions[pawn->faction].profile, !gameActionLogic_humanShipsLeft());
+    strategy = cpuLogic_getStrategy(pawn, gameSession.level.pawns, gameSession.level.pawnCount, gameSession.currentTurn, gameSession.factions[pawn->faction].profile, !gameActionLogic_humanShipsLeft(&gameSession));
     pawn->turnComplete = true;
     switch (strategy.CPUAction) {
         case CPUACTION_MOVE:
@@ -891,12 +891,12 @@ static void gameSession_cpuTurn() {
             } else {
                 targetPawn = NULL;
             }
-            gameActionLogic_scheduleMovement(gameSession.activePawn, targetPawn, closestTile);
+            gameActionLogic_scheduleMovement(gameSession.activePawn, targetPawn, closestTile, &gameSession);
             textId = STRING_MOVING;
             break;
         case CPUACTION_PHASERATTACK:
         case CPUACTION_TORPEDOATTACK:
-            gameActionLogic_scheduleAttack(strategy.target, strategy.target->position, strategy.CPUAction == CPUACTION_PHASERATTACK ? TARGETSELECTIONTYPE_PHASER : TARGETSELECTIONTYPE_TORPEDO);
+            gameActionLogic_scheduleAttack(strategy.target, strategy.target->position, strategy.CPUAction == CPUACTION_PHASERATTACK ? TARGETSELECTIONTYPE_PHASER : TARGETSELECTIONTYPE_TORPEDO, &gameSession);
             textId = STRING_ATTACKING;
             break;
         case CPUACTION_WARP:
@@ -904,11 +904,11 @@ static void gameSession_cpuTurn() {
             pawn->warped = true;
             closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
             textId = STRING_WARP;
-            gameActionLogic_scheduleWarp(pawn, closestTile);
+            gameActionLogic_scheduleWarp(pawn, closestTile, &gameSession);
             pawn->position = closestTile;
             break;
         case CPUACTION_BASE_SHOCKWAVE:
-            gameActionLogic_scheduleShockwave(pawn);
+            gameActionLogic_scheduleShockwave(pawn, &gameSession);
             pawn->inventory.baseActionLastActionTurn = gameSession.currentTurn;
             pawn->inventory.lastBaseAction = BASEACTION_SHOCKWAVE;
             textId = STRING_SHOCKWAVE;
