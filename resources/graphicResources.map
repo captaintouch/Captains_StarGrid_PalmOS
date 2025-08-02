@@ -56,6 +56,10 @@
 2050;healthbw
 2051;comet
 2052;ufo
+2060;tilefeatured
+2061;tilemove
+2062;tileattack
+2063;tilewarn
 3000;human
 3001;cpuplayer
 4000;icon
