@@ -60,3 +60,16 @@ for image in ./resources/others_noresize/*.png; do
     outputFile="./resources/assets/$name.bmp"
     convert "$image" -channel alpha -threshold 20% +channel -background '#ff33ff' -alpha remove "BMP3:$outputFile"
 done
+
+# Generate filled tiles
+./resources/generateTileBitmap.sh -o ./resources/assets/tile_featured-144.png 40 "#3498db" "#34495e"
+./resources/generateTileBitmap.sh -o ./resources/assets/tile_featured.png 20 "#3498db" "#34495e"
+
+./resources/generateTileBitmap.sh -o ./resources/assets/tile_attack-144.png 40 "#d35400" "#c0392b"
+./resources/generateTileBitmap.sh -o ./resources/assets/tile_attack.png 20 "#d35400" "#c0392b"
+
+./resources/generateTileBitmap.sh -o ./resources/assets/tile_move-144.png 40 "#2ecc71" "#16a085"
+./resources/generateTileBitmap.sh -o ./resources/assets/tile_move.png 20 "#2ecc71" "#16a085"
+
+./resources/generateTileBitmap.sh -o ./resources/assets/tile_warn-144.png 40 "#f1c40f" "#f39c12"
+./resources/generateTileBitmap.sh -o ./resources/assets/tile_warn.png 20 "#f1c40f" "#f39c12"
