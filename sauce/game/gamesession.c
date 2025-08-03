@@ -54,7 +54,7 @@ static void gameSession_loadStartMenu() {
 static void gameSession_scheduleSceneAnimationIfNeeded() {
     Coordinate screenSize;
     int randomImage;
-    if (gameSession.nextSceneAnimationLaunchTimestamp == 0 || gameSession.state != GAMESTATE_DEFAULT || gameSession.menuScreenType != MENUSCREEN_GAME|| gameSession.sceneAnimation != NULL || gameSession.nextSceneAnimationLaunchTimestamp > TimGetTicks()) {
+    if (gameSession.nextSceneAnimationLaunchTimestamp == 0 || gameSession.state != GAMESTATE_DEFAULT || gameSession.menuScreenType != MENUSCREEN_GAME || gameSession.sceneAnimation != NULL || gameSession.nextSceneAnimationLaunchTimestamp > TimGetTicks()) {
         return;
     }
     randomImage = random(0, 1);
@@ -65,11 +65,11 @@ static void gameSession_scheduleSceneAnimationIfNeeded() {
     gameSession.sceneAnimation->trajectory = (Line){(Coordinate){screenSize.x + 20, random(20, screenSize.y - 20)}, (Coordinate){-20, random(20, screenSize.y - 20)}};
     switch (randomImage) {
         case 0:
-        gameSession.sceneAnimation->image = &spriteLibrary.ufoSprite;
-        break;
+            gameSession.sceneAnimation->image = &spriteLibrary.ufoSprite;
+            break;
         case 1:
-        gameSession.sceneAnimation->image = &spriteLibrary.cometSprite;
-        break;
+            gameSession.sceneAnimation->image = &spriteLibrary.cometSprite;
+            break;
     }
 }
 
@@ -201,6 +201,11 @@ static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn) {
     gameSession.viewportOffset = gameSession_validViewportOffset(position);
 }
 
+static void gameSession_resetSceneAnimation() {
+    gameActionLogic_clearSceneAnimation(&gameSession);
+    gameSession.nextSceneAnimationLaunchTimestamp = TimGetTicks() + SysTicksPerSecond() * 60;
+}
+
 static FilledTileType gameSession_hightlightTilesColor() {
     switch (gameSession.targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
@@ -289,6 +294,7 @@ static void gameSession_showPawnActions() {
         FrmCustomAlert(GAME_ALERT_SHIPBUILDINPROGRESS, baseTurnsLeftText, NULL, NULL);
         return;
     }
+    gameSession_resetSceneAnimation();
     pawnActionMenuViewModel_setupMenuForPawn(gameSession.activePawn, &gameSession.displayButtons, &gameSession.displayButtonCount, gameSession.currentTurn);
     gameSession.drawingState.shouldRedrawOverlay = true;
     gameSession.state = GAMESTATE_CHOOSEPAWNACTION;
@@ -717,8 +723,7 @@ static void gameSession_progressUpdateSceneAnimation() {
     gameSession.drawingState.shouldRedrawOverlay = true;
 
     if (timePassedScale > 1.0) {
-        gameActionLogic_clearSceneAnimation(&gameSession);
-        gameSession.nextSceneAnimationLaunchTimestamp = TimGetTicks() + SysTicksPerSecond() * 60;
+        gameSession_resetSceneAnimation();
     }
 }
 
