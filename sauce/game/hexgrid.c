@@ -1,3 +1,5 @@
+#include "gamesession.h"
+#include "spriteLibrary.h"
 #define ALLOW_ACCESS_TO_INTERNALS_OF_WINDOWS
 #define ALLOW_ACCESS_TO_INTERNALS_OF_BITMAPS
 #include "hexgrid.h"
@@ -38,37 +40,6 @@ static void hexgrid_tileCoords(int startX, int startY, Coordinate coordinates[],
     coordinates[4] = (Coordinate){startX + hexTileSize, coordinates[2].y};
     coordinates[5] = (Coordinate){startX + hexTileSize, coordinates[1].y};
 }
-
-#ifndef HIRESBUILD
-HEXGRID_SECTION
-static Boolean hexgrid_drawTileFromCache(int startX, int startY, WinHandle drawWindow, WinHandle tileWindow, IndexedColorType cacheColor) {
-    RectangleType rect;
-    if (tileWindow == NULL || tileWindow->drawStateP->foreColor != cacheColor) {
-        return false;
-    }
-    RctSetRectangle(&rect, 0, 0, HEXTILE_SIZE + 1, HEXTILE_SIZE + 1);
-    WinCopyRectangle(tileWindow, drawWindow, &rect, startX, startY, winPaint);
-    return true;
-}
-
-HEXGRID_SECTION
-static Boolean hexgrid_createFilledTileCache(WinHandle drawWindow) {
-    Err err = errNone;
-    if (hexgrid_filledTileCacheWindow != NULL) {
-        WinDeleteWindow(hexgrid_filledTileCacheWindow, false);
-    }
-    hexgrid_filledTileCacheWindow = WinCreateOffscreenWindow(HEXTILE_SIZE + 1, HEXTILE_SIZE + 1, nativeFormat, &err);
-    if (err != errNone) {
-        hexgrid_filledTileCacheWindow = NULL;
-    } else {
-        WinSetDrawWindow(hexgrid_filledTileCacheWindow);
-        hexgrid_filledTileCacheWindow->bitmapP->flags.hasTransparency = true;
-        hexgrid_filledTileCacheWindowColor = hexgrid_filledTileCacheWindow->drawStateP->foreColor;
-    }
-    return hexgrid_filledTileCacheWindow != NULL;;
-}
-
-#endif
 
 HEXGRID_SECTION
 static void hexgrid_drawTile(int startX, int startY) {
@@ -130,52 +101,6 @@ void hexgrid_initialize() {
 }
 
 HEXGRID_SECTION
-static void hexgrid_fillTile(int startX, int startY) {
-    int y;
-
-    Coordinate coordinates[HEXTILE_POINTS];
-
-#ifdef HIRESBUILD
-    WinSetCoordinateSystem(kCoordinatesDouble);
-    hexgrid_tileCoords(startX * 2, startY * 2, coordinates, true);
-    for (y = 0; y < HEXTILE_SIZE * 2; y++) {
-        int actualY = y + startY * 2;
-        int xOffset = hexgrid_tilePatternDouble[y];
-        if (xOffset < 0) {
-            continue;
-        }
-        drawhelper_drawLineBetweenCoordinates((Coordinate){startX * 2 + xOffset, actualY}, (Coordinate){startX * 2 + HEXTILE_SIZE * 2 - xOffset, actualY});
-    }
-    WinSetCoordinateSystem(kCoordinatesStandard);
-#else
-    WinHandle drawWindow = WinGetDrawWindow();
-    int drawX = startX;
-    int drawY = startY;
-    if (hexgrid_drawTileFromCache(startX, startY, drawWindow, hexgrid_filledTileCacheWindow, hexgrid_filledTileCacheWindowColor)) {
-        return;
-    }
-    if (hexgrid_createFilledTileCache(drawWindow)) {
-        drawX = 0;
-        drawY = 0;
-    }
-
-    hexgrid_tileCoords(drawX, drawY, coordinates, false);
-    for (y = 0; y < HEXTILE_SIZE; y++) {
-        int actualY = y + drawY;
-        int xOffset = hexgrid_tilePattern[y];
-        if (xOffset < 0) {
-            continue;
-        }
-        drawhelper_drawLineBetweenCoordinates((Coordinate){drawX + xOffset, actualY}, (Coordinate){drawX + HEXTILE_SIZE - xOffset, actualY});
-    }
-
-    hexgrid_drawTileFromCache(startX, startY, drawWindow, hexgrid_filledTileCacheWindow, hexgrid_filledTileCacheWindowColor);
-    WinSetDrawWindow(drawWindow);
-
-#endif
-}
-
-HEXGRID_SECTION
 static Coordinate hexgrid_tileStartPosition(int column, int row) {
     if (row % 2 != 0) {
         return (Coordinate){column * HEXTILE_SIZE, row * HEXTILE_SIZE - (row * HEXTILE_SEGMENT_SIZE)};
@@ -200,12 +125,27 @@ void hexgrid_drawTileAtPosition(Coordinate hexPosition, Boolean adjustForViewpor
 }
 
 HEXGRID_SECTION
-void hexgrid_fillTileAtPosition(Coordinate hexPosition, Boolean adjustForViewport) {
-    Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
+void hexgrid_fillTileAtPosition(Coordinate hexPosition, Boolean adjustForViewport, FilledTileType tileType) {
+    Coordinate startPosition = hexgrid_tileCenterPosition(hexPosition);
+    ImageSprite *sprite;
     if (adjustForViewport) {
         startPosition = viewport_convertedCoordinate(startPosition);
     }
-    hexgrid_fillTile(startPosition.x, startPosition.y);
+    switch (tileType) {
+        case FILLEDTILETYPE_FEATURED:
+        sprite = &spriteLibrary.tileFeaturedSprite;
+        break;
+        case FILLEDTILETYPE_MOVE:
+        sprite = &spriteLibrary.tileMoveSprite;
+        break;
+        case FILLEDTILETYPE_WARN:
+        sprite = &spriteLibrary.tileWarnSprite;
+        break;
+        case FILLEDTILETYPE_ATTACK:
+        sprite = &spriteLibrary.tileAttackSprite;
+        break;
+    }
+    drawhelper_drawSprite(sprite, startPosition);
 }
 
 HEXGRID_SECTION

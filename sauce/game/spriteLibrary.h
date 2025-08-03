@@ -37,6 +37,10 @@ typedef struct SpriteLibrary {
     ImageSprite cpuSprite;
     ImageSprite ufoSprite;
     ImageSprite cometSprite;
+    ImageSprite tileFeaturedSprite;
+    ImageSprite tileWarnSprite;
+    ImageSprite tileAttackSprite;
+    ImageSprite tileMoveSprite;
 } SpriteLibrary;
 
 SpriteLibrary spriteLibrary;

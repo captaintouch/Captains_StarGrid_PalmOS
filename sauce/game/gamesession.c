@@ -201,13 +201,13 @@ static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn) {
     gameSession.viewportOffset = gameSession_validViewportOffset(position);
 }
 
-static AppColor gameSession_hightlightTilesColor() {
+static FilledTileType gameSession_hightlightTilesColor() {
     switch (gameSession.targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
-            return EMERALD;
+            return FILLEDTILETYPE_MOVE;
         case TARGETSELECTIONTYPE_PHASER:
         case TARGETSELECTIONTYPE_TORPEDO:
-            return ALIZARIN;
+            return FILLEDTILETYPE_ATTACK;
     }
 }
 
@@ -217,7 +217,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
     Coordinate *coordinates = NULL;
     int coordinatesCount = 0;
     int maxIteration;
-    AppColor color = gameSession_hightlightTilesColor();
+    FilledTileType color = gameSession_hightlightTilesColor();
     gameSession_resetHighlightTiles();
     switch (targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
@@ -235,7 +235,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
                 for (j = 0; j < gameSession.level.pawnCount; j++) {
                     Pawn *pawnAtPosition = &gameSession.level.pawns[j];
                     if (pawnAtPosition->type == PAWNTYPE_SHIP && pawnAtPosition->faction != gameSession.activePawn->faction && movement_distance(pawnAtPosition->position, tile->position) <= GAMEMECHANICS_MAXTILETORPEDORANGE) {
-                        tile->color = SUNFLOWER;
+                        tile->color = FILLEDTILETYPE_WARN;
                     }
                 }
             }

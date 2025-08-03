@@ -281,7 +281,7 @@ static Boolean movement_positionInCoordinates(Coordinate referenceCoordinate, Co
 }
 
 MOVEMENT_SECTION
-void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coordinate *invalidCoordinates, int invalidCoordinatesCount, HighlightTile **results, int *numberOfPositions, AppColor color, Boolean filled) {
+void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coordinate *invalidCoordinates, int invalidCoordinatesCount, HighlightTile **results, int *numberOfPositions, FilledTileType color, Boolean filled) {
     int i, j;
     int positionCount = 0;
     HighlightTile *positions = (HighlightTile *)MemPtrNew(sizeof(HighlightTile) * maxTileRange * 2 * maxTileRange * 2);

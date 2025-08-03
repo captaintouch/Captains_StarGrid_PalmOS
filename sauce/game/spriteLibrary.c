@@ -87,7 +87,35 @@ void spriteLibrary_initialize() {
     };
     spriteLibrary.ufoSprite.imageData =
         drawhelper_loadImage(spriteLibrary.ufoSprite.resourceId);
-    
+
+    spriteLibrary.tileFeaturedSprite = (ImageSprite){
+        GFX_RES_TILEFEATURED,
+        (Coordinate){20, 20},
+    };
+    spriteLibrary.tileFeaturedSprite.imageData =
+        drawhelper_loadImage(spriteLibrary.tileFeaturedSprite.resourceId);
+
+    spriteLibrary.tileWarnSprite = (ImageSprite){
+        GFX_RES_TILEWARN,
+        (Coordinate){20, 20},
+    };
+    spriteLibrary.tileWarnSprite.imageData =
+        drawhelper_loadImage(spriteLibrary.tileWarnSprite.resourceId);
+
+    spriteLibrary.tileMoveSprite = (ImageSprite){
+        GFX_RES_TILEMOVE,
+        (Coordinate){20, 20},
+    };
+    spriteLibrary.tileMoveSprite.imageData =
+        drawhelper_loadImage(spriteLibrary.tileMoveSprite.resourceId);
+
+    spriteLibrary.tileAttackSprite = (ImageSprite){
+        GFX_RES_TILEATTACK,
+        (Coordinate){20, 20},
+    };
+    spriteLibrary.tileAttackSprite.imageData =
+        drawhelper_loadImage(spriteLibrary.tileAttackSprite.resourceId);
+
     spriteLibrary.cometSprite = (ImageSprite){
         GFX_RES_COMET,
         (Coordinate){16, 16},
@@ -148,6 +176,10 @@ void spriteLibrary_clean() {
     drawhelper_releaseImage(spriteLibrary.humanSprite.imageData);
     drawhelper_releaseImage(spriteLibrary.ufoSprite.imageData);
     drawhelper_releaseImage(spriteLibrary.cometSprite.imageData);
+    drawhelper_releaseImage(spriteLibrary.tileAttackSprite.imageData);
+    drawhelper_releaseImage(spriteLibrary.tileMoveSprite.imageData);
+    drawhelper_releaseImage(spriteLibrary.tileWarnSprite.imageData);
+    drawhelper_releaseImage(spriteLibrary.tileFeaturedSprite.imageData);
     spriteLibrary.initialized = false;
 }
 

@@ -144,16 +144,15 @@ static void game_drawHighlightTiles() {  // Tiles that need to be highlighted (f
     if (gameSession.highlightTiles != NULL && gameSession.highlightTileCount > 0) {
         for (i = 0; i < gameSession.highlightTileCount; i++) {
             HighlightTile *tile = &gameSession.highlightTiles[i];
-            drawhelper_applyForeColor(tile->color);
             if (tile->filled) {
-                hexgrid_fillTileAtPosition(tile->position, true);
+                hexgrid_fillTileAtPosition(tile->position, true, tile->color);
                 drawhelper_applyForeColor(CLOUDS);
                 hexgrid_drawTileAtPosition(tile->position, true);
             } else {
                 if (gameSession.colorSupport) {
                     hexgrid_drawTileAtPosition(tile->position, true);
                 } else {
-                    hexgrid_fillTileAtPosition(tile->position, true);
+                    hexgrid_fillTileAtPosition(tile->position, true, tile->color);
                     drawhelper_applyForeColor(CLOUDS);
                     hexgrid_drawTileAtPosition(tile->position, true);
                 }
@@ -235,7 +234,7 @@ static void game_drawActionTiles() {
             if (actionTile->selected) {
                 drawhelper_applyBackgroundColor(BELIZEHOLE);
                 drawhelper_applyForeColor(BELIZEHOLE);
-                hexgrid_fillTileAtPosition(actionTile->position, true);
+                hexgrid_fillTileAtPosition(actionTile->position, true, FILLEDTILETYPE_FEATURED);
             } else {
                 drawhelper_applyBackgroundColor(DRACULAORCHID);
             }
@@ -288,7 +287,7 @@ static void game_drawGridTexts() {
     oldFont = FntSetFont(boldFont);
     for (i = 0; i < gameSession.level.gridTextCount; i++) {
         GridText *gridText = &gameSession.level.gridTexts[i];
-        AppColor color = gridText->alternateColor ? ALIZARIN : BELIZEHOLE;
+        FilledTileType color = gridText->alternateColor ? FILLEDTILETYPE_ATTACK : FILLEDTILETYPE_FEATURED;
         MemHandle resourceHandle;
         Char *text;
 
@@ -306,15 +305,13 @@ static void game_drawGridTexts() {
             drawhelper_applyBackgroundColor(DRACULAORCHID);
             drawhelper_drawText(text, (Coordinate){drawPosition.x - HEXTILE_SIZE / 2 + offset + gridText->textOffset.x, drawPosition.y - HEXTILE_SIZE / 2 + gridText->textOffset.y});
         } else {
-            drawhelper_applyBackgroundColor(color);
             for (j = 0; text[j] != '\0'; j++) {
                 Coordinate position = (Coordinate){gridText->position.x + j, gridText->position.y};
                 Coordinate drawPosition = viewport_convertedCoordinate(hexgrid_tileCenterPosition(position));
                 char currChar[2];
                 currChar[0] = text[j];
                 currChar[1] = '\0';
-                drawhelper_applyForeColor(color);
-                hexgrid_fillTileAtPosition(position, true);
+                hexgrid_fillTileAtPosition(position, true, color);
                 drawhelper_applyForeColor(CLOUDS);
                 hexgrid_drawTileAtPosition(position, true);
 
@@ -344,7 +341,7 @@ static void game_drawPawns() {
         if (gameSession.colorSupport) {
             hexgrid_drawTileAtPosition(gameSession.activePawn->position, true);
         } else {
-            hexgrid_fillTileAtPosition(gameSession.activePawn->position, true);
+            hexgrid_fillTileAtPosition(gameSession.activePawn->position, true, FILLEDTILETYPE_MOVE);
         }
     }
 
@@ -577,9 +574,9 @@ static void game_drawGameStartHeader() {
 
     drawhelper_applyForeColor(SUNFLOWER);
     hexgrid_drawTileAtPosition((Coordinate){0, 0}, false);
-    hexgrid_fillTileAtPosition((Coordinate){1, 1}, false);
+    hexgrid_fillTileAtPosition((Coordinate){1, 1}, false, FILLEDTILETYPE_WARN);
 
-    hexgrid_fillTileAtPosition((Coordinate){6, 0}, false);
+    hexgrid_fillTileAtPosition((Coordinate){6, 0}, false, FILLEDTILETYPE_WARN);
     hexgrid_drawTileAtPosition((Coordinate){6, 1}, false);
 
     drawhelper_drawLineBetweenCoordinates((Coordinate){0, BOTTOMMENU_HEIGHT - 1}, (Coordinate){screenSize.x, BOTTOMMENU_HEIGHT - 1});

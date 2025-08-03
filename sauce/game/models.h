@@ -5,6 +5,13 @@
 #include "colors.h"
 #define WARPCIRCLECOUNT 3
 
+typedef enum {
+    FILLEDTILETYPE_FEATURED,
+    FILLEDTILETYPE_MOVE,
+    FILLEDTILETYPE_WARN,
+    FILLEDTILETYPE_ATTACK
+} FilledTileType;
+
 typedef struct Coordinate {
     int x;
     int y;
@@ -106,7 +113,7 @@ typedef struct Movement {
 
 typedef struct HighlightTile {
     Coordinate position;
-    AppColor color;
+    FilledTileType color;
     Boolean filled;
 } HighlightTile;
 
