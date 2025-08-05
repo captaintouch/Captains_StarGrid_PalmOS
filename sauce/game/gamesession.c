@@ -136,9 +136,10 @@ void gameSession_reset(Boolean newGame) {
         gameSession_launchGame(config);
     } else {
         if (storage_restoreGameState(&gameSession.currentTurn, &gameSession.level.pawnCount, &gameSession.factionCount, &gameSession.factionTurn, &gameSession.level.pawns, gameSession.factions, gameSession.level.scores)) {
+            Pawn dummyPawn;
+            dummyPawn.position = (Coordinate){0,0};
+            gameSession.activePawn = &dummyPawn;
             gameSession.menuScreenType = MENUSCREEN_GAME;
-            gameSession.activePawn = &gameSession.level.pawns[0];
-            gameSession_updateViewPortOffset(true);
             gameSession_startTurn();
         } else {
             gameSession_loadStartMenu();

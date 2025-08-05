@@ -5,6 +5,7 @@
 #include "../constants.h"
 #include "../deviceinfo.h"
 #include "../graphicResources.h"
+#include "colors.h"
 #include "drawhelper.h"
 #include "gamesession.h"
 #include "hexgrid.h"
@@ -288,6 +289,7 @@ static void game_drawGridTexts() {
     for (i = 0; i < gameSession.level.gridTextCount; i++) {
         GridText *gridText = &gameSession.level.gridTexts[i];
         FilledTileType color = gridText->alternateColor ? FILLEDTILETYPE_ATTACK : FILLEDTILETYPE_FEATURED;
+        AppColor bgColor = gridText->alternateColor ? ALIZARIN : BELIZEHOLE;
         MemHandle resourceHandle;
         Char *text;
 
@@ -305,6 +307,7 @@ static void game_drawGridTexts() {
             drawhelper_applyBackgroundColor(DRACULAORCHID);
             drawhelper_drawText(text, (Coordinate){drawPosition.x - HEXTILE_SIZE / 2 + offset + gridText->textOffset.x, drawPosition.y - HEXTILE_SIZE / 2 + gridText->textOffset.y});
         } else {
+            drawhelper_applyBackgroundColor(bgColor);
             for (j = 0; text[j] != '\0'; j++) {
                 Coordinate position = (Coordinate){gridText->position.x + j, gridText->position.y};
                 Coordinate drawPosition = viewport_convertedCoordinate(hexgrid_tileCenterPosition(position));
@@ -331,7 +334,7 @@ static void game_drawSceneAnimation() {
     if (gameSession.sceneAnimation == NULL) {
         return;
     }
-    drawhelper_drawSprite(gameSession.sceneAnimation->image, gameSession.sceneAnimation->currentPosition); 
+    drawhelper_drawSprite(gameSession.sceneAnimation->image, gameSession.sceneAnimation->currentPosition);
 }
 
 static void game_drawPawns() {

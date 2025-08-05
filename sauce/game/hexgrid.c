@@ -13,9 +13,6 @@
 #include "viewport.h"
 #define HEXTILE_POINTS 6
 
-WinHandle hexgrid_filledTileCacheWindow = NULL;
-IndexedColorType hexgrid_filledTileCacheWindowColor = 99;
-
 int hexgrid_tilePattern[HEXTILE_SIZE];
 #ifdef HIRESBUILD
 int hexgrid_tilePatternDouble[HEXTILE_SIZE * 2];
@@ -23,10 +20,6 @@ int hexgrid_tilePatternDouble[HEXTILE_SIZE * 2];
 
 HEXGRID_SECTION
 void hexgrid_cleanup() {
-    if (hexgrid_filledTileCacheWindow != NULL) {
-        WinDeleteWindow(hexgrid_filledTileCacheWindow, false);
-        hexgrid_filledTileCacheWindow = NULL;
-    }
 }
 
 HEXGRID_SECTION
