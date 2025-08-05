@@ -247,13 +247,14 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
             break;
         case TARGETSELECTIONTYPE_PHASER:
         case TARGETSELECTIONTYPE_TORPEDO:
-            movement_findTilesInRange(currentPosition, maxTileRange, NULL, 0, &gameSession.highlightTiles, &gameSession.highlightTileCount, color, false);
+            movement_findTilesInRange(currentPosition, maxTileRange, NULL, 0, &gameSession.highlightTiles, &gameSession.highlightTileCount, FILLEDTILETYPE_WARN, false);
             for (i = 0; i < gameSession.highlightTileCount; i++) {
                 Pawn *pawnAtPosition = level_pawnAtTile(gameSession.highlightTiles[i].position, &gameSession.level);
+                gameSession.highlightTiles[i].filled = true;
                 if (pawnAtPosition == NULL || pawnAtPosition->faction == gameSession.activePawn->faction) {
                     continue;
                 }
-                gameSession.highlightTiles[i].filled = true;
+                gameSession.highlightTiles[i].color = FILLEDTILETYPE_ATTACK;
             }
 
             maxIteration = gameSession.highlightTileCount;
