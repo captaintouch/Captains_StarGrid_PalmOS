@@ -26,8 +26,8 @@ function rotate() {
 ./resources/generateTileBitmap.sh -o ./resources/hiresTMP/tilefeatured.png 40 "#3498db" "#34495e"
 ./resources/generateTileBitmap.sh -o ./resources/others_noresize/tilefeatured.png 20 "#3498db" "#34495e"
 
-./resources/generateTileBitmap.sh -o ./resources/hiresTMP/tileattack.png 40 "#d35400" "#c0392b"
-./resources/generateTileBitmap.sh -o ./resources/others_noresize/tileattack.png 20 "#d35400" "#c0392b"
+./resources/generateTileBitmap.sh -o ./resources/hiresTMP/tileattack.png 40 "#e74c3c" "#c0392b"
+./resources/generateTileBitmap.sh -o ./resources/others_noresize/tileattack.png 20 "#e74c3c" "#c0392b"
 
 ./resources/generateTileBitmap.sh -o ./resources/hiresTMP/tilemove.png 40 "#2ecc71" "#16a085"
 ./resources/generateTileBitmap.sh -o ./resources/others_noresize/tilemove.png 20 "#2ecc71" "#16a085"

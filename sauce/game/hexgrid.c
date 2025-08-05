@@ -11,12 +11,9 @@
 #include "mathIsFun.h"
 #include "models.h"
 #include "viewport.h"
-#define HEXTILE_POINTS 6
 
+#define HEXTILE_POINTS 6
 int hexgrid_tilePattern[HEXTILE_SIZE];
-#ifdef HIRESBUILD
-int hexgrid_tilePatternDouble[HEXTILE_SIZE * 2];
-#endif
 
 HEXGRID_SECTION
 void hexgrid_cleanup() {
@@ -65,20 +62,6 @@ HEXGRID_SECTION
 void hexgrid_initialize() {
     int y;
     Coordinate coordinates[HEXTILE_POINTS];
-
-#ifdef HIRESBUILD
-    hexgrid_tileCoords(0, 0, coordinates, true);
-    for (y = 0; y < HEXTILE_SIZE * 2; y++) {
-        int x;
-        hexgrid_tilePatternDouble[y] = HEXTILE_SIZE;
-        for (x = 0; x < HEXTILE_SIZE * 2; x++) {
-            if (hexgrid_isInsideTile(coordinates, (Coordinate){x, y})) {
-                hexgrid_tilePatternDouble[y] = x;
-                break;
-            }
-        }
-    }
-#endif
 
     hexgrid_tileCoords(0, 0, coordinates, false);
     for (y = 0; y < HEXTILE_SIZE; y++) {
