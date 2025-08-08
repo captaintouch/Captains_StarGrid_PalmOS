@@ -35,7 +35,6 @@ typedef struct DrawingState {
     Boolean shouldRedrawBackground;
     Boolean shouldRedrawHeader;
     Boolean shouldResetGameForm;
-    Boolean shouldRedrawOverlay;
     Boolean shouldDrawButtons;
     Boolean requiresPauseAfterLayout;
 

@@ -5,6 +5,7 @@
 #include "../constants.h"
 #include "../deviceinfo.h"
 #include "../graphicResources.h"
+#include "TimeMgr.h"
 #include "colors.h"
 #include "drawhelper.h"
 #include "gamesession.h"
@@ -55,7 +56,6 @@ static void game_resetForm() {
         }
         game_windowCleanup();
         gameSession.drawingState.shouldRedrawBackground = true;
-        gameSession.drawingState.shouldRedrawOverlay = true;
         gameSession.drawingState.shouldRedrawHeader = true;
     }
 }
@@ -335,6 +335,17 @@ static void game_drawSceneAnimation() {
         return;
     }
     drawhelper_drawSprite(gameSession.sceneAnimation->image, gameSession.sceneAnimation->currentPosition);
+}
+
+static void game_drawAnimatedStars() {
+    Coordinate screenSize = deviceinfo_screenSize();
+    int minX = gameSession.viewportOffset.x;
+    int maxX = screenSize.x + gameSession.viewportOffset.x;
+    int minY = gameSession.viewportOffset.y;
+    int maxY = screenSize.y + gameSession.viewportOffset.y;
+    Coordinate coordinate = (Coordinate) {random(minX, maxX), random(minY, maxY)};
+    coordinate = viewport_convertedCoordinate(coordinate);
+    drawhelper_drawAnimatedLoopingSprite(spriteLibrary.starAnimation, GFX_FRAMECOUNT_STARANIM, coordinate, 2);
 }
 
 static void game_drawPawns() {
@@ -623,14 +634,9 @@ static void game_drawDynamicViews() {  // ships, special tiles, etc.
     // everything drawn in this function must have it's coordinates offset to the current viewport
     RectangleType lamerect;
     Err err = errNone;
-    Coordinate gridSize;
     Coordinate overlaySize = deviceinfo_screenSize();
     overlaySize.y -= BOTTOMMENU_HEIGHT;
-    if (!gameSession.drawingState.shouldRedrawOverlay && overlayBuffer != NULL) {
-        return;
-    }
-    gameSession.drawingState.shouldRedrawOverlay = false;
-    gridSize = hexgrid_size();
+
     if (overlayBuffer == NULL) {
         overlayBuffer = WinCreateOffscreenWindow(overlaySize.x, overlaySize.y, nativeFormat, &err);
     }
@@ -649,6 +655,7 @@ static void game_drawDynamicViews() {  // ships, special tiles, etc.
     game_drawGridTexts();
     game_drawActionTiles();
     game_drawPawns();
+    game_drawAnimatedStars();
     game_drawSceneAnimation();
     game_drawAttackAnimation();
     game_drawDebugTrajectoryMovement();

@@ -110,6 +110,12 @@ void drawhelper_drawAnimatedSprite(ImageSprite *imageSprite, UInt8 frameCount, C
 }
 
 DRAWING_SECTION
+void drawhelper_drawAnimatedLoopingSprite(ImageSprite *imageSprite, UInt8 frameCount, Coordinate coordinate, int animationsPerSecond) {
+    int animationStep = (TimGetTicks() /  (SysTicksPerSecond() / animationsPerSecond)) % frameCount;
+    drawhelper_drawSprite(&imageSprite[animationStep], coordinate);
+}
+
+DRAWING_SECTION
 void drawhelper_releaseImage(ImageData *imageData) {
     if (imageData == NULL) {
         return;

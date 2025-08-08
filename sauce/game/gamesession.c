@@ -48,7 +48,6 @@ static void gameSession_loadStartMenu() {
     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, gameSession.activePawn->position.y}, &gameSession);
     gameSession.drawingState.shouldRedrawBackground = true;
     gameSession.drawingState.shouldRedrawHeader = true;
-    gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
 static void gameSession_scheduleSceneAnimationIfNeeded() {
@@ -93,7 +92,6 @@ static void gameSession_launchGame(NewGameConfig config) {
     }
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
     gameSession.drawingState.shouldRedrawBackground = true;
-    gameSession.drawingState.shouldRedrawOverlay = true;
     gameSession.continueCPUPlay = !gameActionLogic_humanShipsLeft(&gameSession);
     gameSession.nextSceneAnimationLaunchTimestamp = TimGetTicks() + SysTicksPerSecond() * 5;
     gameSession_scheduleSceneAnimationIfNeeded();
@@ -117,7 +115,7 @@ void gameSession_reset(Boolean newGame) {
     gameSession.paused = false;
     gameSession.currentTurn = 0;
 
-    gameSession.drawingState = (DrawingState){true, true, false, true, false, false, (Coordinate){0, 0}, (Coordinate){0, 0}};
+    gameSession.drawingState = (DrawingState){true, true, false, false, false, (Coordinate){0, 0}, (Coordinate){0, 0}};
 
     gameSession.highlightTiles = NULL;
     gameSession.highlightTileCount = 0;
@@ -275,14 +273,12 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
     if (coordinates != NULL) {
         MemPtrFree(coordinates);
     }
-    gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
 static void gameSession_showPawnActions() {
     int baseTurnsLeft;
     Boolean isCurrentPlayer = gameSession.factionTurn == gameSession.activePawn->faction && gameSession.factions[gameSession.activePawn->faction].human;
     if (!isCurrentPlayer) {
-        gameSession.drawingState.shouldRedrawOverlay = true;
         return;
     }
     if (gameSession.activePawn->turnComplete) {
@@ -298,7 +294,6 @@ static void gameSession_showPawnActions() {
     }
     gameSession_resetSceneAnimation();
     pawnActionMenuViewModel_setupMenuForPawn(gameSession.activePawn, &gameSession.displayButtons, &gameSession.displayButtonCount, gameSession.currentTurn);
-    gameSession.drawingState.shouldRedrawOverlay = true;
     gameSession.state = GAMESTATE_CHOOSEPAWNACTION;
 }
 
@@ -358,7 +353,6 @@ static void gameSession_startTurn() {
     gameSession_moveCameraToPawn(nextPawn);
     gameSession.activePawn = nextPawn;
     gameSession.lastPenInput.wasUpdatedFlag = false;
-    gameSession.drawingState.shouldRedrawOverlay = true;
     gameSession.disableAutoMoveToNextPawn = false;
 }
 
@@ -376,7 +370,6 @@ static Boolean gameSession_handleBarButtonsTap() {
         gameSession.activePawn = gameSession_nextPawn(true, false);
         gameSession.disableAutoMoveToNextPawn = gameSession.activePawn->turnComplete;
         gameSession_updateViewPortOffset(true);
-        gameSession.drawingState.shouldRedrawOverlay = true;
         inputPen_temporarylyBlockPenInput(&gameSession.lastPenInput);
         return true;
     } else if (gameSession.lastPenInput.touchCoordinate.x > gameSession.drawingState.barButtonPositions[1].x && gameSession.lastPenInput.touchCoordinate.y > gameSession.drawingState.barButtonPositions[1].y && gameSession.lastPenInput.touchCoordinate.y < gameSession.drawingState.barButtonPositions[1].y + gameSession.drawingState.barButtonHeight) {  // end turn button
@@ -473,7 +466,6 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
             switch (gameSession.level.gridTexts[i].textResource) {
                 case STRING_NEW:
                     gameSession.level.gridTexts[i].alternateColor = true;
-                    gameSession.drawingState.shouldRedrawOverlay = true;
                     gameSession.drawingState.shouldRedrawHeader = true;
                     gameSession.menuScreenType = MENUSCREEN_PLAYERCONFIG;
                     level_addPlayerConfigPawns(&gameSession.level, level_defaultNewGameConfig(0));
@@ -485,7 +477,6 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
                     break;
                 case STRING_RANK:
                     gameSession.level.gridTexts[i].alternateColor = true;
-                    gameSession.drawingState.shouldRedrawOverlay = true;
                     gameSession.drawingState.shouldRedrawHeader = true;
                     gameSession.menuScreenType = MENUSCREEN_RANK;
                     level_addRank(&gameSession.level, scoring_loadSavedScore());
@@ -503,7 +494,6 @@ static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
         if (isEqualCoordinate(gameSession.level.actionTiles[i].position, selectedTile)) {
             NewGameConfig config = level_getNewGameConfig(&gameSession.level, level_defaultNewGameConfig(scoring_rankValue(scoring_loadSavedScore())));
             gameSession.level.actionTiles[i].selected = true;
-            gameSession.drawingState.shouldRedrawOverlay = true;
             switch (gameSession.level.actionTiles[i].identifier) {
                 case ACTIONTILEIDENTIFIER_HUMANPLAYER:
                     config.playerConfig[gameSession.level.actionTiles[i].tag].isHuman = true;
@@ -577,7 +567,6 @@ static Boolean gameSession_handleMiniMapTap() {
         return false;
     }
     gameSession.viewportOffset = gameSession_validViewportOffset(viewportOffset);
-    gameSession.drawingState.shouldRedrawOverlay = true;
     return true;
 }
 
@@ -607,7 +596,6 @@ static void gameSession_handleTargetSelection() {
     if (!gameSession_highlightTilesContains(selectedTile) || invalidTile) {
         gameSession_resetHighlightTiles();
         gameSession.state = GAMESTATE_DEFAULT;
-        gameSession.drawingState.shouldRedrawOverlay = true;
         return;
     }
 
@@ -623,7 +611,6 @@ static void gameSession_handleTargetSelection() {
     }
 
     gameSession_resetHighlightTiles();
-    gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
 Boolean gameSession_shouldShowHealthBar() {
@@ -697,13 +684,11 @@ static void gameSession_handlePawnActionButtonSelection() {
     if (gameSession.state == GAMESTATE_SELECTTARGET) {
         gameSession_updateValidPawnPositionsForMovement(gameSession.activePawn->position, gameSession.targetSelectionType);
     }
-    gameSession.drawingState.shouldRedrawOverlay = true;
 }
 
 static void gameSession_progressUpdateExplosion() {
     Int32 timeSinceLaunch;
     float timePassedScale;
-    gameSession.drawingState.shouldRedrawOverlay = true;
     timeSinceLaunch = TimGetTicks() - gameSession.attackAnimation->explosionTimestamp;
     timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * gameSession.attackAnimation->explosionDurationSeconds);
     if (timePassedScale >= 1) {
@@ -722,7 +707,6 @@ static void gameSession_progressUpdateSceneAnimation() {
     timeSinceLaunch = TimGetTicks() - gameSession.sceneAnimation->launchTimestamp;
     timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * 2.5);
     gameSession.sceneAnimation->currentPosition = movement_coordinateAtPercentageOfLine(gameSession.sceneAnimation->trajectory, timePassedScale);
-    gameSession.drawingState.shouldRedrawOverlay = true;
 
     if (timePassedScale > 1.0) {
         gameSession_resetSceneAnimation();
@@ -741,7 +725,6 @@ static void gameSession_progressUpdateAttack() {
         gameSession_progressUpdateExplosion();
         return;
     }
-    gameSession.drawingState.shouldRedrawOverlay = true;
     timeSinceLaunch = TimGetTicks() - gameSession.attackAnimation->launchTimestamp;
     timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * gameSession.attackAnimation->durationSeconds);
 
@@ -789,7 +772,6 @@ static void gameSession_progressUpdateShockWave() {
     if (gameSession.shockWaveAnimation == NULL) {
         return;
     }
-    gameSession.drawingState.shouldRedrawOverlay = true;
     timeSinceLaunch = TimGetTicks() - gameSession.shockWaveAnimation->launchTimestamp;
     timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * 1.7);
     if (timePassedScale > 0.2) {
@@ -824,7 +806,6 @@ static void gameSession_progressUpdateWarp() {
     float timePassedScale;
     int i;
     if (gameSession.warpAnimation.isWarping) {
-        gameSession.drawingState.shouldRedrawOverlay = true;
         timeSinceLaunch = TimGetTicks() - gameSession.warpAnimation.launchTimestamp;
         timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * 1.2);
         gameSession.warpAnimation.pawn->orientation = (int)(timePassedScale * 1.5 * GFX_FRAMECOUNT_SHIPA) % GFX_FRAMECOUNT_SHIPA;
@@ -857,7 +838,6 @@ static void gameSession_progressUpdateMovement() {
     if (gameSession.menuScreenType != MENUSCREEN_GAME || gameSession.continueCPUPlay) {
         totalAnimationTime = 2.8;
     }
-    gameSession.drawingState.shouldRedrawOverlay = true;
 
     timeSinceLaunch = TimGetTicks() - gameSession.movement->launchTimestamp;
     timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * ((float)gameSession.movement->trajectory.tileCount - 1) / totalAnimationTime);
@@ -986,7 +966,6 @@ static Boolean moveToNextPawnIfNeeded() {
         gameSession.activePawn = pawn;
     } else {
         gameSession.activePawn = pawn;
-        gameSession.drawingState.shouldRedrawOverlay = true;
     }
 
     return true;
@@ -1007,7 +986,6 @@ void gameSession_progressLogic() {
             if (gameSession.drawingState.awaitingEndMiniMapScrolling && gameSession.lastPenInput.penUpOccured) {
                 gameSession.lastPenInput.penUpOccured = false;
                 gameSession.drawingState.awaitingEndMiniMapScrolling = false;
-                gameSession.drawingState.shouldRedrawOverlay = true;
                 return;
             }
             gameSession.lastPenInput.penUpOccured = false;

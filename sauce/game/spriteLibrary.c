@@ -148,6 +148,15 @@ void spriteLibrary_initialize() {
             drawhelper_loadImage(spriteLibrary.explosionAnimation[i].resourceId);
     }
 
+    for (i = 0; i < GFX_FRAMECOUNT_STARANIM; i++) {
+        spriteLibrary.starAnimation[i] = (ImageSprite){
+            GFX_RES_STARANIM_0 + i,
+            (Coordinate){19, 19},
+        };
+        spriteLibrary.starAnimation[i].imageData =
+            drawhelper_loadImage(spriteLibrary.starAnimation[i].resourceId);
+    }
+
     spriteLibrary.initialized = true;
 }
 
@@ -170,6 +179,9 @@ void spriteLibrary_clean() {
     }
     for (i = 0; i < GFX_FRAMECOUNT_EXPLOSION; i++) {
         drawhelper_releaseImage(spriteLibrary.explosionAnimation[i].imageData);
+    }
+    for (i = 0; i < GFX_FRAMECOUNT_STARANIM; i++) {
+        drawhelper_releaseImage(spriteLibrary.starAnimation[i].imageData);
     }
     drawhelper_releaseImage(spriteLibrary.baseSprite.imageData);
     drawhelper_releaseImage(spriteLibrary.healthSprite.imageData);

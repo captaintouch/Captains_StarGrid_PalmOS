@@ -60,6 +60,10 @@
 2061;tilemove
 2062;tileattack
 2063;tilewarn
+2070;staranim_0
+2071;staranim_1
+2072;staranim_2
+2073;staranim_3
 3000;human
 3001;cpuplayer
 4000;icon

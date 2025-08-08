@@ -19,6 +19,7 @@ void drawhelper_drawTextCentered(char *text, Coordinate position, int offsetX, i
 void drawhelper_drawTextWithValue(char *text, int value, Coordinate position) DRAWING_SECTION;
 void drawhelper_drawSprite(ImageSprite *imageSprite, Coordinate coordinate) DRAWING_SECTION;
 void drawhelper_drawAnimatedSprite(ImageSprite *imageSprite, UInt8 frameCount, Coordinate coordinate, Int32 launchTimestamp, float durationSeconds) DRAWING_SECTION;
+void drawhelper_drawAnimatedLoopingSprite(ImageSprite *imageSprite, UInt8 frameCount, Coordinate coordinate, int animationsPerSecond) DRAWING_SECTION; 
 void drawhelper_drawPoint(Coordinate point) DRAWING_SECTION;
 void drawhelper_drawBoxAround(Coordinate coordinate, int dimension) DRAWING_SECTION;
 void drawhelper_borderRectangle(RectangleType *rect) DRAWING_SECTION;
