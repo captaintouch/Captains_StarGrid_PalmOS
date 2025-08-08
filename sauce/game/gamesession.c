@@ -27,6 +27,7 @@ static void gameSession_resetHighlightTiles();
 static void gameSession_moveCameraToPawn(Pawn *pawn);
 static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn);
 static void gameSession_startTurn();
+static void gameSession_updateAnimatedStarPositions();
 
 Faction gameSession_factionWithRandomizedCPUProfile() {
     Faction faction;
@@ -135,7 +136,7 @@ void gameSession_reset(Boolean newGame) {
     } else {
         if (storage_restoreGameState(&gameSession.currentTurn, &gameSession.level.pawnCount, &gameSession.factionCount, &gameSession.factionTurn, &gameSession.level.pawns, gameSession.factions, gameSession.level.scores)) {
             Pawn dummyPawn;
-            dummyPawn.position = (Coordinate){0,0};
+            dummyPawn.position = (Coordinate){0, 0};
             gameSession.activePawn = &dummyPawn;
             gameSession.menuScreenType = MENUSCREEN_GAME;
             gameSession_startTurn();
@@ -179,6 +180,14 @@ static Coordinate gameSession_validViewportOffset(Coordinate position) {
     newOffset.x = fmin(gridSize.x - screenSize.x + 1, fmax(0, position.x - screenSize.x / 2));
     newOffset.y = fmin(gridSize.y - gameWindowHeight + 1, fmax(0, position.y - gameWindowHeight / 2));
     return newOffset;
+}
+
+static void gameSession_updateAnimatedStarPositions() {
+    int i;
+    for (i = 0; i < BACKDROP_ANIMATEDSTARCOUNT; i++) {
+        Coordinate gridSize = hexgrid_size();
+        gameSession.animatedStarCoordinates[i] = (Coordinate){random(0, gridSize.x), random(0, gridSize.y)};
+    }
 }
 
 static Boolean gameSession_isViewPortOffsetToPawn(Pawn *pawn) {
@@ -350,6 +359,7 @@ static void gameSession_startTurn() {
             FrmCustomAlert(GAME_ALERT_SHIPBUILDFINISHED, NULL, NULL, NULL);
         }
     }
+    gameSession_updateAnimatedStarPositions();
     gameSession_moveCameraToPawn(nextPawn);
     gameSession.activePawn = nextPawn;
     gameSession.lastPenInput.wasUpdatedFlag = false;

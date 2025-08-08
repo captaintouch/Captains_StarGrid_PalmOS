@@ -9,6 +9,7 @@
 #include "level.h"
 #include "models.h"
 #include "spriteLibrary.h"
+#include "../constants.h"
 
 typedef enum TargetSelectionType {
     TARGETSELECTIONTYPE_MOVE,
@@ -87,6 +88,7 @@ typedef struct GameSession {
     ShockWaveAnimation *shockWaveAnimation;
     SceneAnimation *sceneAnimation;
 
+    Coordinate animatedStarCoordinates[BACKDROP_ANIMATEDSTARCOUNT];
     Int32 nextSceneAnimationLaunchTimestamp;
 } GameSession;
 

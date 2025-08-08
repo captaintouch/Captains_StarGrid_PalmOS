@@ -338,14 +338,11 @@ static void game_drawSceneAnimation() {
 }
 
 static void game_drawAnimatedStars() {
-    Coordinate screenSize = deviceinfo_screenSize();
-    int minX = gameSession.viewportOffset.x;
-    int maxX = screenSize.x + gameSession.viewportOffset.x;
-    int minY = gameSession.viewportOffset.y;
-    int maxY = screenSize.y + gameSession.viewportOffset.y;
-    Coordinate coordinate = (Coordinate) {random(minX, maxX), random(minY, maxY)};
-    coordinate = viewport_convertedCoordinate(coordinate);
-    drawhelper_drawAnimatedLoopingSprite(spriteLibrary.starAnimation, GFX_FRAMECOUNT_STARANIM, coordinate, 2);
+    int i;
+    for (i = 0; i < BACKDROP_ANIMATEDSTARCOUNT; i++) {
+        Coordinate coordinate = viewport_convertedCoordinate(gameSession.animatedStarCoordinates[i]);
+        drawhelper_drawAnimatedLoopingSprite(spriteLibrary.starAnimation, GFX_FRAMECOUNT_STARANIM, coordinate, 3, i);
+    }
 }
 
 static void game_drawPawns() {
@@ -650,12 +647,12 @@ static void game_drawDynamicViews() {  // ships, special tiles, etc.
         game_drawLowMemBackground(overlaySize);
     }
 
+    game_drawAnimatedStars();
     game_drawHighlightTiles();
     game_drawWarpAndShockwaveAnimation();
     game_drawGridTexts();
     game_drawActionTiles();
     game_drawPawns();
-    game_drawAnimatedStars();
     game_drawSceneAnimation();
     game_drawAttackAnimation();
     game_drawDebugTrajectoryMovement();
