@@ -1,8 +1,10 @@
 #include "drawhelper.h"
+
+#include <PalmOS.h>
+
+#include "mathIsFun.h"
 #include "models.h"
 #include "spriteLibrary.h"
-#include <PalmOS.h>
-#include "mathIsFun.h"
 
 DRAWING_SECTION
 void drawhelper_fillRectangle(RectangleType *rect, UInt16 cornerDiam) {
@@ -110,8 +112,16 @@ void drawhelper_drawAnimatedSprite(ImageSprite *imageSprite, UInt8 frameCount, C
 }
 
 DRAWING_SECTION
-void drawhelper_drawAnimatedLoopingSprite(ImageSprite *imageSprite, UInt8 frameCount, Coordinate coordinate, int animationsPerSecond, int frameSelectionOffset) {
-    int animationStep = ((TimGetTicks() /  (SysTicksPerSecond() / animationsPerSecond)) + frameSelectionOffset) % frameCount;
+void drawhelper_drawAnimatedLoopingSprite(ImageSprite *imageSprite, UInt8 frameCount, Coordinate coordinate, int animationsPerSecond, int frameSelectionOffset, int sleepingFrameCount) {
+    int animationStep = ((TimGetTicks() / (SysTicksPerSecond() / animationsPerSecond)) + frameSelectionOffset) % (sleepingFrameCount + frameCount * 2);
+    if (animationStep < sleepingFrameCount) {
+        animationStep = 0;  // sleeping frame
+    } else {
+        animationStep -= sleepingFrameCount;
+        if (animationStep >= frameCount) {
+            animationStep = frameCount - 1 - (animationStep - frameCount);
+        }
+    }
     drawhelper_drawSprite(&imageSprite[animationStep], coordinate);
 }
 
@@ -127,30 +137,30 @@ void drawhelper_releaseImage(ImageData *imageData) {
 
 DRAWING_SECTION
 void drawhelper_drawBoxAround(Coordinate coordinate, int dimension) {
-  Line line;
-  int offset = dimension / 2 + 2;
-  // TOP
-  line.startpoint.x = coordinate.x - offset;
-  line.endpoint.x = coordinate.x + offset;
-  line.startpoint.y = coordinate.y - offset;
-  line.endpoint.y = coordinate.y - offset;
-  drawhelper_drawLine(&line);
-  // LEFT
-  line.startpoint.x = coordinate.x - offset;
-  line.endpoint.x = coordinate.x - offset;
-  line.startpoint.y = coordinate.y - offset;
-  line.endpoint.y = coordinate.y + offset;
-  drawhelper_drawLine(&line);
-  // BOTTOM
-  line.startpoint.x = coordinate.x - offset;
-  line.endpoint.x = coordinate.x + offset;
-  line.startpoint.y = coordinate.y + offset;
-  line.endpoint.y = coordinate.y + offset;
-  drawhelper_drawLine(&line);
-  // RIGHT
-  line.startpoint.x = coordinate.x + offset;
-  line.endpoint.x = coordinate.x + offset;
-  line.startpoint.y = coordinate.y - offset;
-  line.endpoint.y = coordinate.y + offset ;
-  drawhelper_drawLine(&line);
+    Line line;
+    int offset = dimension / 2 + 2;
+    // TOP
+    line.startpoint.x = coordinate.x - offset;
+    line.endpoint.x = coordinate.x + offset;
+    line.startpoint.y = coordinate.y - offset;
+    line.endpoint.y = coordinate.y - offset;
+    drawhelper_drawLine(&line);
+    // LEFT
+    line.startpoint.x = coordinate.x - offset;
+    line.endpoint.x = coordinate.x - offset;
+    line.startpoint.y = coordinate.y - offset;
+    line.endpoint.y = coordinate.y + offset;
+    drawhelper_drawLine(&line);
+    // BOTTOM
+    line.startpoint.x = coordinate.x - offset;
+    line.endpoint.x = coordinate.x + offset;
+    line.startpoint.y = coordinate.y + offset;
+    line.endpoint.y = coordinate.y + offset;
+    drawhelper_drawLine(&line);
+    // RIGHT
+    line.startpoint.x = coordinate.x + offset;
+    line.endpoint.x = coordinate.x + offset;
+    line.startpoint.y = coordinate.y - offset;
+    line.endpoint.y = coordinate.y + offset;
+    drawhelper_drawLine(&line);
 }
