@@ -2,7 +2,7 @@
 
 #include <PalmOS.h>
 
-IndexedColorType colors_reference[5];
+IndexedColorType colors_reference[7];
 
 static RGBColorType colors_rgb(Int16 red, Int16 green, Int16 blue) {
     RGBColorType color;
