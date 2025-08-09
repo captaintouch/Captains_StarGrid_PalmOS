@@ -74,6 +74,12 @@ static void gameSession_scheduleSceneAnimationIfNeeded() {
     }
 }
 
+static void gameSession_resetActivePawn() {
+    Pawn dummyPawn;
+    dummyPawn.position = (Coordinate){0, 0};
+    gameSession.activePawn = &dummyPawn;
+}
+
 static void gameSession_launchGame(NewGameConfig config) {
     int faction;
     level_destroy(&gameSession.level);
@@ -95,8 +101,9 @@ static void gameSession_launchGame(NewGameConfig config) {
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
     gameSession.drawingState.shouldRedrawBackground = true;
     gameSession.continueCPUPlay = !gameActionLogic_humanShipsLeft(&gameSession);
-    gameSession.nextSceneAnimationLaunchTimestamp = TimGetTicks() + SysTicksPerSecond() * 5;
+    gameSession.nextSceneAnimationLaunchTimestamp = TimGetTicks() + SysTicksPerSecond() * 3;
     gameSession_scheduleSceneAnimationIfNeeded();
+    gameSession_resetActivePawn();
     gameSession_startTurn();
 }
 
@@ -136,9 +143,7 @@ void gameSession_reset(Boolean newGame) {
         gameSession_launchGame(config);
     } else {
         if (storage_restoreGameState(&gameSession.currentTurn, &gameSession.level.pawnCount, &gameSession.factionCount, &gameSession.factionTurn, &gameSession.level.pawns, gameSession.factions, gameSession.level.scores)) {
-            Pawn dummyPawn;
-            dummyPawn.position = (Coordinate){0, 0};
-            gameSession.activePawn = &dummyPawn;
+            gameSession_resetActivePawn();
             gameSession.menuScreenType = MENUSCREEN_GAME;
             gameSession_startTurn();
         } else {
