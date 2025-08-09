@@ -47,6 +47,7 @@ static void gameSession_loadStartMenu() {
     gameSession.activePawn = &gameSession.level.pawns[0];
     gameSession_updateViewPortOffset(true);
     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, gameSession.activePawn->position.y}, &gameSession);
+    gameSession_updateAnimatedStarPositions();
     gameSession.drawingState.shouldRedrawBackground = true;
     gameSession.drawingState.shouldRedrawHeader = true;
 }

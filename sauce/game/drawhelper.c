@@ -4,6 +4,7 @@
 
 #include "mathIsFun.h"
 #include "models.h"
+#include "../deviceinfo.h"
 #include "spriteLibrary.h"
 
 DRAWING_SECTION
@@ -89,6 +90,10 @@ void drawhelper_drawTextWithValue(char *text, int value, Coordinate position) {
 
 DRAWING_SECTION
 static void drawhelper_drawImage(ImageData *imageData, Coordinate coordinate) {
+    Coordinate screenSize = deviceinfo_screenSize();
+    if (coordinate.x > screenSize.x + 20 || coordinate.y > screenSize.y + 20 || coordinate.x < -20 || coordinate.y < -20) {
+        return;
+    }
     WinDrawBitmap(imageData->bitmapPtr, coordinate.x, coordinate.y);
 }
 
