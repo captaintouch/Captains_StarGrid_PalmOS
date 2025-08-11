@@ -12,6 +12,7 @@
 #include "hexgrid.h"
 #include "mathIsFun.h"
 #include "minimap.h"
+#include "models.h"
 #include "pawn.h"
 #include "spriteLibrary.h"
 #include "viewport.h"
@@ -271,7 +272,7 @@ static void game_drawActionTiles() {
             drawhelper_applyForeColor(CLOUDS);
             hexgrid_drawTileAtPosition(actionTile->position, true);
             if (sprite != NULL) {
-                hexgrid_drawSpriteAtTile(sprite, actionTile->position);
+                hexgrid_drawSpriteAtTile(sprite, actionTile->position, true);
             }
         }
         FntSetFont(oldFont);
@@ -370,7 +371,7 @@ static void game_drawPawns() {
         RctSetRectangle(&rect, pawnPositionConverted.x - 6, pawnPositionConverted.y - 6, 12, 12);
         drawhelper_applyForeColor(pawn_factionColor(pawn->faction, gameSession.colorSupport));
         drawhelper_fillRectangle(&rect, 0);
-        hexgrid_drawSpriteAtTile(&spriteLibrary.baseSprite, pawn->position);
+        hexgrid_drawSpriteAtTile(&spriteLibrary.baseSprite, pawn->position, true);
 
         // Draw base activity indicator
         baseActivityColor = pawn_baseActivityIndicatorColor(pawn, gameSession.colorSupport, gameSession.currentTurn);
@@ -416,7 +417,7 @@ static void game_drawPawns() {
         }
 
         if (!didDrawSprite) {
-            hexgrid_drawSpriteAtTile(shipSprite, pawnPosition);
+            hexgrid_drawSpriteAtTile(shipSprite, pawnPosition, true);
         }
     }
 
@@ -535,8 +536,22 @@ static void game_drawGameStartHeader() {
     char *text;
     Coordinate screenSize;
     int centerX;
+    int i;
     char fixedText[20];
-
+    AppColor centerTileBackgroundColor = BELIZEHOLE;
+    AppColor tintColor = CLOUDS;
+    FilledTileType filledTileType = FILLEDTILETYPE_FEATURED;
+    AppColor headerColorTop = DRACULAORCHID;
+    AppColor headerColorBottom = BELIZEHOLE;
+    Coordinate tilePositions[] = {
+        (Coordinate){-1, 0},
+        (Coordinate){0, 0},
+        (Coordinate){0, 1},
+        (Coordinate){6, 0},
+        (Coordinate){7, 0},
+        (Coordinate){7, 1},
+    };
+    int tilePositionsLength = sizeof(tilePositions) / sizeof(Coordinate);
     if (gameSession.menuScreenType == MENUSCREEN_GAME || !gameSession.drawingState.shouldRedrawHeader) {
         return;
     }
@@ -544,12 +559,36 @@ static void game_drawGameStartHeader() {
     gameSession.drawingState.shouldRedrawHeader = false;
     WinSetDrawWindow(screenBuffer);
     screenSize = deviceinfo_screenSize();
-    RctSetRectangle(&rect, 0, 0, screenSize.x, BOTTOMMENU_HEIGHT);
-    drawhelper_applyForeColor(BELIZEHOLE);
-    drawhelper_applyBackgroundColor(BELIZEHOLE);
-    drawhelper_applyTextColor(CLOUDS);
+
+    RctSetRectangle(&rect, 0, 0, screenSize.x, BOTTOMMENU_HEIGHT / 2);
+    drawhelper_applyForeColor(headerColorTop);
+    drawhelper_fillRectangle(&rect, 0);
+    RctSetRectangle(&rect, 0, BOTTOMMENU_HEIGHT / 2, screenSize.x, BOTTOMMENU_HEIGHT / 2);
+    drawhelper_applyForeColor(headerColorBottom);
     drawhelper_fillRectangle(&rect, 0);
 
+    drawhelper_applyTextColor(CLOUDS);
+    drawhelper_applyBackgroundColor(centerTileBackgroundColor);
+    drawhelper_applyForeColor(tintColor);
+
+    for (i = 0; i < tilePositionsLength; i++) {
+        hexgrid_fillTileAtPosition(tilePositions[i], false, filledTileType);
+        hexgrid_drawTileAtPosition(tilePositions[i], false);
+    }
+    hexgrid_drawSpriteAtTile(&spriteLibrary.shipFourSprite[0], (Coordinate){0, 0}, false);
+    hexgrid_drawSpriteAtTile(&spriteLibrary.shipFourSprite[3], (Coordinate){6, 0}, false);
+
+    drawhelper_drawLineBetweenCoordinates((Coordinate){0, BOTTOMMENU_HEIGHT - 1}, (Coordinate){screenSize.x, BOTTOMMENU_HEIGHT - 1});
+
+    RctSetRectangle(&rect, 50, 0, 2, 2);
+    drawhelper_applyForeColor(tintColor);
+    drawhelper_fillRectangle(&rect, 0);
+
+    RctSetRectangle(&rect, screenSize.x - 52, 0, 2, 2);
+    drawhelper_fillRectangle(&rect, 0);
+
+    RctSetRectangle(&rect, 40, 2, screenSize.x - 80, BOTTOMMENU_HEIGHT - 5);
+    drawhelper_fillRectangleWithShadow(&rect, 8, centerTileBackgroundColor, tintColor, false);
     resourceHandle = DmGetResource(strRsc, gameSession_menuTopTitleResource());
     text = (char *)MemHandleLock(resourceHandle);
     oldFont = FntSetFont(stdFont);
@@ -562,7 +601,7 @@ static void game_drawGameStartHeader() {
         int barWidth = 55;
         int currValue = gameSession_menuTopTitleResource() - STRING_RANK0;
         int maxValue = RANK_COUNT;
-        game_drawBar((Coordinate){screenSize.x / 2 - barWidth / 2, 18}, barWidth, 8, fmax(1, currValue), maxValue);
+        game_drawBar((Coordinate){screenSize.x / 2 - barWidth / 2, 17}, barWidth, 8, fmax(1, currValue), maxValue);
         text = NULL;
     } else if (gameSession_useValueForBottomTitle()) {
         StrIToA(fixedText, gameSession_valueForBottomTitle());
@@ -582,15 +621,6 @@ static void game_drawGameStartHeader() {
         MemHandleUnlock(resourceHandle);
         DmReleaseResource(resourceHandle);
     }
-
-    drawhelper_applyForeColor(SUNFLOWER);
-    hexgrid_drawTileAtPosition((Coordinate){0, 0}, false);
-    hexgrid_fillTileAtPosition((Coordinate){1, 1}, false, FILLEDTILETYPE_WARN);
-
-    hexgrid_fillTileAtPosition((Coordinate){6, 0}, false, FILLEDTILETYPE_WARN);
-    hexgrid_drawTileAtPosition((Coordinate){6, 1}, false);
-
-    drawhelper_drawLineBetweenCoordinates((Coordinate){0, BOTTOMMENU_HEIGHT - 1}, (Coordinate){screenSize.x, BOTTOMMENU_HEIGHT - 1});
 }
 
 static void game_drawBackground() {
@@ -753,7 +783,7 @@ static void game_drawBottomButtons() {
     AppColor buttonColor = pawn_factionColor(gameSession.activePawn->faction, gameSession.colorSupport) == BELIZEHOLE ? EMERALD : BELIZEHOLE;
 
     RctSetRectangle(&rect, startOffsetX, startOffsetY, buttonWidth, buttonHeight);
-    drawhelper_fillRectangleWithShadow(&rect, 4, buttonColor, ASBESTOS);
+    drawhelper_fillRectangleWithShadow(&rect, 4, buttonColor, ASBESTOS, true);
     FntSetFont(stdFont);
     drawhelper_applyTextColor(CLOUDS);
     drawhelper_applyBackgroundColor(buttonColor);
@@ -762,7 +792,7 @@ static void game_drawBottomButtons() {
     gameSession.drawingState.barButtonHeight = buttonHeight;
 
     RctSetRectangle(&rect, startOffsetX, startOffsetY + buttonHeight + 2, buttonWidth, buttonHeight);
-    drawhelper_fillRectangleWithShadow(&rect, 4, buttonColor, ASBESTOS);
+    drawhelper_fillRectangleWithShadow(&rect, 4, buttonColor, ASBESTOS, true);
     drawhelper_drawText(endText, (Coordinate){startOffsetX + (buttonWidth / 2) - (FntCharsWidth(endText, StrLen(endText)) / 2), startOffsetY + buttonHeight + 2});
     gameSession.drawingState.barButtonPositions[1] = (Coordinate){rect.topLeft.x, rect.topLeft.y};
 

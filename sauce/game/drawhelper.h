@@ -7,7 +7,7 @@
 #include "spriteLibrary.h"
 
 void drawhelper_fillRectangle(RectangleType *rect, UInt16 cornerDiam) DRAWING_SECTION;
-void drawhelper_fillRectangleWithShadow(RectangleType *rect, UInt16 cornerDiam, AppColor color, AppColor shadowColor) DRAWING_SECTION;
+void drawhelper_fillRectangleWithShadow(RectangleType *rect, UInt16 cornerDiam, AppColor color, AppColor shadowColor, Boolean bottomRightShadow) DRAWING_SECTION; 
 void drawhelper_drawCircle(Coordinate center, int radius) DRAWING_SECTION;
 void drawhelper_drawLine(Line *line) DRAWING_SECTION;
 void drawhelper_drawLineBetweenCoordinates(Coordinate startpoint, Coordinate endpoint) DRAWING_SECTION;

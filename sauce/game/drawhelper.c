@@ -2,9 +2,9 @@
 
 #include <PalmOS.h>
 
+#include "../deviceinfo.h"
 #include "mathIsFun.h"
 #include "models.h"
-#include "../deviceinfo.h"
 #include "spriteLibrary.h"
 
 DRAWING_SECTION
@@ -13,9 +13,13 @@ void drawhelper_fillRectangle(RectangleType *rect, UInt16 cornerDiam) {
 }
 
 DRAWING_SECTION
-void drawhelper_fillRectangleWithShadow(RectangleType *rect, UInt16 cornerDiam, AppColor color, AppColor shadowColor) {
+void drawhelper_fillRectangleWithShadow(RectangleType *rect, UInt16 cornerDiam, AppColor color, AppColor shadowColor, Boolean bottomRightShadow) {
     RectangleType shadowRect;
-    RctSetRectangle(&shadowRect, rect->topLeft.x, rect->topLeft.y, rect->extent.x + 1, rect->extent.y + 1);
+    if (bottomRightShadow) {
+        RctSetRectangle(&shadowRect, rect->topLeft.x, rect->topLeft.y, rect->extent.x + 1, rect->extent.y + 1);
+    } else {
+        RctSetRectangle(&shadowRect, rect->topLeft.x - 1, rect->topLeft.y -1, rect->extent.x + 2, rect->extent.y + 2);
+    }
     drawhelper_applyForeColor(shadowColor);
     WinPaintRectangle(&shadowRect, cornerDiam);
     drawhelper_applyForeColor(color);

@@ -198,8 +198,8 @@ Coordinate hexgrid_size() {
 }
 
 HEXGRID_SECTION
-void hexgrid_drawSpriteAtTile(ImageSprite* imageSprite, Coordinate hexPosition) {
+void hexgrid_drawSpriteAtTile(ImageSprite* imageSprite, Coordinate hexPosition, Boolean adjustForViewport) {
     Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
     Coordinate centerPosition = (Coordinate){startPosition.x + HEXTILE_SIZE / 2, startPosition.y + HEXTILE_SIZE / 2};
-    drawhelper_drawSprite(imageSprite, viewport_convertedCoordinate(centerPosition));
+    drawhelper_drawSprite(imageSprite, adjustForViewport ? viewport_convertedCoordinate(centerPosition) : centerPosition);
 }
