@@ -543,6 +543,7 @@ static void game_drawGameStartHeader() {
     FilledTileType filledTileType = FILLEDTILETYPE_FEATURED;
     AppColor headerColorTop = DRACULAORCHID;
     AppColor headerColorBottom = BELIZEHOLE;
+    AppColor textColor = CLOUDS;
     Coordinate tilePositions[] = {
         (Coordinate){-1, 0},
         (Coordinate){0, 0},
@@ -567,7 +568,7 @@ static void game_drawGameStartHeader() {
     drawhelper_applyForeColor(headerColorBottom);
     drawhelper_fillRectangle(&rect, 0);
 
-    drawhelper_applyTextColor(CLOUDS);
+    drawhelper_applyTextColor(textColor);
     drawhelper_applyBackgroundColor(centerTileBackgroundColor);
     drawhelper_applyForeColor(tintColor);
 
@@ -587,7 +588,7 @@ static void game_drawGameStartHeader() {
     RctSetRectangle(&rect, screenSize.x - 52, 0, 2, 2);
     drawhelper_fillRectangle(&rect, 0);
 
-    RctSetRectangle(&rect, 40, 2, screenSize.x - 80, BOTTOMMENU_HEIGHT - 5);
+    RctSetRectangle(&rect, 36, 2, screenSize.x - 72, BOTTOMMENU_HEIGHT - 5);
     drawhelper_fillRectangleWithShadow(&rect, 8, centerTileBackgroundColor, tintColor, false);
     resourceHandle = DmGetResource(strRsc, gameSession_menuTopTitleResource());
     text = (char *)MemHandleLock(resourceHandle);
