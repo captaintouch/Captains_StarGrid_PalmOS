@@ -291,16 +291,7 @@ static void game_drawGridTexts() {
         GridText *gridText = &gameSession.level.gridTexts[i];
         FilledTileType color = gridText->alternateColor ? FILLEDTILETYPE_ATTACK : FILLEDTILETYPE_FEATURED;
         AppColor bgColor = gridText->alternateColor ? ALIZARIN : BELIZEHOLE;
-        MemHandle resourceHandle;
-        Char *text;
-
-        if (gridText->textResource > 0) {
-            resourceHandle = DmGetResource(strRsc, gridText->textResource);
-            text = (char *)MemHandleLock(resourceHandle);
-        } else {
-            text = gridText->fixedText;
-        }
-
+        Char *text = gridText->fixedText;
         if (gridText->simpleText) {
             Coordinate drawPosition = viewport_convertedCoordinate(hexgrid_tileCenterPosition(gridText->position));
             int offset = gridText->position.y % 2 == 0 ? -(HEXTILE_SIZE / 2) : 0;
@@ -321,11 +312,6 @@ static void game_drawGridTexts() {
 
                 drawhelper_drawTextCentered(currChar, (Coordinate){drawPosition.x, drawPosition.y}, 0, 0);
             }
-        }
-
-        if (gridText->textResource > 0) {
-            MemHandleUnlock(resourceHandle);
-            DmReleaseResource(resourceHandle);
         }
     }
     FntSetFont(oldFont);

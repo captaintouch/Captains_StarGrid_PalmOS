@@ -9,6 +9,15 @@
 #include "pawn.h"
 
 LEVEL_SECTION
+static void level_text(char *fixedText, DmResID textResource) {
+    MemHandle resourceHandle = DmGetResource(strRsc, textResource);
+    char *resourceText = (char *)MemHandleLock(resourceHandle);
+    StrCopy(fixedText, resourceText);
+    MemHandleUnlock(resourceHandle);
+    DmReleaseResource(resourceHandle);
+}
+
+LEVEL_SECTION
 static void level_scoreText(char *fixedText, DmResID textResource, int value) {
     MemHandle resourceHandle = DmGetResource(strRsc, textResource);
     char *resourceText = (char *)MemHandleLock(resourceHandle);
@@ -71,8 +80,11 @@ Level level_startLevel() {
     MemSet(level.gridTexts, sizeof(GridText) * 3, 0);
     level.gridTextCount = 3;
     level.gridTexts[0] = (GridText){(Coordinate){1, 2}, (Coordinate){0, 0}, STRING_NEW, NULL, false, false};
+    level_text(level.gridTexts[0].fixedText, STRING_NEW); 
     level.gridTexts[1] = (GridText){(Coordinate){1, 4}, (Coordinate){0, 0}, STRING_RANK, NULL, false, false};
+    level_text(level.gridTexts[1].fixedText, STRING_RANK); 
     level.gridTexts[2] = (GridText){(Coordinate){1, 6}, (Coordinate){0, 0}, STRING_ABOUT, NULL, false, false};
+    level_text(level.gridTexts[2].fixedText, STRING_ABOUT); 
 
     return level;
 }
