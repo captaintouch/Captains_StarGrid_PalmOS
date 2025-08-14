@@ -126,13 +126,19 @@ void hexgrid_fillTileAtPosition(Coordinate hexPosition, Boolean adjustForViewpor
 
 HEXGRID_SECTION
 void hexgrid_drawEntireGrid(Boolean adjustForViewport) {
-    Coordinate screenSize = deviceinfo_screenSize();
+    int i, j;
+    drawhelper_applyForeColor(ASBESTOS);
+    for (i = 0; i < HEXGRID_COLS; i++) {
+        for (j = 0; j < HEXGRID_ROWS; j++) {
+            Coordinate targetPosition = hexgrid_tileStartPosition(i, j);
+            hexgrid_drawTile(targetPosition.x, targetPosition.y);
+        }
+    }
+    /*Coordinate screenSize = deviceinfo_screenSize();
     Coordinate center = viewport_convertedCoordinateInverted((Coordinate){screenSize.x / 2, screenSize.y / 2});
     Coordinate centerTile = hexgrid_tileAtPixel(center.x, center.y);
     Coordinate startPosition = hexgrid_tileStartPosition(centerTile.x, centerTile.y);
     WinHandle drawWindow = WinGetDrawWindow();
-    int i, j;
-    drawhelper_applyForeColor(ASBESTOS);
     hexgrid_drawTileAtPosition(centerTile, adjustForViewport);
     if (adjustForViewport) {
         startPosition = viewport_convertedCoordinate(startPosition);
@@ -156,6 +162,7 @@ void hexgrid_drawEntireGrid(Boolean adjustForViewport) {
             WinCopyRectangle(drawWindow, drawWindow, &rect, targetPosition.x, targetPosition.y, winPaint);
         }
     }
+    */
 }
 
 HEXGRID_SECTION

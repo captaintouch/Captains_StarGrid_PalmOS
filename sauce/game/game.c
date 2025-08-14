@@ -503,11 +503,23 @@ static void game_drawBottomMenu() {
 }
 
 static void game_drawBackdrop() {
+    int i;
     Coordinate gridSize = hexgrid_size();
     RectangleType rect;
     RctSetRectangle(&rect, 0, 0, gridSize.x, gridSize.y);
     drawhelper_applyForeColor(DRACULAORCHID);
     drawhelper_fillRectangle(&rect, 0);
+    if (deviceinfo_colorSupported()) {
+        ImageSprite nebulaSprite = spriteLibrary_nebulaSprite();
+        if (gameSession.menuScreenType == MENUSCREEN_GAME) {
+            for (i = 0; i < 8; i++) {
+                drawhelper_drawSprite(&nebulaSprite, (Coordinate){random(-20, gridSize.x - 50), random(-20, gridSize.y - 50)});
+            }
+        } else {
+            drawhelper_drawSprite(&nebulaSprite, (Coordinate){20, 20});
+        }
+        drawhelper_releaseImage(nebulaSprite.imageData);
+    }
 }
 
 static void game_drawStars() {

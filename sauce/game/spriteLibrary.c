@@ -123,6 +123,7 @@ void spriteLibrary_initialize() {
     spriteLibrary.cometSprite.imageData =
         drawhelper_loadImage(spriteLibrary.cometSprite.resourceId);
 
+
     spriteLibrary.cpuSprite = (ImageSprite){
         GFX_RES_CPUPLAYER,
         (Coordinate){16, 16},
@@ -193,6 +194,16 @@ void spriteLibrary_clean() {
     drawhelper_releaseImage(spriteLibrary.tileWarnSprite.imageData);
     drawhelper_releaseImage(spriteLibrary.tileFeaturedSprite.imageData);
     spriteLibrary.initialized = false;
+}
+
+ImageSprite spriteLibrary_nebulaSprite() {
+
+    ImageSprite nebulaSprite = (ImageSprite){
+        GFX_RES_NEBULA,
+        (Coordinate){16, 16},
+    };
+    nebulaSprite.imageData = drawhelper_loadImage(GFX_RES_NEBULA);
+    return nebulaSprite;
 }
 
 ImageSprite *spriteLibrary_factionShipSprite(int faction) {
