@@ -68,7 +68,7 @@ void spriteLibrary_initialize() {
         drawhelper_loadImage(spriteLibrary.baseSprite.resourceId);
 
     spriteLibrary.healthSprite = (ImageSprite){
-        GFX_RES_HEALTHBW,
+        GFX_RES_HEALTH,
         (Coordinate){8, 8},
     };
     spriteLibrary.healthSprite.imageData =

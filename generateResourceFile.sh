@@ -5,6 +5,7 @@ hOutputFile="sauce/graphicResources.h"
 assetsPath="resources/assets/"
 fileSuffix=".bmp"
 fileHiResSuffix="-144.bmp"
+fileBWSuffix="_bw.bmp"
 hires=0
 if [ "$1" == "--hires" ]; then
     hires=1
@@ -24,11 +25,14 @@ do
     echo "BITMAPFAMILY ID $identifier" >> $rcpOutputFile
     echo "BEGIN" >> $rcpOutputFile
     hiresFile=$assetsPath$name$fileHiResSuffix
+    bwFile=$assetsPath$name$fileBWSuffix
     if [ $hires == 1 ] && [ -f $hiresFile ]; then
         echo "	BITMAP \"$assetsPath$name$fileHiResSuffix\" BPP 8 TRANSPARENTINDEX 4 DENSITY 144 COMPRESS"  >> $rcpOutputFile
     else
         echo "	BITMAP \"$assetsPath$name$fileSuffix\" BPP 8 TRANSPARENTINDEX 4 COMPRESS"  >> $rcpOutputFile
-        #echo "	BITMAP \"$assetsPath$name$fileSuffix\" BPP 4 TRANSPARENTINDEX 4 COMPRESS"  >> $rcpOutputFile
+	if [ -f $bwFile ]; then
+		echo "	BITMAP \"$assetsPath$name$fileBWSuffix\" BPP 4 TRANSPARENTINDEX 4 COMPRESS"  >> $rcpOutputFile
+	fi
     fi
     echo "END"  >> $rcpOutputFile
 
