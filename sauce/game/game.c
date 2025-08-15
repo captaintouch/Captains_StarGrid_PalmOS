@@ -227,6 +227,7 @@ static void game_drawActionTiles() {
         ImageSprite *sprite;
         Coordinate tileCenterCoordinate = viewport_convertedCoordinate(hexgrid_tileCenterPosition(actionTile->position));
         drawhelper_applyTextColor(deviceinfo_colorSupported() ? CLOUDS : BELIZEHOLE);
+        drawhelper_applyForeColor(deviceinfo_colorSupported() ? CLOUDS : BELIZEHOLE);
         oldFont = FntSetFont(largeBoldFont);
         if (actionTile->hidden) {
             drawhelper_applyBackgroundColor(DRACULAORCHID);
@@ -235,7 +236,7 @@ static void game_drawActionTiles() {
         } else {
             if (actionTile->selected) {
                 drawhelper_applyBackgroundColor(BELIZEHOLE);
-                drawhelper_applyForeColor(BELIZEHOLE);
+                drawhelper_applyForeColor(deviceinfo_colorSupported() ? CLOUDS : ALIZARIN);
                 drawhelper_applyTextColor(CLOUDS);
                 hexgrid_fillTileAtPosition(actionTile->position, true, FILLEDTILETYPE_FEATURED);
             } else {
