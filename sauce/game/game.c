@@ -296,7 +296,7 @@ static void game_drawGridTexts() {
         if (gridText->simpleText) {
             Coordinate drawPosition = viewport_convertedCoordinate(hexgrid_tileCenterPosition(gridText->position));
             int offset = gridText->position.y % 2 == 0 ? -(HEXTILE_SIZE / 2) : 0;
-            drawhelper_applyTextColor(CLOUDS);
+            drawhelper_applyTextColor(deviceinfo_colorSupported() ? CLOUDS : BELIZEHOLE);
             drawhelper_applyBackgroundColor(DRACULAORCHID);
             drawhelper_drawText(text, (Coordinate){drawPosition.x - HEXTILE_SIZE / 2 + offset + gridText->textOffset.x, drawPosition.y - HEXTILE_SIZE / 2 + gridText->textOffset.y});
         } else {

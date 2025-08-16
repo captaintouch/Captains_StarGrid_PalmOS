@@ -287,7 +287,9 @@ void level_addScorePawns(Level *level, int faction) {
     level->gridTextCount = 6;
     level->gridTexts = MemPtrNew(sizeof(GridText) * (level->gridTextCount));
     level->gridTexts[0] = (GridText){(Coordinate){0, 1}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_DESTROYED, "", false, true, false};
+    level_text(level->gridTexts[0].fixedText, STRING_DESTROYED); 
     level->gridTexts[1] = (GridText){(Coordinate){0, 3}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_CAPTURED, "", false, true, false};
+    level_text(level->gridTexts[1].fixedText, STRING_CAPTURED); 
     level->gridTexts[2] = (GridText){(Coordinate){0, 2}, (Coordinate){HEXTILE_SIZE / 2, 4}, 0, "", false, true, false};
     StrIToA(level->gridTexts[2].fixedText, totalDestroyed);
     level->gridTexts[3] = (GridText){(Coordinate){0, 4}, (Coordinate){HEXTILE_SIZE / 2, 4}, 0, "", false, true, false};
@@ -410,6 +412,7 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
     level->gridTexts = updatedGridTexts;
 
     level->gridTexts[level->gridTextCount] = (GridText){(Coordinate){8, 6}, (Coordinate){0, 0}, STRING_PLAYERS, "", false, true};
+    level_text(level->gridTexts[level->gridTextCount].fixedText, STRING_PLAYERS);
     level->gridTextCount = level->gridTextCount + 1;
 
     level_applyNewGameConfig(newGameConfig, level);
