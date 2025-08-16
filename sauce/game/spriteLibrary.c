@@ -158,6 +158,15 @@ void spriteLibrary_initialize() {
             drawhelper_loadImage(spriteLibrary.starAnimation[i].resourceId);
     }
 
+    for (i = 0; i < GFX_FRAMECOUNT_FACTIONINDICATOR; i++) {
+        spriteLibrary.factionIndicator[i] = (ImageSprite){
+            GFX_RES_FACTIONINDICATOR_0 + i,
+            (Coordinate){11, 10},
+        };
+        spriteLibrary.factionIndicator[i].imageData =
+            drawhelper_loadImage(spriteLibrary.factionIndicator[i].resourceId);
+    }
+
     spriteLibrary.initialized = true;
 }
 
@@ -183,6 +192,9 @@ void spriteLibrary_clean() {
     }
     for (i = 0; i < GFX_FRAMECOUNT_STARANIM; i++) {
         drawhelper_releaseImage(spriteLibrary.starAnimation[i].imageData);
+    }
+    for (i = 0; i < GFX_FRAMECOUNT_FACTIONINDICATOR; i++) {
+        drawhelper_releaseImage(spriteLibrary.factionIndicator[i].imageData);
     }
     drawhelper_releaseImage(spriteLibrary.baseSprite.imageData);
     drawhelper_releaseImage(spriteLibrary.healthSprite.imageData);

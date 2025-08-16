@@ -419,31 +419,9 @@ static void game_drawPawns() {
             game_drawFlag(viewport_convertedCoordinate(pawnPosition), pawn_factionColor(pawn->inventory.flagOfFaction, gameSession.colorSupport));
         }
         // Draw faction indicator
-        if (gameSession.colorSupport) {
-            /*
-            RectangleType flagRect;
-            Coordinate target = viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 10});
-            RctSetRectangle(&flagRect, target.x, target.y, 5, 5);
-            drawhelper_applyForeColor(pawn_factionColor(pawn->faction, gameSession.colorSupport));
-            drawhelper_fillRectangle(&flagRect, 0);
-            */
-        } else {
-            char symbolChar[2];
-            FontID oldFont = FntSetFont(symbolFont);
+        if (!gameSession.colorSupport) {
             Coordinate position = viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 12});
-            RectangleType rect;
-            int width;
-            symbolChar[0] = 0x17 + pawn->faction;
-            symbolChar[1] = '\0';
-            width = FntCharsWidth(symbolChar, StrLen(symbolChar));
-            RctSetRectangle(&rect, position.x - 2, position.y, width + 2, 11);
-            drawhelper_applyForeColor(ASBESTOS);
-            drawhelper_applyBackgroundColor(ASBESTOS);
-            drawhelper_applyTextColor(CLOUDS);
-
-            drawhelper_fillRectangle(&rect, 0);
-            drawhelper_drawText(symbolChar, position);
-            FntSetFont(oldFont);
+            drawhelper_drawSprite(&spriteLibrary.factionIndicator[pawn->faction], position);
         }
 
         if (gameSession_shouldShowHealthBar() && gameSession.factionTurn != gameSession.level.pawns[i].faction) {

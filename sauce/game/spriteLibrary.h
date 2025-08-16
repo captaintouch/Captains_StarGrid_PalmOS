@@ -33,6 +33,7 @@ typedef struct SpriteLibrary {
     ImageSprite torpedoAnimation[GFX_FRAMECOUNT_TORP];
     ImageSprite explosionAnimation[GFX_FRAMECOUNT_EXPLOSION];
     ImageSprite starAnimation[GFX_FRAMECOUNT_STARANIM];
+    ImageSprite factionIndicator[GFX_FRAMECOUNT_FACTIONINDICATOR];
     ImageSprite healthSprite;
     ImageSprite humanSprite;
     ImageSprite cpuSprite;
