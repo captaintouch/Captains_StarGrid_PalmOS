@@ -161,7 +161,7 @@ void spriteLibrary_initialize() {
     for (i = 0; i < GFX_FRAMECOUNT_FACTIONINDICATOR; i++) {
         spriteLibrary.factionIndicator[i] = (ImageSprite){
             GFX_RES_FACTIONINDICATOR_0 + i,
-            (Coordinate){11, 10},
+            (Coordinate){5, 5},
         };
         spriteLibrary.factionIndicator[i].imageData =
             drawhelper_loadImage(spriteLibrary.factionIndicator[i].resourceId);

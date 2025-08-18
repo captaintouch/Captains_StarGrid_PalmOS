@@ -420,7 +420,11 @@ static void game_drawPawns() {
         }
         // Draw faction indicator
         if (!gameSession.colorSupport) {
-            Coordinate position = viewport_convertedCoordinate((Coordinate){pawnPosition.x + 5, pawnPosition.y - 12});
+            Coordinate position = viewport_convertedCoordinate(pawnPosition);
+            if (pawn->type == PAWNTYPE_SHIP) {
+                position.x += 6;
+                position.y -= 8;
+            }
             drawhelper_drawSprite(&spriteLibrary.factionIndicator[pawn->faction], position);
         }
 
