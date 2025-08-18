@@ -608,8 +608,9 @@ static void gameSession_handleTargetSelection() {
     Coordinate convertedPoint = viewport_convertedCoordinateInverted(gameSession.lastPenInput.touchCoordinate);
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
     Pawn *selectedPawn = level_pawnAtTile(selectedTile, &gameSession.level);
-    Boolean invalidTile = gameSession.targetSelectionType != TARGETSELECTIONTYPE_MOVE && selectedPawn == NULL;
-    if (!gameSession_highlightTilesContains(selectedTile) || invalidTile) {
+    Boolean unselectableTile = !gameSession_highlightTilesContains(selectedTile);
+    Boolean invalidAttackTarget = gameSession.targetSelectionType != TARGETSELECTIONTYPE_MOVE && (selectedPawn == NULL || selectedPawn->faction == gameSession.activePawn->faction);
+    if (unselectableTile || invalidAttackTarget) {
         gameSession_resetHighlightTiles();
         gameSession.state = GAMESTATE_DEFAULT;
         return;
