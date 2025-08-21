@@ -24,7 +24,6 @@
 #define WARPINITIALTIME 0.4
 
 static void gameSession_resetHighlightTiles();
-static void gameSession_moveCameraToPawn(Pawn *pawn);
 static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn);
 static void gameSession_startTurn();
 static void gameSession_updateAnimatedStarPositions();
@@ -333,11 +332,6 @@ static Pawn *gameSession_nextPawn(Boolean allPawns, Boolean onlyWithAvailableAct
     return level_nextPawn(gameSession.activePawn, allPawns, onlyWithAvailableActions, gameSession.factionTurn, gameSession.currentTurn, &gameSession.level);
 }
 
-static void gameSession_moveCameraToPawn(Pawn *pawn) {
-    gameSession.cameraPawn = (Pawn){PAWNTYPE_SHIP, gameSession.activePawn->position, (Inventory){-1, 0, 0, BASEACTION_NONE, false}, 0, 0, false, false};
-    gameActionLogic_scheduleMovement(&gameSession.cameraPawn, NULL, pawn->position, &gameSession);
-}
-
 static void gameSession_buildShip(Pawn *homeBase) {
     Coordinate oldActivePawnPosition = gameSession.activePawn->position;
     Coordinate closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
@@ -366,7 +360,7 @@ static void gameSession_startTurn() {
         }
     }
     gameSession_updateAnimatedStarPositions();
-    gameSession_moveCameraToPawn(nextPawn);
+    gameActionLogic_moveCameraToPawn(nextPawn, &gameSession);
     gameSession.activePawn = nextPawn;
     gameSession.lastPenInput.wasUpdatedFlag = false;
     gameSession.disableAutoMoveToNextPawn = false;
@@ -979,7 +973,7 @@ static Boolean moveToNextPawnIfNeeded() {
 
     // move camera to active pawn
     if (!gameSession_isViewPortOffsetToPawn(pawn)) {
-        gameSession_moveCameraToPawn(pawn);
+        gameActionLogic_moveCameraToPawn(pawn, &gameSession);
         gameSession.activePawn = pawn;
     } else {
         gameSession.activePawn = pawn;

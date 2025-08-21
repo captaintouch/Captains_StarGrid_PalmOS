@@ -20,5 +20,6 @@ void gameActionLogic_scheduleAttack(Pawn *targetPawn, Coordinate selectedTile, T
 void gameActionLogic_scheduleShockwave(Pawn *basePawn, GameSession *session) GAMEACTIONLOGIC_SECTION;
 UInt8 gameActionLogic_maxRange(TargetSelectionType targetSelectionType) GAMEACTIONLOGIC_SECTION;
 Boolean gameActionLogic_humanShipsLeft(GameSession *session) GAMEACTIONLOGIC_SECTION;
+void gameActionLogic_moveCameraToPawn(Pawn *pawn, GameSession *session) GAMEACTIONLOGIC_SECTION;
 
 #endif

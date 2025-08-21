@@ -34,12 +34,20 @@ static void gameActionLogic_askForAfterGameOptions() {
 }
 
 GAMEACTIONLOGIC_SECTION
+void gameActionLogic_moveCameraToPawn(Pawn *pawn, GameSession *session) {
+    session->cameraPawn = (Pawn){PAWNTYPE_SHIP, session->activePawn->position, (Inventory){-1, 0, 0, BASEACTION_NONE, false}, 0, 0, false, false};
+    gameActionLogic_scheduleMovement(&session->cameraPawn, NULL, pawn->position, session);
+}
+
+GAMEACTIONLOGIC_SECTION
 static void gameActionLogic_showScore(GameSession *session) {
     DmResID oldRank = scoring_rankForScore(scoring_loadSavedScore());
     DmResID newRank;
     Pawn oldPawn;
+    Pawn navigationPawn;
     int i, humanCount = 0;
     oldPawn = *session->activePawn;
+    navigationPawn = (Pawn){PAWNTYPE_SHIP, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, 0}, (Inventory){-1, 0, 0, BASEACTION_NONE, false}, 0, 0, false, false};
     for (i = 0; i < session->factionCount; i++) {
         if (session->factions[i].human) {
             humanCount++;
@@ -71,7 +79,9 @@ static void gameActionLogic_showScore(GameSession *session) {
 
         session->activePawn = level_pawnAtTile(oldPawn.position, &session->level);
     }
-    gameActionLogic_scheduleMovement(session->activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, 0}, session);
+    level_addPawn(navigationPawn, &session->level);
+    gameActionLogic_moveCameraToPawn(&navigationPawn, session);
+    session->activePawn = level_pawnAtTile(navigationPawn.position, &session->level);
 }
 
 GAMEACTIONLOGIC_SECTION
