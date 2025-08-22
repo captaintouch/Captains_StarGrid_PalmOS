@@ -79,6 +79,16 @@ static void gameSession_resetActivePawn() {
     gameSession.activePawn = &dummyPawn;
 }
 
+
+static void gameSession_openMenu() {
+    EventType event;
+    MemSet(&event, sizeof(EventType), 0);
+    event.eType = keyDownEvent;
+    event.data.keyDown.chr = vchrMenu;
+    event.data.keyDown.modifiers = commandKeyMask;
+    EvtAddEventToQueue(&event);
+}
+
 static void gameSession_launchGame(NewGameConfig config) {
     int faction;
     level_destroy(&gameSession.level);
@@ -496,6 +506,7 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
             return true;
         }
     }
+    return false;
 }
 
 static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
@@ -566,6 +577,15 @@ static Boolean gameSession_handleTileTap() {
         gameSession.activePawn = selectedPawn;
         gameSession_updateViewPortOffset(true);
         gameSession_showPawnActions();
+        return true;
+    }
+    return false;
+}
+
+static Boolean gameSession_handleHeaderTap() {
+    Coordinate touchPoint = gameSession.lastPenInput.touchCoordinate;
+    if (gameSession.menuScreenType != MENUSCREEN_GAME && touchPoint.y < BOTTOMMENU_HEIGHT) {
+        gameSession_openMenu();
         return true;
     }
     return false;
@@ -1020,6 +1040,7 @@ void gameSession_progressLogic() {
                         case GAMESTATE_DEFAULT:
                             if (gameSession_handleMiniMapTap()) break;
                             if (gameSession_handleTileTap()) return;
+                            if (gameSession_handleHeaderTap()) return;
                             if (gameSession_handleBarButtonsTap()) break;
                             break;
                         case GAMESTATE_CHOOSEPAWNACTION:
