@@ -2,12 +2,11 @@
 #include "spriteLibrary.h"
 #define ALLOW_ACCESS_TO_INTERNALS_OF_WINDOWS
 #define ALLOW_ACCESS_TO_INTERNALS_OF_BITMAPS
-#include "hexgrid.h"
-
 #include "../constants.h"
 #include "../deviceinfo.h"
 #include "colors.h"
 #include "drawhelper.h"
+#include "hexgrid.h"
 #include "mathIsFun.h"
 #include "models.h"
 #include "viewport.h"
@@ -103,23 +102,23 @@ void hexgrid_drawTileAtPosition(Coordinate hexPosition, Boolean adjustForViewpor
 HEXGRID_SECTION
 void hexgrid_fillTileAtPosition(Coordinate hexPosition, Boolean adjustForViewport, FilledTileType tileType) {
     Coordinate startPosition = hexgrid_tileCenterPosition(hexPosition);
-    ImageSprite *sprite;
+    ImageSprite* sprite;
     if (adjustForViewport) {
         startPosition = viewport_convertedCoordinate(startPosition);
     }
     switch (tileType) {
         case FILLEDTILETYPE_FEATURED:
-        sprite = &spriteLibrary.tileFeaturedSprite;
-        break;
+            sprite = &spriteLibrary.tileFeaturedSprite;
+            break;
         case FILLEDTILETYPE_MOVE:
-        sprite = &spriteLibrary.tileMoveSprite;
-        break;
+            sprite = &spriteLibrary.tileMoveSprite;
+            break;
         case FILLEDTILETYPE_WARN:
-        sprite = &spriteLibrary.tileWarnSprite;
-        break;
+            sprite = &spriteLibrary.tileWarnSprite;
+            break;
         case FILLEDTILETYPE_ATTACK:
-        sprite = &spriteLibrary.tileAttackSprite;
-        break;
+            sprite = &spriteLibrary.tileAttackSprite;
+            break;
     }
     drawhelper_drawSprite(sprite, startPosition);
 }
@@ -127,42 +126,20 @@ void hexgrid_fillTileAtPosition(Coordinate hexPosition, Boolean adjustForViewpor
 HEXGRID_SECTION
 void hexgrid_drawEntireGrid(Boolean adjustForViewport) {
     int i, j;
+    Coordinate screenSize = deviceinfo_screenSize();
     drawhelper_applyForeColor(ASBESTOS);
     for (i = 0; i < HEXGRID_COLS; i++) {
         for (j = 0; j < HEXGRID_ROWS; j++) {
             Coordinate targetPosition = hexgrid_tileStartPosition(i, j);
-            hexgrid_drawTile(targetPosition.x, targetPosition.y);
-        }
-    }
-    /*Coordinate screenSize = deviceinfo_screenSize();
-    Coordinate center = viewport_convertedCoordinateInverted((Coordinate){screenSize.x / 2, screenSize.y / 2});
-    Coordinate centerTile = hexgrid_tileAtPixel(center.x, center.y);
-    Coordinate startPosition = hexgrid_tileStartPosition(centerTile.x, centerTile.y);
-    WinHandle drawWindow = WinGetDrawWindow();
-    hexgrid_drawTileAtPosition(centerTile, adjustForViewport);
-    if (adjustForViewport) {
-        startPosition = viewport_convertedCoordinate(startPosition);
-    }
-
-    for (i = 0; i < HEXGRID_COLS; i++) {
-        for (j = 0; j < HEXGRID_ROWS; j++) {
-            RectangleType rect;
-            Coordinate targetPosition = hexgrid_tileStartPosition(i, j);
-            if (i == centerTile.x && j == centerTile.y) {
-                continue;
-            }
-            // copy the pattern
             if (adjustForViewport) {
                 targetPosition = viewport_convertedCoordinate(targetPosition);
                 if (targetPosition.x + HEXTILE_SIZE < 0 || targetPosition.y + HEXTILE_SIZE < 0 || targetPosition.x - HEXTILE_SIZE > screenSize.x || targetPosition.y - HEXTILE_SIZE > screenSize.y - BOTTOMMENU_HEIGHT) {
                     continue;
                 }
             }
-            RctSetRectangle(&rect, startPosition.x, startPosition.y, HEXTILE_SIZE + 1, HEXTILE_SIZE + 1);
-            WinCopyRectangle(drawWindow, drawWindow, &rect, targetPosition.x, targetPosition.y, winPaint);
+            hexgrid_drawTile(targetPosition.x, targetPosition.y);
         }
     }
-    */
 }
 
 HEXGRID_SECTION
