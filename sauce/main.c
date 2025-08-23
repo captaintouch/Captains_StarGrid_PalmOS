@@ -18,7 +18,7 @@ static UInt32 applyScreenMode() {
 
 static void checkHiResSupport() {
     #ifdef HIRESBUILD
-    if (!deviceinfo_isRunningMinimalOSVersion(5) || !deviceinfo_supportsHiDensity()) {
+    if (!deviceinfo_isRunningMinimalOSVersion(4) || !deviceinfo_supportsHiDensity()) {
         ErrFatalDisplay("Please install lowres version");
     }
     #endif
