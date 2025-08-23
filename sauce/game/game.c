@@ -329,7 +329,7 @@ static void game_drawAnimatedStars() {
     int i;
     for (i = 0; i < BACKDROP_ANIMATEDSTARCOUNT; i++) {
         Coordinate coordinate = viewport_convertedCoordinate(gameSession.animatedStarCoordinates[i]);
-        drawhelper_drawAnimatedLoopingSprite(spriteLibrary.starAnimation, GFX_FRAMECOUNT_STARANIM, coordinate, 3, i, 5);
+        drawhelper_drawAnimatedLoopingSprite(spriteLibrary.starAnimation, GFX_FRAMECOUNT_STARANIM, coordinate, 3, i, i % 2 ? 9 : 5);
     }
 }
 
