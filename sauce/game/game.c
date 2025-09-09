@@ -5,6 +5,7 @@
 #include "../constants.h"
 #include "../deviceinfo.h"
 #include "../graphicResources.h"
+#include "PalmTypes.h"
 #include "TimeMgr.h"
 #include "colors.h"
 #include "drawhelper.h"
@@ -163,7 +164,7 @@ static void game_drawHighlightTiles() {  // Tiles that need to be highlighted (f
     }
 }
 
-static void game_drawFlag(Coordinate position, AppColor color) {
+static void game_drawFlag(Coordinate position, AppColor color, Boolean colorSupport, int faction) {
     RectangleType rectFlag, rectPole;
     RctSetRectangle(&rectFlag, position.x - 10, position.y - 2, 7, 5);
     RctSetRectangle(&rectPole, position.x - 10, position.y + 2, 3, 6);
@@ -176,6 +177,10 @@ static void game_drawFlag(Coordinate position, AppColor color) {
     drawhelper_applyForeColor(color);
     drawhelper_fillRectangle(&rectFlag, 0);
     drawhelper_fillRectangle(&rectPole, 0);
+    if (!colorSupport) {
+        Coordinate factionIndicatorPosition = (Coordinate){position.x - 6, position.y + 1};
+        drawhelper_drawSprite(&spriteLibrary.factionIndicator[faction], factionIndicatorPosition);
+    }
 }
 
 static ImageSprite *game_spriteForPawn(Pawn *pawn) {
@@ -416,7 +421,7 @@ static void game_drawPawns() {
             continue;
         }
         if (pawn->inventory.carryingFlag) {
-            game_drawFlag(viewport_convertedCoordinate(pawnPosition), pawn_factionColor(pawn->inventory.flagOfFaction, gameSession.colorSupport));
+            game_drawFlag(viewport_convertedCoordinate(pawnPosition), pawn_factionColor(pawn->inventory.flagOfFaction, gameSession.colorSupport), gameSession.colorSupport, pawn->inventory.flagOfFaction);
         }
         // Draw faction indicator
         if (!gameSession.colorSupport) {
@@ -425,7 +430,9 @@ static void game_drawPawns() {
                 position.x += 6;
                 position.y -= 8;
             }
-            drawhelper_drawSprite(&spriteLibrary.factionIndicator[pawn->faction], position);
+            if (pawn->type == PAWNTYPE_SHIP || (pawn->type == PAWNTYPE_BASE && !pawn->inventory.carryingFlag)) {
+                drawhelper_drawSprite(&spriteLibrary.factionIndicator[pawn->faction], position);
+            }
         }
 
         if (gameSession_shouldShowHealthBar() && gameSession.factionTurn != gameSession.level.pawns[i].faction) {
@@ -747,7 +754,7 @@ static void game_drawBottomActivePawnStats() {
     }
 
     if (gameSession.activePawn->inventory.carryingFlag) {
-        game_drawFlag((Coordinate){gameSession.drawingState.miniMapDrawPosition.x + gameSession.drawingState.miniMapSize.x + 1, screenSize.y - 7}, pawn_factionColor(gameSession.activePawn->inventory.flagOfFaction, gameSession.colorSupport));
+        game_drawFlag((Coordinate){gameSession.drawingState.miniMapDrawPosition.x + gameSession.drawingState.miniMapSize.x + 1, screenSize.y - 7}, pawn_factionColor(gameSession.activePawn->inventory.flagOfFaction, gameSession.colorSupport), gameSession.colorSupport, gameSession.activePawn->inventory.flagOfFaction);
     }
 }
 
