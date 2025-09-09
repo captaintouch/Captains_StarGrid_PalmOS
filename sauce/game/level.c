@@ -234,7 +234,7 @@ LEVEL_SECTION
 static int level_removePawnsOfFaction(int factionIndex, Level *level) {
     int i;
     int removalCount = 0;
-    for (i = 0; i < level->pawnCount - 1; i++) {
+    for (i = 0; i < level->pawnCount; i++) {
         if (level->pawns[i].faction == factionIndex) {
             level_removePawnAtIndex(i, level);
             i--;
