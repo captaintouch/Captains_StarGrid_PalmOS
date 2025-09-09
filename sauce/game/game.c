@@ -5,6 +5,8 @@
 #include "../constants.h"
 #include "../deviceinfo.h"
 #include "../graphicResources.h"
+#include "DataMgr.h"
+#include "MemoryMgr.h"
 #include "PalmTypes.h"
 #include "TimeMgr.h"
 #include "colors.h"
@@ -532,6 +534,7 @@ static void game_drawGameStartHeader() {
     AppColor headerColorTop = DRACULAORCHID;
     AppColor headerColorBottom = BELIZEHOLE;
     AppColor textColor = CLOUDS;
+    ImageSprite *shipSprite;
     Coordinate tilePositions[] = {
         (Coordinate){-1, 0},
         (Coordinate){0, 0},
@@ -564,8 +567,30 @@ static void game_drawGameStartHeader() {
         hexgrid_fillTileAtPosition(tilePositions[i], false, filledTileType);
         hexgrid_drawTileAtPosition(tilePositions[i], false);
     }
-    hexgrid_drawSpriteAtTile(&spriteLibrary.shipFourSprite[0], (Coordinate){0, 0}, false);
-    hexgrid_drawSpriteAtTile(&spriteLibrary.shipFourSprite[3], (Coordinate){6, 0}, false);
+
+    switch (random(0, GAMEMECHANICS_MAXPLAYERCOUNT)) {
+        case 0:
+            shipSprite = &spriteLibrary.shipOneSprite[0];
+            break;
+        case 1:
+            shipSprite = &spriteLibrary.shipTwoSprite[0];
+            break;
+        case 2:
+            shipSprite = &spriteLibrary.shipThreeSprite[0];
+            break;
+        case 3:
+            shipSprite = &spriteLibrary.shipFourSprite[0];
+            break;
+    }
+    hexgrid_drawSpriteAtTile(&shipSprite[0], (Coordinate){0, 0}, false);
+    hexgrid_drawSpriteAtTile(&shipSprite[3], (Coordinate){6, 0}, false);
+
+    if (gameSession.menuScreenType == MENUSCREEN_START) {
+        // draw version number
+        MemHandle resourceHandle = DmGetResource('tver', 1);
+        char *text = (char *)MemHandleLock(resourceHandle);
+        drawhelper_drawTextCentered(text, hexgrid_tileCenterPosition((Coordinate){7, 1}), 1, -1);
+    }
 
     drawhelper_drawLineBetweenCoordinates((Coordinate){0, BOTTOMMENU_HEIGHT - 1}, (Coordinate){screenSize.x, BOTTOMMENU_HEIGHT - 1});
 
