@@ -146,6 +146,8 @@ static void game_drawAttackAnimation() {
 
 static void game_drawHighlightTiles() {  // Tiles that need to be highlighted (for example to indicate where a pawn can move)
     int i;
+    drawhelper_applyTextColor(ASBESTOS);
+    drawhelper_applyBackgroundColor(SUNFLOWER);
     if (gameSession.highlightTiles != NULL && gameSession.highlightTileCount > 0) {
         for (i = 0; i < gameSession.highlightTileCount; i++) {
             HighlightTile *tile = &gameSession.highlightTiles[i];
@@ -153,6 +155,10 @@ static void game_drawHighlightTiles() {  // Tiles that need to be highlighted (f
                 hexgrid_fillTileAtPosition(tile->position, true, tile->color);
                 drawhelper_applyForeColor(CLOUDS);
                 hexgrid_drawTileAtPosition(tile->position, true);
+                if (!gameSession.colorSupport && tile->color == FILLEDTILETYPE_WARN) {
+                    // draw an exclamation mark in the center so it's obvious that it's a warning tile
+                    drawhelper_drawTextCentered("!", viewport_convertedCoordinate(hexgrid_tileCenterPosition(tile->position)), 0, 0);
+                }
             } else {
                 if (gameSession.colorSupport) {
                     hexgrid_drawTileAtPosition(tile->position, true);

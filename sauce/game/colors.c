@@ -59,7 +59,7 @@ void colors_setupReferenceColors(Boolean colorSupport, UInt32 depth) {
         colors_reference[EMERALD] = 9;
         colors_reference[CLOUDS] = 0;
         colors_reference[ASBESTOS] = 15;
-        colors_reference[SUNFLOWER] = 7;
+        colors_reference[SUNFLOWER] = 4;
 
         if (depth == 8) {
             for (i = 0; i < 7; i++) {
