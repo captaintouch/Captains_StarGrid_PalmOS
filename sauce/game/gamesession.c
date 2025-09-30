@@ -103,12 +103,8 @@ static void gameSession_launchGame(NewGameConfig config) {
         if (config.playerConfig[faction].isHuman) {
             gameSession.factionTurn = faction;
             gameSession.factions[faction] = (Faction){(CPUFactionProfile){0, 0, 0}, true};
-            drawhelper_drawTextWithValue("FH:", faction, (Coordinate){0, 0});
-            sleep(1000);
         } else {
             gameSession.factions[faction] = gameSession_factionWithRandomizedCPUProfile();
-            drawhelper_drawTextWithValue("FC:", faction, (Coordinate){0, 0});
-            sleep(1000);
         }
         gameSession_enableActionsForFaction(faction);
     }
