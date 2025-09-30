@@ -500,7 +500,6 @@ Level level_create(NewGameConfig config) {
     level.pawnCount = factionCount + factionCount * config.shipCount;  // Bases + ships
     level.pawns = MemPtrNew(sizeof(Pawn) * level.pawnCount);
     MemSet(level.pawns, sizeof(Pawn) * level.pawnCount, 0);
-
     MemSet(level.scores, sizeof(LevelScore) * GAMEMECHANICS_MAXPLAYERCOUNT, 0);
 
     switch (config.placementStrategy) {
@@ -546,8 +545,8 @@ NewGameConfig level_defaultNewGameConfig(int rank) {
         config.playerConfig[i].active = true;
         config.playerConfig[i].isHuman = i == 0;
     }
-    config.playerConfig[GAMEMECHANICS_MAXPLAYERCOUNT - 2].active = rank > 1;
-    config.playerConfig[GAMEMECHANICS_MAXPLAYERCOUNT - 3].active = rank > 0;
+    config.playerConfig[3].active = rank > 1;
+    config.playerConfig[2].active = rank > 0;
     if (rank < 1) {
         config.placementStrategy = PLAYERPLACEMENTSTRATEGY_CORNERS;
     } else {

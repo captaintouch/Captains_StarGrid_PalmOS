@@ -27,6 +27,7 @@ static void gameSession_resetHighlightTiles();
 static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn);
 static void gameSession_startTurn();
 static void gameSession_updateAnimatedStarPositions();
+static void gameSession_enableActionsForFaction(int faction);
 
 Faction gameSession_factionWithRandomizedCPUProfile() {
     Faction faction;
@@ -79,7 +80,6 @@ static void gameSession_resetActivePawn() {
     gameSession.activePawn = &dummyPawn;
 }
 
-
 static void gameSession_openMenu() {
     EventType event;
     MemSet(&event, sizeof(EventType), 0);
@@ -103,9 +103,14 @@ static void gameSession_launchGame(NewGameConfig config) {
         if (config.playerConfig[faction].isHuman) {
             gameSession.factionTurn = faction;
             gameSession.factions[faction] = (Faction){(CPUFactionProfile){0, 0, 0}, true};
+            drawhelper_drawTextWithValue("FH:", faction, (Coordinate){0, 0});
+            sleep(1000);
         } else {
             gameSession.factions[faction] = gameSession_factionWithRandomizedCPUProfile();
+            drawhelper_drawTextWithValue("FC:", faction, (Coordinate){0, 0});
+            sleep(1000);
         }
+        gameSession_enableActionsForFaction(faction);
     }
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
     gameSession.drawingState.shouldRedrawBackground = true;
@@ -113,6 +118,7 @@ static void gameSession_launchGame(NewGameConfig config) {
     gameSession.nextSceneAnimationLaunchTimestamp = TimGetTicks() + SysTicksPerSecond() * 3;
     gameSession_scheduleSceneAnimationIfNeeded();
     gameSession_resetActivePawn();
+
     gameSession_startTurn();
 }
 
@@ -489,7 +495,7 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
                     gameSession.level.gridTexts[i].alternateColor = true;
                     gameSession.drawingState.shouldRedrawHeader = true;
                     gameSession.menuScreenType = MENUSCREEN_PLAYERCONFIG;
-                    level_addPlayerConfigPawns(&gameSession.level, level_defaultNewGameConfig(0));
+                    level_addPlayerConfigPawns(&gameSession.level, level_defaultNewGameConfig(scoring_rankValue(scoring_loadSavedScore())));
                     gameSession.activePawn = &gameSession.level.pawns[0];
                     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, gameSession.activePawn->position.y}, &gameSession);
                     break;
