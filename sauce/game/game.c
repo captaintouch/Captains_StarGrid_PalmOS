@@ -5,10 +5,6 @@
 #include "../constants.h"
 #include "../deviceinfo.h"
 #include "../graphicResources.h"
-#include "DataMgr.h"
-#include "MemoryMgr.h"
-#include "PalmTypes.h"
-#include "TimeMgr.h"
 #include "colors.h"
 #include "drawhelper.h"
 #include "gamesession.h"
@@ -574,7 +570,7 @@ static void game_drawGameStartHeader() {
         hexgrid_drawTileAtPosition(tilePositions[i], false);
     }
 
-    switch (random(0, GAMEMECHANICS_MAXPLAYERCOUNT)) {
+    switch (random(0, GAMEMECHANICS_MAXPLAYERCOUNT - 1)) {
         case 0:
             shipSprite = &spriteLibrary.shipOneSprite[0];
             break;
