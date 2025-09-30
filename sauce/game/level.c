@@ -7,6 +7,7 @@
 #include "mathIsFun.h"
 #include "movement.h"
 #include "pawn.h"
+#include "scoring.h"
 
 LEVEL_SECTION
 static void level_text(char *fixedText, DmResID textResource) {
@@ -70,6 +71,7 @@ Level level_startLevel() {
     level.pawnCount = 0;
     level.pawns = NULL;
     MemSet(newPawns, sizeof(Pawn) * 4, 0);
+    MemSet(level.scores, sizeof(LevelScore) * GAMEMECHANICS_MAXPLAYERCOUNT, 0);
     newPawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, BASEACTION_NONE, false}, 4, 3, false, false};
     newPawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, BASEACTION_NONE, false}, 4, 0, false, false};
     newPawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, BASEACTION_NONE, false}, 4, 1, false, false};

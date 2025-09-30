@@ -199,7 +199,8 @@ static Coordinate gameSession_validViewportOffset(Coordinate position) {
 
 static void gameSession_updateAnimatedStarPositions() {
     int i;
-    for (i = 0; i < BACKDROP_ANIMATEDSTARCOUNT; i++) {
+    MemSet(gameSession.animatedStarCoordinates, sizeof(Coordinate) * BACKDROP_ANIMATEDSTARCOUNT, 0);
+    for (i = 0; i < BACKDROP_ANIMATEDSTARCOUNT - 1; i++) {
         Coordinate gridSize = hexgrid_size();
         gameSession.animatedStarCoordinates[i] = (Coordinate){random(0, gridSize.x), random(0, gridSize.y)};
     }
@@ -502,6 +503,7 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
                     level_addRank(&gameSession.level, scoring_loadSavedScore());
                     gameSession.activePawn->type = PAWNTYPE_SHIP;
                     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0}, &gameSession);
+                    break;
             }
             return true;
         }
