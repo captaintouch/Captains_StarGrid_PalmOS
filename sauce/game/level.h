@@ -79,4 +79,5 @@ NewGameConfig level_defaultNewGameConfig(int rank) LEVEL_SECTION;
 
 void level_returnFlagFromPawnToOriginalBase(Pawn *pawn, Level *level) LEVEL_SECTION;
 Pawn *level_pawnAtTile(Coordinate tileCoordinate, Level *level) LEVEL_SECTION;
+Pawn *level_pawnTypeAtTile(Coordinate tileCoordinate, Level *level, PawnType pawnType, Boolean checkPawnType) LEVEL_SECTION; 
 #endif

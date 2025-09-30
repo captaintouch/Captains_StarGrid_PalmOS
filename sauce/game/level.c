@@ -5,6 +5,7 @@
 #include "../constants.h"
 #include "../graphicResources.h"
 #include "mathIsFun.h"
+#include "models.h"
 #include "movement.h"
 #include "pawn.h"
 #include "scoring.h"
@@ -557,14 +558,22 @@ NewGameConfig level_defaultNewGameConfig(int rank) {
 }
 
 LEVEL_SECTION
-Pawn *level_pawnAtTile(Coordinate tileCoordinate, Level *level) {
+Pawn *level_pawnTypeAtTile(Coordinate tileCoordinate, Level *level, PawnType pawnType, Boolean checkPawnType) {
     int i;
     for (i = 0; i < level->pawnCount; i++) {
+        if (checkPawnType && level->pawns[i].type != pawnType) {
+            continue;
+        }
         if (isEqualCoordinate(level->pawns[i].position, tileCoordinate) && !isInvalidCoordinate(level->pawns[i].position)) {
             return &level->pawns[i];
         }
     }
     return NULL;
+}
+
+LEVEL_SECTION
+Pawn *level_pawnAtTile(Coordinate tileCoordinate, Level *level) {
+    return level_pawnTypeAtTile(tileCoordinate, level, 0, false);
 }
 
 LEVEL_SECTION

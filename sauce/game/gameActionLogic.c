@@ -214,7 +214,7 @@ static void gameActionLogic_removeBase(int baseFaction, int newFaction, GameSess
         if (session->level.pawns[i].faction == baseFaction && session->level.pawns[i].type == PAWNTYPE_BASE) {
             Coordinate activePawnPosition = session->activePawn->position;
             level_removePawnAtIndex(i, &session->level);
-            session->activePawn = level_pawnAtTile(activePawnPosition, &session->level);
+            session->activePawn = level_pawnTypeAtTile(activePawnPosition, &session->level, PAWNTYPE_SHIP, true);
             break;
         }
     }
