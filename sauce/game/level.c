@@ -79,11 +79,11 @@ Level level_startLevel() {
     level.gridTexts = MemPtrNew(sizeof(GridText) * 3);
     MemSet(level.gridTexts, sizeof(GridText) * 3, 0);
     level.gridTextCount = 3;
-    level.gridTexts[0] = (GridText){(Coordinate){1, 2}, (Coordinate){0, 0}, STRING_NEW, NULL, false, false};
+    level.gridTexts[0] = (GridText){"", (Coordinate){1, 2}, (Coordinate){0, 0}, STRING_NEW, false, false};
     level_text(level.gridTexts[0].fixedText, STRING_NEW); 
-    level.gridTexts[1] = (GridText){(Coordinate){1, 4}, (Coordinate){0, 0}, STRING_RANK, NULL, false, false};
+    level.gridTexts[1] = (GridText){"", (Coordinate){1, 4}, (Coordinate){0, 0}, STRING_RANK, false, false};
     level_text(level.gridTexts[1].fixedText, STRING_RANK); 
-    level.gridTexts[2] = (GridText){(Coordinate){1, 6}, (Coordinate){0, 0}, STRING_ABOUT, NULL, false, false};
+    level.gridTexts[2] = (GridText){"", (Coordinate){1, 6}, (Coordinate){0, 0}, STRING_ABOUT, false, false};
     level_text(level.gridTexts[2].fixedText, STRING_ABOUT); 
 
     return level;
@@ -286,17 +286,17 @@ void level_addScorePawns(Level *level, int faction) {
     }
     level->gridTextCount = 6;
     level->gridTexts = MemPtrNew(sizeof(GridText) * (level->gridTextCount));
-    level->gridTexts[0] = (GridText){(Coordinate){0, 1}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_DESTROYED, "", false, true, false};
+    level->gridTexts[0] = (GridText){"", (Coordinate){0, 1}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_DESTROYED, false, true, false};
     level_text(level->gridTexts[0].fixedText, STRING_DESTROYED); 
-    level->gridTexts[1] = (GridText){(Coordinate){0, 3}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_CAPTURED, "", false, true, false};
+    level->gridTexts[1] = (GridText){"", (Coordinate){0, 3}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_CAPTURED, false, true, false};
     level_text(level->gridTexts[1].fixedText, STRING_CAPTURED); 
-    level->gridTexts[2] = (GridText){(Coordinate){0, 2}, (Coordinate){HEXTILE_SIZE / 2, 4}, 0, "", false, true, false};
+    level->gridTexts[2] = (GridText){"", (Coordinate){0, 2}, (Coordinate){HEXTILE_SIZE / 2, 4}, 0, false, true, false};
     StrIToA(level->gridTexts[2].fixedText, totalDestroyed);
-    level->gridTexts[3] = (GridText){(Coordinate){0, 4}, (Coordinate){HEXTILE_SIZE / 2, 4}, 0, "", false, true, false};
+    level->gridTexts[3] = (GridText){"", (Coordinate){0, 4}, (Coordinate){HEXTILE_SIZE / 2, 4}, 0, false, true, false};
     StrIToA(level->gridTexts[3].fixedText, totalCaptured);
-    level->gridTexts[4] = (GridText){(Coordinate){0, 5}, (Coordinate){HEXTILE_SIZE / 2, 10}, 0, "", false, true, false};
+    level->gridTexts[4] = (GridText){"", (Coordinate){0, 5}, (Coordinate){HEXTILE_SIZE / 2, 10}, 0, false, true, false};
     level_scoreText(level->gridTexts[4].fixedText, STRING_FLAGSSTOLEN, score.flagsStolen);
-    level->gridTexts[5] = (GridText){(Coordinate){0, 6}, (Coordinate){HEXTILE_SIZE / 2, 10}, 0, "", false, true, false};
+    level->gridTexts[5] = (GridText){"", (Coordinate){0, 6}, (Coordinate){HEXTILE_SIZE / 2, 10}, 0, false, true, false};
     level_scoreText(level->gridTexts[5].fixedText, STRING_SHIPSLOST, generalScore.shipsLost);
 
     if (level->actionTiles != NULL) {
@@ -350,17 +350,17 @@ void level_addRank(Level *level, Score score) {
     MemPtrFree(level->gridTexts);
     level->gridTexts = updatedGridTexts;
 
-    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 2}, (Coordinate){0, 0}, 0, "", false, true};
+    level->gridTexts[level->gridTextCount++] = (GridText){"", (Coordinate){8, 2}, (Coordinate){0, 0}, 0, false, true};
     level_scoreText(level->gridTexts[level->gridTextCount - 1].fixedText, STRING_UNTILNEXTRANK, scoring_scoreNeededUntilNextRank(score) * GAMEMECHANICS_SCOREBOOST);
-    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 3}, (Coordinate){0, 0}, 0, "", false, true};
+    level->gridTexts[level->gridTextCount++] = (GridText){"", (Coordinate){8, 3}, (Coordinate){0, 0}, 0, false, true};
     level_scoreText(level->gridTexts[level->gridTextCount - 1].fixedText, STRING_SHIPSDESTROYED, score.shipsDestroyed);
-    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 4}, (Coordinate){0, 0}, 0, "", false, true};
+    level->gridTexts[level->gridTextCount++] = (GridText){"", (Coordinate){8, 4}, (Coordinate){0, 0}, 0, false, true};
     level_scoreText(level->gridTexts[level->gridTextCount - 1].fixedText, STRING_SHIPSCAPTURED, score.shipsCaptured);
-    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 5}, (Coordinate){0, 0}, 0, "", false, true};
+    level->gridTexts[level->gridTextCount++] = (GridText){"", (Coordinate){8, 5}, (Coordinate){0, 0}, 0, false, true};
     level_scoreText(level->gridTexts[level->gridTextCount - 1].fixedText, STRING_FLAGSSTOLEN, score.flagsStolen);
-    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 6}, (Coordinate){0, 0}, 0, "", false, true};
+    level->gridTexts[level->gridTextCount++] = (GridText){"", (Coordinate){8, 6}, (Coordinate){0, 0}, 0, false, true};
     level_scoreText(level->gridTexts[level->gridTextCount - 1].fixedText, STRING_FLAGSCAPTURED, score.flagsCaptured);
-    level->gridTexts[level->gridTextCount++] = (GridText){(Coordinate){8, 7}, (Coordinate){0, 0}, 0, "", false, true};
+    level->gridTexts[level->gridTextCount++] = (GridText){"", (Coordinate){8, 7}, (Coordinate){0, 0}, 0, false, true};
     level_scoreText(level->gridTexts[level->gridTextCount - 1].fixedText, STRING_SHIPSLOST, score.shipsLost);
 
     if (level->actionTiles != NULL) {
@@ -411,7 +411,7 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
     MemPtrFree(level->gridTexts);
     level->gridTexts = updatedGridTexts;
 
-    level->gridTexts[level->gridTextCount] = (GridText){(Coordinate){8, 6}, (Coordinate){0, 0}, STRING_PLAYERS, "", false, true};
+    level->gridTexts[level->gridTextCount] = (GridText){"", (Coordinate){8, 6}, (Coordinate){0, 0}, STRING_PLAYERS, false, true};
     level_text(level->gridTexts[level->gridTextCount].fixedText, STRING_PLAYERS);
     level->gridTextCount = level->gridTextCount + 1;
 

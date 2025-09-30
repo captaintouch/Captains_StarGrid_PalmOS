@@ -22,10 +22,10 @@ typedef struct NewGameConfig {
 } NewGameConfig;
 
 typedef struct GridText {
+    char fixedText[30];
     Coordinate position;
     Coordinate textOffset;
     int textResource;
-    char fixedText[20];
     Boolean alternateColor;
     Boolean simpleText;
     Boolean filler;

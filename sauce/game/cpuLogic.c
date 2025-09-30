@@ -96,17 +96,24 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
     int maxRange = GAMEMECHANICS_MAXTILEMOVERANGE;
     int dx, dy;
     int minDistance = 9999;
-    int maxDamage = cpuLogic_pawnWithStolenFlag(pawn, allPawns, totalPawnCount, 0, true) != NULL ? 9999 : (random(0, 5) >= 4 || cpuPlayersOnly) ? (pawn->inventory.health * 0.5)
-                                                                                                                                                : 10;
+    int maxDamage = 9999;
+
     Coordinate targetPosition, safePosition;
     int rangeIndicesCount = maxRange * 2 + 1;
     int indicesX[rangeIndicesCount];
     int indicesY[rangeIndicesCount];
     mathIsFun_shuffleIndices(indicesX, rangeIndicesCount);
     mathIsFun_shuffleIndices(indicesY, rangeIndicesCount);
-    
+
     if (target == NULL || isInvalidCoordinate(target->position)) {
         return (Coordinate){-1, -1};
+    }
+    if (cpuLogic_pawnWithStolenFlag(pawn, allPawns, totalPawnCount, 0, true) == NULL) {
+        if (random(0, 5) >= 4) {
+            maxDamage = pawn->inventory.health;
+        } else {
+            maxDamage = (int)((float)pawn->inventory.health * 0.5);
+        }
     }
     targetPosition = movement_closestTileToTargetInRange(pawn, target->position, allPawns, totalPawnCount, canGoToBase);
     safePosition = targetPosition;
@@ -199,7 +206,7 @@ static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns,
                 } else {
                     strategyResult.CPUAction = CPUACTION_MOVE;
                     strategyResult.target = enemyWithFlag;
-                } 
+                }
             }
         }  // No else case, this means the flag was succesfully brought to the enemy base
     } else {
@@ -225,7 +232,7 @@ static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns,
 
 CPULOGIC_SECTION
 static CPUStrategyResult cpuLogic_captureTheFlagStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int factionValue) {
-    CPUStrategyResult strategyResult = {factionValue + random(-30, 30), CPUACTION_NONE, NULL, (Coordinate){-1, -1}, true};
+    CPUStrategyResult strategyResult = {factionValue + random(-15, 40), CPUACTION_NONE, NULL, (Coordinate){-1, -1}, true};
     if (pawn->inventory.carryingFlag) {  // carrying flag, move to home base
         Pawn *homeBase = movement_homeBase(pawn->faction, allPawns, totalPawnCount);
         strategyResult.CPUAction = CPUACTION_MOVE;
@@ -395,9 +402,6 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
             drawhelper_drawText("STRAT: BACKUP", (Coordinate){0, 0});
             break;
     }
-#endif
-
-#ifdef DEBUG
     switch (bestStrategy.CPUAction) {
         case CPUACTION_MOVE:
             drawhelper_drawTextWithValue("MOVE X:", bestStrategy.target->position.x, (Coordinate){0, 30});
