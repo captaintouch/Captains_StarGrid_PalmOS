@@ -10,6 +10,8 @@ typedef enum {
     MenuActionTypeWarp,
     MenuActionTypeShockwave,
     MenuActionTypeBuildShip,
+    MenuActionTypeHealthPack,
+    MenuActionTypeTorpedoPack,
     MenuActionTypeCancel
 } MenuActionType;
 

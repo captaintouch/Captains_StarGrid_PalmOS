@@ -48,6 +48,19 @@ static void level_addPawns(Pawn *newPawns, int additionalPawnCount, Level *level
 }
 
 LEVEL_SECTION
+void level_addGridItem(GridItemType itemType, Coordinate position, Level *level) {
+    GridItem *updatedGridItems = MemPtrNew(sizeof(GridItem) * (level->gridItemCount + 1));
+    MemSet(updatedGridItems, sizeof(GridItem) * (level->gridItemCount + 1), 0);
+    if (level->gridItems != NULL) {
+        MemMove(updatedGridItems, level->gridItems, sizeof(GridItem) * level->gridItemCount);
+        MemPtrFree(level->gridItems);
+    }
+
+    level->gridItems = updatedGridItems;
+    level->gridItems[level->gridItemCount++] = (GridItem){itemType, position};
+}
+
+LEVEL_SECTION
 UInt8 level_factionCount(NewGameConfig config) {
     int i, activePlayers = 0;
     for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
@@ -83,11 +96,11 @@ Level level_startLevel() {
     MemSet(level.gridTexts, sizeof(GridText) * 3, 0);
     level.gridTextCount = 3;
     level.gridTexts[0] = (GridText){"", (Coordinate){1, 2}, (Coordinate){0, 0}, STRING_NEW, false, false};
-    level_text(level.gridTexts[0].fixedText, STRING_NEW); 
+    level_text(level.gridTexts[0].fixedText, STRING_NEW);
     level.gridTexts[1] = (GridText){"", (Coordinate){1, 4}, (Coordinate){0, 0}, STRING_RANK, false, false};
-    level_text(level.gridTexts[1].fixedText, STRING_RANK); 
+    level_text(level.gridTexts[1].fixedText, STRING_RANK);
     level.gridTexts[2] = (GridText){"", (Coordinate){1, 6}, (Coordinate){0, 0}, STRING_ABOUT, false, false};
-    level_text(level.gridTexts[2].fixedText, STRING_ABOUT); 
+    level_text(level.gridTexts[2].fixedText, STRING_ABOUT);
 
     return level;
 }
@@ -290,9 +303,9 @@ void level_addScorePawns(Level *level, int faction) {
     level->gridTextCount = 6;
     level->gridTexts = MemPtrNew(sizeof(GridText) * (level->gridTextCount));
     level->gridTexts[0] = (GridText){"", (Coordinate){0, 1}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_DESTROYED, false, true, false};
-    level_text(level->gridTexts[0].fixedText, STRING_DESTROYED); 
+    level_text(level->gridTexts[0].fixedText, STRING_DESTROYED);
     level->gridTexts[1] = (GridText){"", (Coordinate){0, 3}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_CAPTURED, false, true, false};
-    level_text(level->gridTexts[1].fixedText, STRING_CAPTURED); 
+    level_text(level->gridTexts[1].fixedText, STRING_CAPTURED);
     level->gridTexts[2] = (GridText){"", (Coordinate){0, 2}, (Coordinate){HEXTILE_SIZE / 2, 4}, 0, false, true, false};
     StrIToA(level->gridTexts[2].fixedText, totalDestroyed);
     level->gridTexts[3] = (GridText){"", (Coordinate){0, 4}, (Coordinate){HEXTILE_SIZE / 2, 4}, 0, false, true, false};
@@ -498,6 +511,9 @@ Level level_create(NewGameConfig config) {
     level.actionTiles = NULL;
     level.actionTileCount = 0;
 
+    level.gridItems = NULL;
+    level.gridItemCount = 0;
+
     level.pawnCount = factionCount + factionCount * config.shipCount;  // Bases + ships
     level.pawns = MemPtrNew(sizeof(Pawn) * level.pawnCount);
     MemSet(level.pawns, sizeof(Pawn) * level.pawnCount, 0);
@@ -535,6 +551,11 @@ void level_destroy(Level *level) {
         level->actionTileCount = 0;
         MemPtrFree(level->actionTiles);
         level->actionTiles = NULL;
+    }
+    if (level->gridItems != NULL) {
+        level->gridItemCount= 0;
+        MemPtrFree(level->gridItems);
+        level->gridItems = NULL;
     }
 }
 

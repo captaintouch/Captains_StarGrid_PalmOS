@@ -659,6 +659,7 @@ static void gameSession_handlePawnActionButtonSelection() {
     int selectedIndex = bottomMenu_selectedIndex(gameSession.lastPenInput.touchCoordinate);
     Pawn *homeBase;
     Coordinate closestTile;
+    MenuActionType actionType;
 
     if (selectedIndex >= gameSession.displayButtonCount) {
         return;
@@ -669,8 +670,8 @@ static void gameSession_handlePawnActionButtonSelection() {
     }
 
     inputPen_temporarylyBlockPenInput(&gameSession.lastPenInput);
-
-    switch (pawnActionMenuViewModel_actionAtIndex(selectedIndex, gameSession.activePawn)) {
+    actionType = pawnActionMenuViewModel_actionAtIndex(selectedIndex, gameSession.activePawn);
+    switch (actionType) {
         case MenuActionTypeCancel:
             gameSession.state = GAMESTATE_DEFAULT;
             break;
@@ -694,6 +695,14 @@ static void gameSession_handlePawnActionButtonSelection() {
         case MenuActionTypeMove:
             gameSession.state = GAMESTATE_SELECTTARGET;
             gameSession.targetSelectionType = TARGETSELECTIONTYPE_MOVE;
+            break;
+        case MenuActionTypeHealthPack:
+        case MenuActionTypeTorpedoPack:
+            gameSession.activePawn->turnComplete = true;
+            homeBase = movement_homeBase(gameSession.activePawn->faction, gameSession.level.pawns, gameSession.level.pawnCount);
+            closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
+            gameSession.state = GAMESTATE_DEFAULT;
+            level_addGridItem(actionType == MenuActionTypeHealthPack ? GRIDITEMTYPE_HEALTH : GRIDITEMTYPE_TORPEDOES, closestTile, &gameSession.level); 
             break;
         case MenuActionTypeShockwave:
             gameSession.activePawn->turnComplete = true;

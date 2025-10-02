@@ -224,6 +224,33 @@ static void game_drawHealthBar(Pawn *pawn, int maxWidth, int height, Coordinate 
     game_drawBar(position, maxWidth, height, pawn->inventory.health, maxHealth);
 }
 
+static void game_drawGridItems() {
+    int i;
+    if (gameSession.level.gridItems == NULL || gameSession.level.gridItemCount <= 0) {
+        return;
+    }
+
+    for (i = 0; i < gameSession.level.gridItemCount; i++) {
+        GridItem *gridItem = &gameSession.level.gridItems[i];
+        Coordinate center = viewport_convertedCoordinate(hexgrid_tileCenterPosition(gridItem->position));
+        ImageSprite *sprite = NULL;
+        switch (gridItem->type) {
+            case GRIDITEMTYPE_TORPEDOES:
+                sprite = &spriteLibrary.torpedoAnimation[2];
+                break;
+            case GRIDITEMTYPE_HEALTH:
+                sprite = &spriteLibrary.healthSprite;
+                break;
+        }
+
+        drawhelper_applyForeColor(EMERALD);
+        drawhelper_drawCircle(center, 8);
+        drawhelper_applyForeColor(CLOUDS);
+        drawhelper_drawCircle(center, 6);
+        hexgrid_drawSpriteAtTile(sprite, gridItem->position, true);
+    }
+}
+
 static void game_drawActionTiles() {
     int i;
     Char playChar[2];
@@ -336,7 +363,7 @@ static void game_drawSceneAnimation() {
 
 static void game_drawAnimatedStars() {
     int i;
-    for (i = 0; i < BACKDROP_ANIMATEDSTARCOUNT -1; i++) {
+    for (i = 0; i < BACKDROP_ANIMATEDSTARCOUNT - 1; i++) {
         Coordinate coordinate = viewport_convertedCoordinate(gameSession.animatedStarCoordinates[i]);
         drawhelper_drawAnimatedLoopingSprite(spriteLibrary.starAnimation, GFX_FRAMECOUNT_STARANIM, coordinate, 3, i, i % 2 ? 9 : 5);
     }
@@ -698,6 +725,7 @@ static void game_drawDynamicViews() {  // ships, special tiles, etc.
     game_drawWarpAndShockwaveAnimation();
     game_drawGridTexts();
     game_drawActionTiles();
+    game_drawGridItems();
     game_drawPawns();
     game_drawSceneAnimation();
     game_drawAttackAnimation();

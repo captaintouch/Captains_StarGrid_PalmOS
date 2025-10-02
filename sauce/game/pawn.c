@@ -1,6 +1,7 @@
-#include "colors.h"
 #include "pawn.h"
+
 #include "../constants.h"
+#include "colors.h"
 
 AppColor pawn_factionColor(UInt8 faction, Boolean colorSupport) {
     if (!colorSupport) {
@@ -25,7 +26,7 @@ int pawn_baseTurnsLeft(UInt8 currentTurn, UInt8 lastActionTurn, BaseAction lastA
     switch (lastActionType) {
         case BASEACTION_NONE:
         case BASEACTION_SHOCKWAVE:
-        break;
+            break;
         case BASEACTION_BUILD_SHIP:
             requiredTurns *= 1.5;
     }
@@ -33,15 +34,15 @@ int pawn_baseTurnsLeft(UInt8 currentTurn, UInt8 lastActionTurn, BaseAction lastA
 }
 
 AppColor pawn_baseActivityIndicatorColor(Pawn *pawn, Boolean colorSupport, int currentTurn) {
-    if (pawn_baseTurnsLeft(currentTurn, pawn->inventory.baseActionLastActionTurn, pawn->inventory.lastBaseAction) > 0) { // Busy building
+    if (pawn_baseTurnsLeft(currentTurn, pawn->inventory.baseActionLastActionTurn, pawn->inventory.lastBaseAction) > 0) {  // Busy building
         switch (pawn->inventory.lastBaseAction) {
             case BASEACTION_NONE:
             case BASEACTION_SHOCKWAVE:
                 return SUNFLOWER;
             case BASEACTION_BUILD_SHIP:
-                return ALIZARIN; 
+                return ALIZARIN;
         }
     } else {
-        return EMERALD;
+        return pawn->turnComplete ? ALIZARIN : EMERALD;
     }
 }

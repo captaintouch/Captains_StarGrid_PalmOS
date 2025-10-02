@@ -3,7 +3,7 @@
 #include "../constants.h"
 
 MenuActionType shipActions[] = {MenuActionTypeCancel, MenuActionTypeWarp, MenuActionTypeTorpedo, MenuActionTypePhaser, MenuActionTypeMove};
-MenuActionType baseActions[] = {MenuActionTypeCancel, MenuActionTypeShockwave, MenuActionTypeBuildShip};
+MenuActionType baseActions[] = {MenuActionTypeCancel, MenuActionTypeShockwave, MenuActionTypeBuildShip, MenuActionTypeHealthPack, MenuActionTypeTorpedoPack};
 
 static UInt16 pawnActionMenuViewModel_textForActionType(MenuActionType actionType) {
     switch (actionType) {
@@ -19,6 +19,10 @@ static UInt16 pawnActionMenuViewModel_textForActionType(MenuActionType actionTyp
             return STRING_SHOCKWAVE;
         case MenuActionTypeBuildShip:
             return STRING_BUILDSHIP;
+        case MenuActionTypeHealthPack:
+            return STRING_HEALTHPACK;
+        case MenuActionTypeTorpedoPack:
+            return STRING_TORPEDOPACK;
         case MenuActionTypeCancel:
             return STRING_CANCEL;
     }
@@ -35,6 +39,8 @@ static Boolean pawnActionMenuViewModel_isDisabled(MenuActionType actionType, Paw
             return pawn->inventory.torpedoCount == 0;
         case MenuActionTypeWarp:
             return pawn->warped || pawn->inventory.carryingFlag;
+        case MenuActionTypeHealthPack:
+        case MenuActionTypeTorpedoPack:
         case MenuActionTypeShockwave:
         case MenuActionTypeBuildShip:
             return pawn_baseTurnsLeft(currentTurn, pawn->inventory.baseActionLastActionTurn, pawn->inventory.lastBaseAction) > 0;

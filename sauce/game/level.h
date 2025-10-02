@@ -21,6 +21,16 @@ typedef struct NewGameConfig {
     int shipCount;
 } NewGameConfig;
 
+typedef enum GridItemType {
+    GRIDITEMTYPE_HEALTH,
+    GRIDITEMTYPE_TORPEDOES
+} GridItemType;
+
+typedef struct GridItem {
+    GridItemType type;
+    Coordinate position;
+} GridItem;
+
 typedef struct GridText {
     char fixedText[30];
     Coordinate position;
@@ -57,6 +67,8 @@ typedef struct Level {
     int gridTextCount;
     ActionTile *actionTiles;
     int actionTileCount;
+    GridItem *gridItems;
+    int gridItemCount;
     LevelScore scores[GAMEMECHANICS_MAXPLAYERCOUNT];
 } Level;
 
@@ -68,6 +80,7 @@ UInt8 level_factionCount(NewGameConfig config) LEVEL_SECTION;
 Level level_create(NewGameConfig config) LEVEL_SECTION;
 void level_destroy(Level *level) LEVEL_SECTION;
 void level_addPawn(Pawn pawn, Level *level) LEVEL_SECTION;
+void level_addGridItem(GridItemType itemType, Coordinate position, Level *level) LEVEL_SECTION;
 void level_addScorePawns(Level *level, int faction) LEVEL_SECTION;
 void level_addRank(Level *level, Score score) LEVEL_SECTION;
 void level_removePawn(Pawn *pawn, Level *level) LEVEL_SECTION;
