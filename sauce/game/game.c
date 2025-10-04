@@ -243,6 +243,7 @@ static void game_drawGridItems() {
                 break;
         }
 
+        // TODO: Iterate through the colors
         drawhelper_applyForeColor(EMERALD);
         drawhelper_drawCircle(center, 8);
         drawhelper_applyForeColor(CLOUDS);

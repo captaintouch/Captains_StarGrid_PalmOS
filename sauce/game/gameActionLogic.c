@@ -7,6 +7,7 @@
 #include "gamesession.h"
 #include "hexgrid.h"
 #include "level.h"
+#include "mathIsFun.h"
 #include "models.h"
 #include "movement.h"
 
@@ -304,6 +305,22 @@ void gameActionLogic_afterExplosion(GameSession *session) {
 }
 
 GAMEACTIONLOGIC_SECTION
+static void gameActionLogic_addRandomGridItem(Coordinate position, Level *level) {
+    GridItemType itemType;
+    switch (random(0, 2)) {
+        case 0:
+            itemType = GRIDITEMTYPE_HEALTH;
+            break;
+        case 1:
+            itemType = GRIDITEMTYPE_TORPEDOES;
+            break;
+        default:
+            return;  // no item
+    }
+    level_addGridItem(itemType, position, level);
+}
+
+GAMEACTIONLOGIC_SECTION
 void gameActionLogic_afterAttack(GameSession *session) {
     StrCopy(session->cpuActionText, "");
     // Update inventory stats
@@ -312,7 +329,7 @@ void gameActionLogic_afterAttack(GameSession *session) {
         session->activePawn->inventory.torpedoCount--;
     }
 
-    if (session->attackAnimation->targetPawn->inventory.health <= 0) {
+    if (session->attackAnimation->targetPawn->inventory.health <= 0) {  // destroyed target
         Coordinate activePawnPosition;
         int oldFaction = session->attackAnimation->targetPawn->faction;
 
@@ -320,13 +337,15 @@ void gameActionLogic_afterAttack(GameSession *session) {
             gameActionLogic_removeBase(oldFaction, session->activePawn->faction, session);
             session->level.scores[session->activePawn->faction].basesDestroyed[oldFaction] = true;
             FrmCustomAlert(GAME_ALERT_BASEDESTROYED, NULL, NULL, NULL);
-        } else {
+        } else {  // SHIP
+            Coordinate destroyedPawnPosition = session->attackAnimation->targetPawn->position;
             level_returnFlagFromPawnToOriginalBase(session->attackAnimation->targetPawn, &session->level);
             session->level.scores[session->activePawn->faction].shipsDestroyed[oldFaction]++;
             activePawnPosition = session->activePawn->position;
             level_removePawn(session->attackAnimation->targetPawn, &session->level);
             session->activePawn = level_pawnAtTile(activePawnPosition, &session->level);
             session->attackAnimation->targetPawn = NULL;
+            gameActionLogic_addRandomGridItem(destroyedPawnPosition, &session->level);
         }
     }
 }
