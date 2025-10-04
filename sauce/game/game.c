@@ -5,6 +5,7 @@
 #include "../constants.h"
 #include "../deviceinfo.h"
 #include "../graphicResources.h"
+#include "SystemMgr.h"
 #include "colors.h"
 #include "drawhelper.h"
 #include "gamesession.h"
@@ -231,6 +232,7 @@ static void game_drawGridItems() {
     }
 
     for (i = 0; i < gameSession.level.gridItemCount; i++) {
+        UInt32 timing = TimGetTicks() / SysTicksPerSecond(); 
         GridItem *gridItem = &gameSession.level.gridItems[i];
         Coordinate center = viewport_convertedCoordinate(hexgrid_tileCenterPosition(gridItem->position));
         ImageSprite *sprite = NULL;
@@ -243,9 +245,10 @@ static void game_drawGridItems() {
                 break;
         }
 
-        // TODO: Iterate through the colors
-        drawhelper_applyForeColor(EMERALD);
-        drawhelper_drawCircle(center, 8);
+        if (timing % 2 == 0) {
+            drawhelper_applyForeColor(pawn_factionColor(timing / 2 % GAMEMECHANICS_MAXPLAYERCOUNT, gameSession.colorSupport));
+            drawhelper_drawCircle(center, 7);
+        }
         drawhelper_applyForeColor(CLOUDS);
         drawhelper_drawCircle(center, 6);
         hexgrid_drawSpriteAtTile(sprite, gridItem->position, true);
