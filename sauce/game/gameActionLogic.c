@@ -289,7 +289,7 @@ Boolean gameActionLogic_afterMove(GameSession *session) {
 
     // if currentposition is on a base, move away from it
     if (session->activePawn->type != PAWNTYPE_BASE && gameActionLogic_baseOnPosition(session->activePawn->position, session)) {
-        Coordinate finalCoordinate = movement_closestTileToTargetInRange(session->activePawn, session->activePawn->position, session->level.pawns, session->level.pawnCount, false);
+        Coordinate finalCoordinate = movement_closestTileToTargetInRange(session->activePawn, session->activePawn->position, session->level.pawns, session->level.pawnCount, false, NULL, 0, true);
         gameActionLogic_scheduleMovement(session->activePawn, NULL, finalCoordinate, session);
         didScheduleMovement = true;
     } else {

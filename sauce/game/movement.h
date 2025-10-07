@@ -12,7 +12,7 @@ Coordinate movement_coordinateAtPercentageOfTrajectory(Trajectory trajectory, fl
 Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate endCoordinate) MOVEMENT_SECTION;
 void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coordinate *invalidCoordinates, int invalidCoordinatesCount, HighlightTile **results, int *numberOfPositions, FilledTileType color, Boolean filled) MOVEMENT_SECTION;
 UInt8 movement_orientationBetween(Coordinate coordA, Coordinate coordB) MOVEMENT_SECTION;
-Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Coordinate targetPosition, Pawn *allPawns, int totalPawnCount, Boolean allowBase) MOVEMENT_SECTION;
+Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Coordinate targetPosition, Pawn *allPawns, int totalPawnCount, Boolean allowBase, GridItem *gridItems, int gridItemCount, Boolean allowOntoGridItems) MOVEMENT_SECTION; 
 Boolean movement_shipAtTarget(Coordinate targetCoordinate, Pawn *allPawns, int totalPawnCount) MOVEMENT_SECTION;
 Pawn *movement_homeBase(int factionIndex, Pawn *allPawns, int totalPawnCount) MOVEMENT_SECTION;
 Coordinate movement_positionAwayFrom(Coordinate sourceCoordinate, Pawn *pawn, Pawn *allPawns, int totalPawnCount, UInt8 distance) MOVEMENT_SECTION;

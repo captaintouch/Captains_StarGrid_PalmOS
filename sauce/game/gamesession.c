@@ -347,7 +347,7 @@ static Pawn *gameSession_nextPawn(Boolean allPawns, Boolean onlyWithAvailableAct
 
 static void gameSession_buildShip(Pawn *homeBase) {
     Coordinate oldActivePawnPosition = gameSession.activePawn->position;
-    Coordinate closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
+    Coordinate closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false, gameSession.level.gridItems, gameSession.level.gridItemCount, false);
     level_addPawn(
         (Pawn){PAWNTYPE_SHIP, closestTile, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, BASEACTION_NONE, false}, 0, homeBase->faction, false, true},
         &gameSession.level);
@@ -679,7 +679,7 @@ static void gameSession_handlePawnActionButtonSelection() {
             gameSession.activePawn->turnComplete = true;
             homeBase = movement_homeBase(gameSession.activePawn->faction, gameSession.level.pawns, gameSession.level.pawnCount);
             gameSession.activePawn->warped = true;
-            closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
+            closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false, gameSession.level.gridItems, gameSession.level.gridItemCount, false);
             gameSession.state = GAMESTATE_DEFAULT;
             gameActionLogic_scheduleWarp(gameSession.activePawn, closestTile, &gameSession);
             gameSession.activePawn->position = closestTile;
@@ -700,7 +700,7 @@ static void gameSession_handlePawnActionButtonSelection() {
         case MenuActionTypeTorpedoPack:
             gameSession.activePawn->turnComplete = true;
             homeBase = movement_homeBase(gameSession.activePawn->faction, gameSession.level.pawns, gameSession.level.pawnCount);
-            closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
+            closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false, gameSession.level.gridItems, gameSession.level.gridItemCount, false);
             gameSession.state = GAMESTATE_DEFAULT;
             level_addGridItem(actionType == MenuActionTypeHealthPack ? GRIDITEMTYPE_HEALTH : GRIDITEMTYPE_TORPEDOES, closestTile, &gameSession.level); 
             break;
@@ -933,7 +933,7 @@ static void gameSession_cpuTurn() {
         case CPUACTION_WARP:
             homeBase = movement_homeBase(pawn->faction, gameSession.level.pawns, gameSession.level.pawnCount);
             pawn->warped = true;
-            closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false);
+            closestTile = movement_closestTileToTargetInRange(homeBase, homeBase->position, gameSession.level.pawns, gameSession.level.pawnCount, false, gameSession.level.gridItems, gameSession.level.gridItemCount, true);
             textId = STRING_WARP;
             gameActionLogic_scheduleWarp(pawn, closestTile, &gameSession);
             pawn->position = closestTile;

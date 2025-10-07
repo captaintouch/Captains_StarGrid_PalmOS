@@ -115,7 +115,7 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
             maxDamage = (int)((float)pawn->inventory.health * 0.5);
         }
     }
-    targetPosition = movement_closestTileToTargetInRange(pawn, target->position, allPawns, totalPawnCount, canGoToBase);
+    targetPosition = movement_closestTileToTargetInRange(pawn, target->position, allPawns, totalPawnCount, canGoToBase, NULL, 0,true);
     safePosition = targetPosition;
     for (dx = -maxRange; dx <= maxRange; dx++) {
         int deltaX = indicesX[dx + maxRange] - maxRange;

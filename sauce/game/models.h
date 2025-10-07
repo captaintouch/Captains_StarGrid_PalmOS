@@ -68,6 +68,16 @@ typedef struct Pawn {
     Boolean turnComplete;
 } Pawn;
 
+typedef enum GridItemType {
+    GRIDITEMTYPE_HEALTH,
+    GRIDITEMTYPE_TORPEDOES
+} GridItemType;
+
+typedef struct GridItem {
+    GridItemType type;
+    Coordinate position;
+} GridItem;
+
 typedef struct AttackAnimation {
     Coordinate target;
     Coordinate torpedoPosition;

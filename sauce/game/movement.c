@@ -3,7 +3,9 @@
 #include <PalmOS.h>
 
 #include "../constants.h"
+#include "PalmTypes.h"
 #include "hexgrid.h"
+#include "level.h"
 #include "mathIsFun.h"
 #include "models.h"
 
@@ -308,6 +310,17 @@ void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coo
 }
 
 MOVEMENT_SECTION
+Boolean movement_gridItemAtTarget(Coordinate targetCoordinate, GridItem *gridItems, int gridItemCount) {
+    int i;
+    for (i = 0; i < gridItemCount; i++) {
+        if (isEqualCoordinate(gridItems[i].position, targetCoordinate)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+MOVEMENT_SECTION
 Boolean movement_shipAtTarget(Coordinate targetCoordinate, Pawn *allPawns, int totalPawnCount) {
     int i;
     for (i = 0; i < totalPawnCount; i++) {
@@ -341,7 +354,7 @@ Pawn *movement_homeBase(int factionIndex, Pawn *allPawns, int totalPawnCount) {
 }
 
 MOVEMENT_SECTION
-Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Coordinate targetPosition, Pawn *allPawns, int totalPawnCount, Boolean allowBase) {
+Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Coordinate targetPosition, Pawn *allPawns, int totalPawnCount, Boolean allowBase, GridItem *gridItems, int gridItemCount, Boolean allowOntoGridItems) {
     Coordinate closestTile = pawn->position;
     int minDistance = 9999;
     int maxRange = GAMEMECHANICS_MAXTILEMOVERANGE;
@@ -351,6 +364,9 @@ Coordinate movement_closestTileToTargetInRange(Pawn *pawn, Coordinate targetPosi
         for (dy = -maxRange; dy <= maxRange; dy++) {
             Coordinate candidateTile = {pawn->position.x + dx, pawn->position.y + dy};
             Boolean targetOccupied = allowBase ? movement_shipAtTarget(candidateTile, allPawns, totalPawnCount) : movement_shipOrBaseAtTarget(candidateTile, allPawns, totalPawnCount);
+            if (!targetOccupied) {
+                targetOccupied = allowOntoGridItems ? false : movement_gridItemAtTarget(candidateTile, gridItems, gridItemCount);
+            }
             if (isPositionInBounds(candidateTile) && !targetOccupied) {
                 int distance = movement_distance(candidateTile, targetPosition);
                 if (distance < minDistance) {
@@ -376,5 +392,5 @@ Coordinate movement_positionAwayFrom(Coordinate sourceCoordinate, Pawn *pawn, Pa
     if (vectorY < -1) vectorY = -1;
 
     preferredPosition = (Coordinate) {pawn->position.x + -vectorX * halfDistance, pawn->position.y + -vectorY * halfDistance};
-    return movement_closestTileToTargetInRange(pawn, preferredPosition, allPawns, totalPawnCount, false);
+    return movement_closestTileToTargetInRange(pawn, preferredPosition, allPawns, totalPawnCount, false, NULL, 0, false);
 }

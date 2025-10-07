@@ -484,7 +484,7 @@ static void level_applyPlacementCorners(Level *level, NewGameConfig config) {
         pawnIndex++;
         // Add ships around the bases
         for (j = 0; j < config.shipCount; j++) {
-            Coordinate shipCoordinate = movement_closestTileToTargetInRange(basePawn, basePawn->position, level->pawns, pawnIndex, false);
+            Coordinate shipCoordinate = movement_closestTileToTargetInRange(basePawn, basePawn->position, level->pawns, pawnIndex, false, NULL, 0, true);
             level->pawns[pawnIndex] = (Pawn){PAWNTYPE_SHIP, shipCoordinate, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, BASEACTION_NONE, false}, (faction + faction * TimGetTicks()) % GFX_FRAMECOUNT_SHIPA, faction, false, false};
             pawnIndex++;
         }
@@ -513,7 +513,7 @@ static void level_removeHumanPawnsAndRecenter(Level *level, NewGameConfig config
         pawnIndex++;
         // Add ships around the bases
         for (j = 0; j < config.shipCount + 1; j++) {
-            Coordinate shipCoordinate = movement_closestTileToTargetInRange(basePawn, basePawn->position, pawns, pawnIndex, false);
+            Coordinate shipCoordinate = movement_closestTileToTargetInRange(basePawn, basePawn->position, pawns, pawnIndex, false, NULL, 0, true);
             pawns[pawnIndex] = (Pawn){PAWNTYPE_SHIP, shipCoordinate, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, BASEACTION_NONE, false}, (faction + faction * TimGetTicks()) % GFX_FRAMECOUNT_SHIPA, faction, false, false};
             pawnIndex++;
         }

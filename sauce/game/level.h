@@ -21,16 +21,6 @@ typedef struct NewGameConfig {
     int shipCount;
 } NewGameConfig;
 
-typedef enum GridItemType {
-    GRIDITEMTYPE_HEALTH,
-    GRIDITEMTYPE_TORPEDOES
-} GridItemType;
-
-typedef struct GridItem {
-    GridItemType type;
-    Coordinate position;
-} GridItem;
-
 typedef struct GridText {
     char fixedText[30];
     Coordinate position;
