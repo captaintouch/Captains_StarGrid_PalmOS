@@ -8,6 +8,7 @@
 #include "MemoryMgr.h"
 #include "SystemMgr.h"
 #include "TimeMgr.h"
+#include "cpuLogic.h"
 #include "drawhelper.h"
 #include "game.h"
 #include "gameActionLogic.h"
@@ -950,6 +951,11 @@ static void gameSession_cpuTurn() {
             pawn->inventory.lastBaseAction = BASEACTION_BUILD_SHIP;
             textId = STRING_BUILDSHIP;
             gameSession.drawingState.requiresPauseAfterLayout = true;
+            break;
+        case CPUACTION_BASE_GRIDITEMHEALTH:
+        case CPUACTION_BASE_GRIDITEMTORPEDOES:
+            closestTile = movement_closestTileToTargetInRange(pawn, pawn->position, gameSession.level.pawns, gameSession.level.pawnCount, false, gameSession.level.gridItems, gameSession.level.gridItemCount, false);
+            level_addGridItem(strategy.CPUAction == CPUACTION_BASE_GRIDITEMHEALTH ? GRIDITEMTYPE_HEALTH : GRIDITEMTYPE_TORPEDOES, closestTile, &gameSession.level);
             break;
         case CPUACTION_NONE:
             textId = STRING_NOACTION;
