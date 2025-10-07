@@ -232,7 +232,7 @@ static void game_drawGridItems() {
     }
 
     for (i = 0; i < gameSession.level.gridItemCount; i++) {
-        UInt32 timing = TimGetTicks() / SysTicksPerSecond(); 
+        UInt32 timing = TimGetTicks() / SysTicksPerSecond() * 2; 
         GridItem *gridItem = &gameSession.level.gridItems[i];
         Coordinate center = viewport_convertedCoordinate(hexgrid_tileCenterPosition(gridItem->position));
         ImageSprite *sprite = NULL;
