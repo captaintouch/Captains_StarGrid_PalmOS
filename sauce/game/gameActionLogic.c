@@ -235,11 +235,25 @@ GAMEACTIONLOGIC_SECTION
 Boolean gameActionLogic_afterMove(GameSession *session) {
     Boolean didScheduleMovement = false;
     Pawn *selectedPawn = session->movement->targetPawn;
+    GridItem *gridItem = level_gridItemAtTile(session->activePawn->position, &session->level);
 
     if (session->movement->pawn != NULL && session->movement->pawn == &session->cameraPawn) {
         gameActionLogic_clearMovement(session);
         session->state = GAMESTATE_DEFAULT;
         return false;
+    }
+
+    // Check if we moved upon a grid item (health, torpedoes)
+    if (gridItem != NULL) {
+        switch (gridItem->type) {
+            case GRIDITEMTYPE_HEALTH:
+                session->activePawn->inventory.health = GAMEMECHANICS_MAXSHIPHEALTH;
+                break;
+            case GRIDITEMTYPE_TORPEDOES:
+                session->activePawn->inventory.torpedoCount = GAMEMECHANICS_MAXTORPEDOCOUNT;
+                break;
+        }
+        level_removeGridItem(gridItem, &session->level);
     }
 
     StrCopy(session->cpuActionText, "");

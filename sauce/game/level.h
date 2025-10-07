@@ -83,6 +83,8 @@ void level_addPawn(Pawn pawn, Level *level) LEVEL_SECTION;
 void level_addGridItem(GridItemType itemType, Coordinate position, Level *level) LEVEL_SECTION;
 void level_addScorePawns(Level *level, int faction) LEVEL_SECTION;
 void level_addRank(Level *level, Score score) LEVEL_SECTION;
+void level_removeGridItem(GridItem *gridItem, Level *level) LEVEL_SECTION;
+void level_removeGridItemAtIndex(int index, Level *level) LEVEL_SECTION;
 void level_removePawn(Pawn *pawn, Level *level) LEVEL_SECTION;
 void level_removePawnAtIndex(int index, Level *level) LEVEL_SECTION;
 void level_reorderPawnsByDistance(Level *level) LEVEL_SECTION;
@@ -93,4 +95,5 @@ NewGameConfig level_defaultNewGameConfig(int rank) LEVEL_SECTION;
 void level_returnFlagFromPawnToOriginalBase(Pawn *pawn, Level *level) LEVEL_SECTION;
 Pawn *level_pawnAtTile(Coordinate tileCoordinate, Level *level) LEVEL_SECTION;
 Pawn *level_pawnTypeAtTile(Coordinate tileCoordinate, Level *level, PawnType pawnType, Boolean checkPawnType) LEVEL_SECTION; 
+GridItem *level_gridItemAtTile(Coordinate tileCoordinate, Level *level) LEVEL_SECTION;
 #endif

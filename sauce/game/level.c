@@ -237,6 +237,16 @@ void level_reorderPawnsByDistance(Level *level) {
 }
 
 LEVEL_SECTION
+void level_removeGridItemAtIndex(int index, Level *level) {
+    int i;
+    for (i = index; i < level->gridItemCount - 1; i++) {
+        level->gridItems[i] = level->gridItems[i + 1];
+    }
+    level->gridItemCount--;
+    MemPtrResize(level->gridItems, sizeof(GridItem) * level->gridItemCount);
+}
+
+LEVEL_SECTION
 void level_removePawnAtIndex(int index, Level *level) {
     int i;
     for (i = index; i < level->pawnCount - 1; i++) {
@@ -259,6 +269,18 @@ static int level_removePawnsOfFaction(int factionIndex, Level *level) {
     }
     return removalCount;
 }
+
+LEVEL_SECTION
+void level_removeGridItem(GridItem *gridItem, Level *level) {
+    int i;
+    for (i = 0; i < level->gridItemCount; i++) {
+        if (isEqualCoordinate(gridItem->position, level->gridItems[i].position)) {
+            level_removeGridItemAtIndex(i, level);
+            return;
+        }
+    }
+}
+
 
 LEVEL_SECTION
 void level_removePawn(Pawn *pawn, Level *level) {
@@ -576,6 +598,17 @@ NewGameConfig level_defaultNewGameConfig(int rank) {
     }
     config.shipCount = 2;
     return config;
+}
+
+LEVEL_SECTION
+GridItem *level_gridItemAtTile(Coordinate tileCoordinate, Level *level) {
+    int i;
+    for (i = 0; i < level->gridItemCount; i++) {
+        if (isEqualCoordinate(level->gridItems[i].position, tileCoordinate) && !isInvalidCoordinate(level->gridItems[i].position)) {
+            return &level->gridItems[i];
+        }
+    }
+    return NULL;
 }
 
 LEVEL_SECTION
