@@ -9,6 +9,7 @@
 #include "SystemMgr.h"
 #include "TimeMgr.h"
 #include "drawhelper.h"
+#include "game.h"
 #include "gameActionLogic.h"
 #include "hexgrid.h"
 #include "level.h"
@@ -912,7 +913,7 @@ static void gameSession_cpuTurn() {
         return;
     }
 
-    strategy = cpuLogic_getStrategy(pawn, gameSession.level.pawns, gameSession.level.pawnCount, gameSession.currentTurn, gameSession.factions[pawn->faction].profile, !gameActionLogic_humanShipsLeft(&gameSession));
+    strategy = cpuLogic_getStrategy(pawn, gameSession.level.pawns, gameSession.level.pawnCount, gameSession.level.gridItems, gameSession.level.gridItemCount, gameSession.currentTurn, gameSession.factions[pawn->faction].profile, !gameActionLogic_humanShipsLeft(&gameSession));
     pawn->turnComplete = true;
     switch (strategy.CPUAction) {
         case CPUACTION_MOVE:

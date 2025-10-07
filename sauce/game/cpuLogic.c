@@ -2,9 +2,11 @@
 
 #include "../constants.h"
 #include "../deviceinfo.h"
+#include "PalmTypes.h"
 #include "drawhelper.h"
 #include "hexgrid.h"
 #include "mathIsFun.h"
+#include "models.h"
 #include "movement.h"
 #include "pawn.h"
 #include "viewport.h"
@@ -13,7 +15,8 @@ typedef enum CPUStrategy {
     CPUSTRATEGY_DEFENDBASE,
     CPUSTRATEGY_CAPTUREFLAG,
     CPUSTRATEGY_ATTACK,
-    CPUSTRATEGY_PROVIDEBACKUP
+    CPUSTRATEGY_PROVIDEBACKUP,
+    CPUSTRATEGY_SNATCHGRIDITEMS
 } CPUStrategy;
 
 CPULOGIC_SECTION
@@ -115,7 +118,7 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
             maxDamage = (int)((float)pawn->inventory.health * 0.5);
         }
     }
-    targetPosition = movement_closestTileToTargetInRange(pawn, target->position, allPawns, totalPawnCount, canGoToBase, NULL, 0,true);
+    targetPosition = movement_closestTileToTargetInRange(pawn, target->position, allPawns, totalPawnCount, canGoToBase, NULL, 0, true);
     safePosition = targetPosition;
     for (dx = -maxRange; dx <= maxRange; dx++) {
         int deltaX = indicesX[dx + maxRange] - maxRange;
@@ -296,6 +299,44 @@ static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int
 }
 
 CPULOGIC_SECTION
+static CPUStrategyResult cpuLogic_provideSnatchGridItemsStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, GridItem *gridItems, int gridItemCount, CPUFactionProfile factionProfile) {
+    CPUStrategyResult strategyResult = {0, CPUACTION_NONE, NULL, (Coordinate){-1, -1}, true};
+    int i;
+
+    switch (pawn->type) {
+        case PAWNTYPE_BASE:
+        // if there are ships near that need health / torpedoes, generate grid item
+        break;
+        case PAWNTYPE_SHIP:
+            for (i = 0; i < gridItemCount; i++) {
+                if (!isInvalidCoordinate(gridItems[i].position)) {
+                    int distance = movement_distance(pawn->position, gridItems[i].position);
+                    if (distance <= GAMEMECHANICS_MAXTILEMOVERANGE) {
+                        Boolean canUseItem = false;
+                        switch (gridItems[i].type) {
+                            case GRIDITEMTYPE_TORPEDOES:
+                                canUseItem = pawn->inventory.torpedoCount < GAMEMECHANICS_MAXTORPEDOCOUNT;
+                                break;
+                            case GRIDITEMTYPE_HEALTH:
+                                canUseItem = pawn->inventory.health < GAMEMECHANICS_MAXSHIPHEALTH;
+                                break;
+                        }
+                        if (canUseItem) {
+                            strategyResult.score = 130;
+                            strategyResult.CPUAction = CPUACTION_MOVE;
+                            strategyResult.targetPosition = gridItems[i].position;
+                            return strategyResult;
+                        }
+                    }
+                }
+            }
+            break;
+    }
+
+    return strategyResult;
+}
+
+CPULOGIC_SECTION
 static CPUStrategyResult cpuLogic_provideBackupStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, CPUFactionProfile factionProfile) {
     // iterate through all other ship pawns of the same faction, disregard ships that are close to home base
     // if one of them is in danger of being attacked, move towards potential enemy
@@ -350,10 +391,10 @@ static CPUStrategyResult cpuLogic_baseStrategy(Pawn *pawn, Pawn *allPawns, int t
 }
 
 CPULOGIC_SECTION
-CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int currentTurn, CPUFactionProfile factionProfile, Boolean cpuPlayersOnly) {
+CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, GridItem *gridItems, int gridItemCount, int currentTurn, CPUFactionProfile factionProfile, Boolean cpuPlayersOnly) {
     int i;
     CPUStrategyResult bestStrategy;
-    CPUStrategyResult strategyResult[4];
+    CPUStrategyResult strategyResult[5];
 #ifdef DEBUG
     CPUStrategy selectedStrategy = 0;
 #endif
@@ -368,9 +409,10 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
     strategyResult[CPUSTRATEGY_CAPTUREFLAG] = cpuLogic_captureTheFlagStrategy(pawn, allPawns, totalPawnCount, factionProfile.captureFlagPriority);
     strategyResult[CPUSTRATEGY_ATTACK] = cpuLogic_attackStrategy(pawn, allPawns, totalPawnCount, factionProfile.attackPriority);
     strategyResult[CPUSTRATEGY_PROVIDEBACKUP] = cpuLogic_provideBackupStrategy(pawn, allPawns, totalPawnCount, factionProfile);
+    strategyResult[CPUSTRATEGY_SNATCHGRIDITEMS] = cpuLogic_provideSnatchGridItemsStrategy(pawn, allPawns, totalPawnCount, gridItems, gridItemCount, factionProfile);
 
     bestStrategy = strategyResult[0];
-    for (i = 1; i < 4; i++) {
+    for (i = 1; i < 5; i++) {
         if (strategyResult[i].CPUAction == CPUACTION_NONE) {
             strategyResult[i].score = -999;
         }
