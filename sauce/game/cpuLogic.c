@@ -305,8 +305,36 @@ static CPUStrategyResult cpuLogic_provideSnatchGridItemsStrategy(Pawn *pawn, Paw
 
     switch (pawn->type) {
         case PAWNTYPE_BASE:
-        // if there are ships near that need health / torpedoes, generate grid item
-        break;
+            // disregard if there is already a grid item close to the base
+            for (i = 0; i < gridItemCount; i++) {
+                if (!isInvalidCoordinate(gridItems[i].position)) {
+                    int distance = movement_distance(pawn->position, gridItems[i].position);
+                    if (distance <= GAMEMECHANICS_MAXTILEMOVERANGE) {
+                        return strategyResult;
+                    }
+                }
+            }
+            // if there are ships near that need health / torpedoes, generate grid item
+            for (i = 0; i < totalPawnCount; i++) {
+                if (!isInvalidCoordinate(allPawns[i].position) && allPawns[i].type == PAWNTYPE_SHIP && allPawns[i].faction == pawn->faction) {
+                    int distance = movement_distance(pawn->position, allPawns[i].position);
+                    if (distance <= GAMEMECHANICS_MAXTILEMOVERANGE * 2) {
+                        Boolean needsItem = false;
+                        if (allPawns[i].inventory.health < GAMEMECHANICS_MAXSHIPHEALTH) {
+                            needsItem = true;
+                            strategyResult.CPUAction = CPUACTION_BASE_GRIDITEMHEALTH;
+                        } else if (allPawns[i].inventory.torpedoCount < GAMEMECHANICS_MAXTORPEDOCOUNT) {
+                            needsItem = true;
+                            strategyResult.CPUAction = CPUACTION_BASE_GRIDITEMTORPEDOES;
+                        }
+                        if (needsItem) {
+                            strategyResult.score = 100;
+                            return strategyResult;
+                        }
+                    }
+                }
+            }
+            break;
         case PAWNTYPE_SHIP:
             for (i = 0; i < gridItemCount; i++) {
                 if (!isInvalidCoordinate(gridItems[i].position)) {
