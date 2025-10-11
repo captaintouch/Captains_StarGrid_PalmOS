@@ -95,7 +95,7 @@ static int cpuLogic_damageAssementForTile(Coordinate position, Pawn *pawn, Pawn 
 
 // This function is used to find a safe position for the pawn to move to, avoiding enemy ships
 CPULOGIC_SECTION
-static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPawnCount, Pawn *target, Boolean canGoToBase, Boolean cpuPlayersOnly) {
+static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPawnCount, CPUStrategyResult strategy, Boolean cpuPlayersOnly) {
     int maxRange = GAMEMECHANICS_MAXTILEMOVERANGE;
     int dx, dy;
     int minDistance = 9999;
@@ -108,8 +108,8 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
     mathIsFun_shuffleIndices(indicesX, rangeIndicesCount);
     mathIsFun_shuffleIndices(indicesY, rangeIndicesCount);
 
-    if (target == NULL || isInvalidCoordinate(target->position)) {
-        return (Coordinate){-1, -1};
+    if (strategy.target == NULL || isInvalidCoordinate(strategy.target->position)) {
+        return (isInvalidCoordinate(strategy.targetPosition)) ? (Coordinate){-1, -1} : strategy.targetPosition;
     }
     if (cpuLogic_pawnWithStolenFlag(pawn, allPawns, totalPawnCount, 0, true) == NULL) {
         if (random(0, 5) >= 4) {
@@ -118,7 +118,7 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
             maxDamage = (int)((float)pawn->inventory.health * 0.5);
         }
     }
-    targetPosition = movement_closestTileToTargetInRange(pawn, target->position, allPawns, totalPawnCount, canGoToBase, NULL, 0, true);
+    targetPosition = movement_closestTileToTargetInRange(pawn, strategy.target->position, allPawns, totalPawnCount, strategy.allowMoveToBase, NULL, 0, true);
     safePosition = targetPosition;
     for (dx = -maxRange; dx <= maxRange; dx++) {
         int deltaX = indicesX[dx + maxRange] - maxRange;
@@ -300,7 +300,7 @@ static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int
 
 CPULOGIC_SECTION
 static CPUStrategyResult cpuLogic_provideSnatchGridItemsStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, GridItem *gridItems, int gridItemCount, CPUFactionProfile factionProfile) {
-    CPUStrategyResult strategyResult = {0, CPUACTION_NONE, NULL, (Coordinate){-1, -1}, true};
+    CPUStrategyResult strategyResult = {-100, CPUACTION_NONE, NULL, (Coordinate){-1, -1}, true};
     int i;
 
     switch (pawn->type) {
@@ -452,7 +452,7 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
         }
     }
     // bestStrategy = strategyResult[CPUSTRATEGY_DEFENDBASE];
-    bestStrategy.targetPosition = cpuLogic_safePosition(pawn, allPawns, totalPawnCount, bestStrategy.target, bestStrategy.allowMoveToBase, cpuPlayersOnly);
+    bestStrategy.targetPosition = cpuLogic_safePosition(pawn, allPawns, totalPawnCount, bestStrategy, cpuPlayersOnly);
 
 #ifdef DEBUG
     /*c
@@ -470,6 +470,9 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
             break;
         case CPUSTRATEGY_PROVIDEBACKUP:
             drawhelper_drawText("STRAT: BACKUP", (Coordinate){0, 0});
+            break;
+        case CPUSTRATEGY_SNATCHGRIDITEMS:
+            drawhelper_drawText("STRAT: SNATCH", (Coordinate){0, 0});
             break;
     }
     switch (bestStrategy.CPUAction) {
@@ -492,6 +495,12 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
             break;
         case CPUACTION_BASE_BUILDSHIP:
             drawhelper_drawText("BUILD", (Coordinate){0, 30});
+            break;
+        case CPUACTION_BASE_GRIDITEMHEALTH:
+            drawhelper_drawText("HEAL", (Coordinate){0, 30});
+            break;
+        case CPUACTION_BASE_GRIDITEMTORPEDOES:
+            drawhelper_drawText("TORP", (Coordinate){0, 30});
             break;
     }
     sleep(1000);
