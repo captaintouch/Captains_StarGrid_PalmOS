@@ -398,7 +398,7 @@ static CPUStrategyResult cpuLogic_provideBackupStrategy(Pawn *pawn, Pawn *allPaw
 }
 
 CPULOGIC_SECTION
-static CPUStrategyResult cpuLogic_baseStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, int currentTurn, CPUFactionProfile factionProfile) {
+static CPUStrategyResult cpuLogic_baseStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, GridItem *gridItems, int gridItemCount, int currentTurn, CPUFactionProfile factionProfile) {
     Pawn *enemyInShortRange;
 
     if (pawn_baseTurnsLeft(currentTurn, pawn->inventory.baseActionLastActionTurn, pawn->inventory.lastBaseAction) > 0) {
@@ -413,6 +413,10 @@ static CPUStrategyResult cpuLogic_baseStrategy(Pawn *pawn, Pawn *allPawns, int t
         if (enemyInLongRange != NULL && factionProfile.attackPriority < factionProfile.defendBasePriority) {
             return (CPUStrategyResult){0, CPUACTION_NONE, NULL, (Coordinate){-1, -1}, false};
         } else {
+            CPUStrategyResult snatchStrategy = cpuLogic_provideSnatchGridItemsStrategy(pawn, allPawns, totalPawnCount, gridItems, gridItemCount, factionProfile);
+            if (snatchStrategy.CPUAction != CPUACTION_NONE) {
+                return snatchStrategy;
+            }
             return (CPUStrategyResult){100, CPUACTION_BASE_BUILDSHIP, NULL, (Coordinate){-1, -1}, false};
         }
     }
@@ -430,7 +434,7 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
         return (CPUStrategyResult){100, CPUACTION_NONE, NULL, (Coordinate){-1, -1}, false};
     }
     if (pawn->type == PAWNTYPE_BASE) {
-        return cpuLogic_baseStrategy(pawn, allPawns, totalPawnCount, currentTurn, factionProfile);
+        return cpuLogic_baseStrategy(pawn, allPawns, totalPawnCount, gridItems, gridItemCount, currentTurn, factionProfile);
     }
 
     strategyResult[CPUSTRATEGY_DEFENDBASE] = cpuLogic_defendBaseStrategy(pawn, allPawns, totalPawnCount, factionProfile.defendBasePriority);
