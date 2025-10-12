@@ -84,6 +84,8 @@ Level level_startLevel() {
     level.actionTiles = NULL;
     level.pawnCount = 0;
     level.pawns = NULL;
+    level.gridItemCount = 0;
+    level.gridItems = NULL;
     MemSet(newPawns, sizeof(Pawn) * 4, 0);
     MemSet(level.scores, sizeof(LevelScore) * GAMEMECHANICS_MAXPLAYERCOUNT, 0);
     newPawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, BASEACTION_NONE, false}, 4, 3, false, false};
