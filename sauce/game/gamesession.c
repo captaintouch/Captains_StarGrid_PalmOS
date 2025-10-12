@@ -950,8 +950,7 @@ static void gameSession_cpuTurn() {
             break;
         case CPUACTION_BASE_GRIDITEMHEALTH:
         case CPUACTION_BASE_GRIDITEMTORPEDOES:
-            closestTile = movement_closestTileToTargetInRange(pawn, pawn->position, gameSession.level.pawns, gameSession.level.pawnCount, false, gameSession.level.gridItems, gameSession.level.gridItemCount, false);
-            level_addGridItem(strategy.CPUAction == CPUACTION_BASE_GRIDITEMHEALTH ? GRIDITEMTYPE_HEALTH : GRIDITEMTYPE_TORPEDOES, closestTile, &gameSession.level);
+            level_addGridItem(strategy.CPUAction == CPUACTION_BASE_GRIDITEMHEALTH ? GRIDITEMTYPE_HEALTH : GRIDITEMTYPE_TORPEDOES, strategy.targetPosition, &gameSession.level);
             break;
         case CPUACTION_NONE:
             textId = STRING_NOACTION;
