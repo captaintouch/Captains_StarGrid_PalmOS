@@ -951,6 +951,7 @@ static void gameSession_cpuTurn() {
         case CPUACTION_BASE_GRIDITEMHEALTH:
         case CPUACTION_BASE_GRIDITEMTORPEDOES:
             level_addGridItem(strategy.CPUAction == CPUACTION_BASE_GRIDITEMHEALTH ? GRIDITEMTYPE_HEALTH : GRIDITEMTYPE_TORPEDOES, strategy.targetPosition, &gameSession.level);
+            textId = strategy.CPUAction == CPUACTION_BASE_GRIDITEMHEALTH ? STRING_HEALTHPACK : STRING_TORPEDOPACK;
             break;
         case CPUACTION_NONE:
             textId = STRING_NOACTION;
