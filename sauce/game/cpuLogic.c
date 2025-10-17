@@ -281,6 +281,7 @@ static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int
         Pawn *nearestEnemyShipOrBase = cpuLogic_weakestEnemyInRange(pawn, allPawns, totalPawnCount, true, true, 1);
         if (nearestEnemyShipOrBase != NULL) {
             if (!cpuLogic_attackIfInRange(pawn, nearestEnemyShipOrBase, &strategyResult)) {  // Attack if we can, if not, move to enemy
+                strategyResult.score -= 10;
                 strategyResult.CPUAction = CPUACTION_MOVE;
                 strategyResult.target = nearestEnemyShipOrBase;
             }
