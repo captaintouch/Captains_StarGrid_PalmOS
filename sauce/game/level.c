@@ -543,6 +543,10 @@ Level level_create(NewGameConfig config) {
     MemSet(level.pawns, sizeof(Pawn) * level.pawnCount, 0);
     MemSet(level.scores, sizeof(LevelScore) * GAMEMECHANICS_MAXPLAYERCOUNT, 0);
 
+    if (factionCount < 3) {
+        config.placementStrategy = PLAYERPLACEMENTSTRATEGY_CORNERS;
+    }
+
     switch (config.placementStrategy) {
         case PLAYERPLACEMENTSTRATEGY_CORNERS:
             level_applyPlacementCorners(&level, config);
