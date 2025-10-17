@@ -152,7 +152,7 @@ static void game_drawHighlightTiles() {  // Tiles that need to be highlighted (f
                 hexgrid_fillTileAtPosition(tile->position, true, tile->color);
                 drawhelper_applyForeColor(CLOUDS);
                 hexgrid_drawTileAtPosition(tile->position, true);
-                if (!gameSession.colorSupport && tile->color == FILLEDTILETYPE_WARN) {
+                if (!gameSession.colorSupport && tile->color == FILLEDTILETYPE_WARNEXCLAMATION) {
                     // draw an exclamation mark in the center so it's obvious that it's a warning tile
                     drawhelper_drawTextCentered("!", viewport_convertedCoordinate(hexgrid_tileCenterPosition(tile->position)), 0, 0);
                 }
@@ -238,7 +238,7 @@ static void game_drawGridItems() {
         ImageSprite *sprite = NULL;
         switch (gridItem->type) {
             case GRIDITEMTYPE_TORPEDOES:
-                sprite = &spriteLibrary.torpedoAnimation[2];
+                sprite = &spriteLibrary.torpedoAnimation[gameSession.colorSupport ? 2 : 1];
                 break;
             case GRIDITEMTYPE_HEALTH:
                 sprite = &spriteLibrary.healthSprite;

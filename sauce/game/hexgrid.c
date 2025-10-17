@@ -114,6 +114,7 @@ void hexgrid_fillTileAtPosition(Coordinate hexPosition, Boolean adjustForViewpor
             sprite = &spriteLibrary.tileMoveSprite;
             break;
         case FILLEDTILETYPE_WARN:
+        case FILLEDTILETYPE_WARNEXCLAMATION:
             sprite = &spriteLibrary.tileWarnSprite;
             break;
         case FILLEDTILETYPE_ATTACK:

@@ -247,6 +247,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
     int coordinatesCount = 0;
     int maxIteration;
     FilledTileType color = gameSession_hightlightTilesColor();
+    FilledTileType warnMoveColor = gameSession.colorSupport ? FILLEDTILETYPE_WARN : FILLEDTILETYPE_WARNEXCLAMATION;
     gameSession_resetHighlightTiles();
     switch (targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
@@ -264,7 +265,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
                 for (j = 0; j < gameSession.level.pawnCount; j++) {
                     Pawn *pawnAtPosition = &gameSession.level.pawns[j];
                     if (pawnAtPosition->type == PAWNTYPE_SHIP && pawnAtPosition->faction != gameSession.activePawn->faction && movement_distance(pawnAtPosition->position, tile->position) <= GAMEMECHANICS_MAXTILETORPEDORANGE) {
-                        tile->color = FILLEDTILETYPE_WARN;
+                        tile->color = warnMoveColor;
                     }
                 }
             }
