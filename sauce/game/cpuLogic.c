@@ -111,12 +111,10 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
     if (strategy.target == NULL || isInvalidCoordinate(strategy.target->position)) {
         return (isInvalidCoordinate(strategy.targetPosition)) ? (Coordinate){-1, -1} : strategy.targetPosition;
     }
-    if (cpuLogic_pawnWithStolenFlag(pawn, allPawns, totalPawnCount, 0, true) == NULL) {
-        if (random(0, 5) >= 4) {
-            maxDamage = pawn->inventory.health;
-        } else {
-            maxDamage = (int)((float)pawn->inventory.health * 0.5);
-        }
+    if (random(0, 5) >= 4) {
+        maxDamage = pawn->inventory.health;
+    } else {
+        maxDamage = (int)((float)pawn->inventory.health * 0.5);
     }
     targetPosition = movement_closestTileToTargetInRange(pawn, strategy.target->position, allPawns, totalPawnCount, strategy.allowMoveToBase, NULL, 0, true);
     safePosition = targetPosition;
