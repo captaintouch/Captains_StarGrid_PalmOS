@@ -203,9 +203,10 @@ static CPUStrategyResult cpuLogic_defendBaseStrategy(Pawn *pawn, Pawn *allPawns,
                 Pawn *enemyHomeBase = movement_homeBase(enemyWithFlag->faction, allPawns, totalPawnCount);
                 int distanceFromEnemy = movement_distance(enemyWithFlag->position, pawn->position);
                 int distanceFromEnemyBase = movement_distance(enemyHomeBase->position, pawn->position);
-                if (enemyHomeBase != NULL && distanceFromEnemyBase < distanceFromEnemy) {
+                if (enemyHomeBase != NULL && distanceFromEnemyBase < distanceFromEnemy && distanceFromEnemy > GAMEMECHANICS_MAXTILEMOVERANGE * 2) {
                     strategyResult.CPUAction = CPUACTION_MOVE;
                     strategyResult.target = enemyHomeBase;
+                    strategyResult.allowMoveToBase = true;
                 } else {
                     strategyResult.CPUAction = CPUACTION_MOVE;
                     strategyResult.target = enemyWithFlag;
@@ -274,17 +275,8 @@ static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int
     CPUStrategyResult strategyResult = {factionValue + random(-40, 40), CPUACTION_NONE, NULL, (Coordinate){-1, -1}, false};
 
     Pawn *enemyWithFlag = cpuLogic_pawnWithStolenFlag(pawn, allPawns, totalPawnCount, 0, true);
-    if (enemyWithFlag != NULL) {
+    if (enemyWithFlag != NULL && cpuLogic_attackIfInRange(pawn, enemyWithFlag, &strategyResult)) {
         strategyResult.score += 50;
-        if (!cpuLogic_attackIfInRange(pawn, enemyWithFlag, &strategyResult)) {  // Attack if we can, if not, move to enemy home base
-            Pawn *enemyHomeBase = movement_homeBase(enemyWithFlag->faction, allPawns, totalPawnCount);
-            if (enemyHomeBase != NULL) {
-                if (!cpuLogic_attackIfInRange(pawn, enemyWithFlag, &strategyResult)) {
-                    strategyResult.CPUAction = CPUACTION_MOVE;
-                    strategyResult.target = enemyHomeBase;
-                }
-            }
-        }
     } else {
         Pawn *nearestEnemyShipOrBase = cpuLogic_weakestEnemyInRange(pawn, allPawns, totalPawnCount, true, true, 1);
         if (nearestEnemyShipOrBase != NULL) {
