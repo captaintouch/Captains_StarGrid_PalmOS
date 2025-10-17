@@ -319,7 +319,16 @@ void level_addScorePawns(Level *level, int faction) {
     int totalDestroyed = scoring_totalDestroyedShips(score) + scoring_totalDestroyedBases(score);
     int totalCaptured = scoring_totalCapturedShips(score);
     int i, factionIndex, pawnCount = 0;
-    level_removePawnsBelowCoordinates((Coordinate){9, 9}, level, false);
+    if (level->pawns != NULL) {
+        MemPtrFree(level->pawns);
+        level->pawns = NULL;
+        level->pawnCount = 0;
+    }
+    if (level->gridItems != NULL) {
+        MemPtrFree(level->gridItems);
+        level->gridItems = NULL;
+        level->gridItemCount = 0;
+    }
     if (level->gridTexts != NULL) {
         MemPtrFree(level->gridTexts);
         level->gridTexts = NULL;
