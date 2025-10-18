@@ -16,7 +16,8 @@ typedef enum CPUStrategy {
     CPUSTRATEGY_CAPTUREFLAG,
     CPUSTRATEGY_ATTACK,
     CPUSTRATEGY_PROVIDEBACKUP,
-    CPUSTRATEGY_SNATCHGRIDITEMS
+    CPUSTRATEGY_SNATCHGRIDITEMS,
+    CPUSTRATEGY_RETREAT
 } CPUStrategy;
 
 CPULOGIC_SECTION
@@ -102,21 +103,29 @@ static Coordinate cpuLogic_safePosition(Pawn *pawn, Pawn *allPawns, int totalPaw
     int maxDamage = 9999;
 
     Coordinate targetPosition, safePosition;
+    Coordinate desiredPosition;
     int rangeIndicesCount = maxRange * 2 + 1;
     int indicesX[rangeIndicesCount];
     int indicesY[rangeIndicesCount];
     mathIsFun_shuffleIndices(indicesX, rangeIndicesCount);
     mathIsFun_shuffleIndices(indicesY, rangeIndicesCount);
 
-    if (strategy.target == NULL || isInvalidCoordinate(strategy.target->position)) {
-        return (isInvalidCoordinate(strategy.targetPosition)) ? (Coordinate){-1, -1} : strategy.targetPosition;
+    if (strategy.target != NULL) {
+        desiredPosition = strategy.target->position;
+    } else {
+        desiredPosition = strategy.targetPosition;
     }
+
+    if (isInvalidCoordinate(desiredPosition)) {
+        return (Coordinate){-1, -1};
+    }
+
     if (random(0, 5) >= 4) {
         maxDamage = pawn->inventory.health;
     } else {
         maxDamage = (int)((float)pawn->inventory.health * 0.5);
     }
-    targetPosition = movement_closestTileToTargetInRange(pawn, strategy.target->position, allPawns, totalPawnCount, strategy.allowMoveToBase, NULL, 0, true);
+    targetPosition = movement_closestTileToTargetInRange(pawn, desiredPosition, allPawns, totalPawnCount, strategy.allowMoveToBase, NULL, 0, true);
     safePosition = targetPosition;
     for (dx = -maxRange; dx <= maxRange; dx++) {
         int deltaX = indicesX[dx + maxRange] - maxRange;
@@ -290,6 +299,53 @@ static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int
 }
 
 CPULOGIC_SECTION
+static CPUStrategyResult cpuLogic_provideRetreatStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, CPUFactionProfile factionProfile) {
+    int i;
+    CPUStrategyResult strategyResult = {factionProfile.defendBasePriority, CPUACTION_NONE, NULL, pawn->position, false};
+    int factionHealth = 0;
+    int enemyHealth = 0;
+    int totalEnemyShips = 0;
+    int totalFactionShips = 0;
+    for (i = 0; i < totalPawnCount; i++) {
+        if (allPawns[i].type != PAWNTYPE_SHIP) {
+            continue;
+        }
+        if (allPawns[i].faction != pawn->faction) {
+            totalEnemyShips++;
+        } else {
+            totalFactionShips++;
+        }
+        if (movement_distance(pawn->position, allPawns[i].position) <= GAMEMECHANICS_MAXTILETORPEDORANGE) {
+            if (allPawns[i].faction != pawn->faction) {
+                enemyHealth += allPawns[i].inventory.health;
+            } else {
+                factionHealth += allPawns[i].inventory.health;
+            }
+        }
+    }
+
+#ifdef DEBUG
+    if (enemyHealth > 0) {
+        drawhelper_drawTextWithValue("EH:", enemyHealth, (Coordinate){50, 0});
+        drawhelper_drawTextWithValue("FH:", factionHealth, (Coordinate){50, 20});
+    }
+    sleep(500);
+#endif
+    if (enemyHealth >= factionHealth && totalFactionShips <= totalEnemyShips) {
+        Coordinate newPosition = cpuLogic_safePosition(pawn, allPawns, totalPawnCount, strategyResult, false);
+        if (!isEqualCoordinate(newPosition, pawn->position)) {
+            if ((float)enemyHealth >= (float)factionHealth * 1.2 && !pawn->warped && random(0, 3) >= 2) {
+                strategyResult.CPUAction = CPUACTION_WARP;
+            } else {
+                strategyResult.CPUAction = CPUACTION_MOVE;
+            }
+            return strategyResult;
+        }
+    }
+    return strategyResult;
+}
+
+CPULOGIC_SECTION
 static CPUStrategyResult cpuLogic_provideSnatchGridItemsStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, GridItem *gridItems, int gridItemCount, CPUFactionProfile factionProfile) {
     CPUStrategyResult strategyResult = {-100, CPUACTION_NONE, NULL, (Coordinate){-1, -1}, true};
     int i;
@@ -341,10 +397,13 @@ static CPUStrategyResult cpuLogic_provideSnatchGridItemsStrategy(Pawn *pawn, Paw
                                 break;
                         }
                         if (canUseItem) {
-                            strategyResult.score = 130;
-                            strategyResult.CPUAction = CPUACTION_MOVE;
-                            strategyResult.targetPosition = gridItems[i].position;
-                            return strategyResult;
+                            Coordinate safePosition = cpuLogic_safePosition(pawn, allPawns, totalPawnCount, strategyResult, false);
+                            if (isEqualCoordinate(safePosition, gridItems[i].position)) {
+                                strategyResult.score = 70;
+                                strategyResult.CPUAction = CPUACTION_MOVE;
+                                strategyResult.targetPosition = gridItems[i].position;
+                                return strategyResult;
+                            }
                         }
                     }
                 }
@@ -417,7 +476,7 @@ CPULOGIC_SECTION
 CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, GridItem *gridItems, int gridItemCount, int currentTurn, CPUFactionProfile factionProfile, Boolean cpuPlayersOnly) {
     int i;
     CPUStrategyResult bestStrategy;
-    CPUStrategyResult strategyResult[5];
+    CPUStrategyResult strategyResult[6];
 #ifdef DEBUG
     CPUStrategy selectedStrategy = 0;
 #endif
@@ -433,9 +492,10 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
     strategyResult[CPUSTRATEGY_ATTACK] = cpuLogic_attackStrategy(pawn, allPawns, totalPawnCount, factionProfile.attackPriority);
     strategyResult[CPUSTRATEGY_PROVIDEBACKUP] = cpuLogic_provideBackupStrategy(pawn, allPawns, totalPawnCount, factionProfile);
     strategyResult[CPUSTRATEGY_SNATCHGRIDITEMS] = cpuLogic_provideSnatchGridItemsStrategy(pawn, allPawns, totalPawnCount, gridItems, gridItemCount, factionProfile);
+    strategyResult[CPUSTRATEGY_RETREAT] = cpuLogic_provideRetreatStrategy(pawn, allPawns, totalPawnCount, factionProfile);
 
     bestStrategy = strategyResult[0];
-    for (i = 1; i < 5; i++) {
+    for (i = 1; i < 6; i++) {
         if (strategyResult[i].CPUAction == CPUACTION_NONE) {
             strategyResult[i].score = -999;
         }
@@ -468,6 +528,9 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
             break;
         case CPUSTRATEGY_SNATCHGRIDITEMS:
             drawhelper_drawText("STRAT: SNATCH", (Coordinate){0, 0});
+            break;
+        case CPUSTRATEGY_RETREAT:
+            drawhelper_drawText("STRAT: RETREAT", (Coordinate){0, 0});
             break;
     }
     switch (bestStrategy.CPUAction) {
