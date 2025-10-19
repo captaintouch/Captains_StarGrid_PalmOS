@@ -299,13 +299,16 @@ static CPUStrategyResult cpuLogic_attackStrategy(Pawn *pawn, Pawn *allPawns, int
 }
 
 CPULOGIC_SECTION
-static CPUStrategyResult cpuLogic_provideRetreatStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, CPUFactionProfile factionProfile) {
+static CPUStrategyResult cpuLogic_provideRetreatStrategy(Pawn *pawn, Pawn *allPawns, int totalPawnCount, CPUFactionProfile factionProfile, Boolean cpuPlayersOnly) {
     int i;
     CPUStrategyResult strategyResult = {factionProfile.defendBasePriority, CPUACTION_NONE, NULL, pawn->position, false};
     int factionHealth = 0;
     int enemyHealth = 0;
     int totalEnemyShips = 0;
     int totalFactionShips = 0;
+    if (cpuPlayersOnly && random(0, 5) < 4) {
+        return strategyResult;
+    }
     for (i = 0; i < totalPawnCount; i++) {
         if (allPawns[i].type != PAWNTYPE_SHIP) {
             continue;
@@ -492,7 +495,7 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
     strategyResult[CPUSTRATEGY_ATTACK] = cpuLogic_attackStrategy(pawn, allPawns, totalPawnCount, factionProfile.attackPriority);
     strategyResult[CPUSTRATEGY_PROVIDEBACKUP] = cpuLogic_provideBackupStrategy(pawn, allPawns, totalPawnCount, factionProfile);
     strategyResult[CPUSTRATEGY_SNATCHGRIDITEMS] = cpuLogic_provideSnatchGridItemsStrategy(pawn, allPawns, totalPawnCount, gridItems, gridItemCount, factionProfile);
-    strategyResult[CPUSTRATEGY_RETREAT] = cpuLogic_provideRetreatStrategy(pawn, allPawns, totalPawnCount, factionProfile);
+    strategyResult[CPUSTRATEGY_RETREAT] = cpuLogic_provideRetreatStrategy(pawn, allPawns, totalPawnCount, factionProfile, cpuPlayersOnly);
 
     bestStrategy = strategyResult[0];
     for (i = 1; i < 6; i++) {
