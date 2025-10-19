@@ -56,6 +56,7 @@ BEGIN
 
 	PULLDOWN "Info"
 	BEGIN
+		MENUITEM "How to play" ID GAME_MENUITEM_HOWTOPLAY
 		MENUITEM "About" ID GAME_MENUITEM_ABOUT
 	END
 END
@@ -185,6 +186,7 @@ STRING STRING_PLAYERCPU "Player/CPU"
 STRING STRING_CONFIG "Configuration"
 STRING STRING_PLAYERS "# Players:"
 STRING STRING_LEVELSCORE "Level Score"
+STRING STRING_HOWTOPLAY "Objectives to win: Either capture all enemy flags or destroy all enemy ships.\nYour bases can build additional ships and power-ups for your fleet or repel attackers with a shockwave.\nTorpedoes are the most powerful, but are limited in supply. Phasers can be fired every turn.\n\nGood luck, Captain!"
 
 STRING STRING_DESTROYED "Destroyed:"
 STRING STRING_CAPTURED "Captured:"

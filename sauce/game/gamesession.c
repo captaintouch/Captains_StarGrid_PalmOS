@@ -4,6 +4,7 @@
 #include "../constants.h"
 #include "../deviceinfo.h"
 #include "../storage.h"
+#include "Form.h"
 #include "cpuLogic.h"
 #include "drawhelper.h"
 #include "game.h"
@@ -979,6 +980,9 @@ Boolean gameSession_handleMenu(UInt16 menuItemID) {
             return true;
         case GAME_MENUITEM_ABOUT:
             about_show();
+            return true;
+        case GAME_MENUITEM_HOWTOPLAY:
+            FrmHelp(STRING_HOWTOPLAY);
             return true;
     }
     return false;
