@@ -1,11 +1,14 @@
 # StarGrid for Palm OS
-Turn based strategy game made in 2025 made exclusively for Palm OS!
+Hello pilots! Are you ready to battle it out in the StarGrid arena?
 
-Your mission is simple: outthink, outmaneuver, and outlast your opponent. 
+StarGrid is a  turn-based strategy game for Palm OS (in 2025!) where you command a fleet of ships in a battle for control of the galaxy. 
 
-Victory can be claimed in two ways—by capturing all enemy flags or by wiping their fleet from the stars.
+Capture enemy flags, outmaneuver opposing fleets, and defend your own base in tense, tactical matches. Every move counts, will you strike boldly or play the long game to claim victory?
 
 https://github.com/user-attachments/assets/231d73ae-1188-4059-a8a7-383b8a3d0498
+
+## Play it!
+Just want to install or play the game? [Visit the main project webpage here](https://quarters.captaintouch.com/captainsstargrid.html).
 
 ## Stay informed!
 Latest updates:
