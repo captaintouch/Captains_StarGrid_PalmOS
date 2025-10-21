@@ -5,7 +5,7 @@ Your mission is simple: outthink, outmaneuver, and outlast your opponent.
 
 Victory can be claimed in two ways—by capturing all enemy flags or by wiping their fleet from the stars.
 
-https://github.com/user-attachments/assets/6b2acd3f-c7b0-4b10-b64b-1705b943f074
+https://github.com/user-attachments/assets/231d73ae-1188-4059-a8a7-383b8a3d0498
 
 ## Stay informed!
 Latest updates:
