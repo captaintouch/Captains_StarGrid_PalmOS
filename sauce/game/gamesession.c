@@ -528,10 +528,10 @@ static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
                     config.playerConfig[gameSession.level.actionTiles[i].tag].isHuman = false;
                     break;
                 case ACTIONTILEIDENTIFIER_LAUNCHGAME:
+                    gameSession_launchGame(config);
                     if (rank == 0) {
                         FrmHelp(STRING_HOWTOPLAY);
                     }
-                    gameSession_launchGame(config);
                     return true;
                     break;
                 case ACTIONTILEIDENTIFIER_TWOPLAYERS:
