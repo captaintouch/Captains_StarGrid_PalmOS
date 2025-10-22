@@ -286,7 +286,7 @@ MOVEMENT_SECTION
 void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coordinate *invalidCoordinates, int invalidCoordinatesCount, HighlightTile **results, int *numberOfPositions, FilledTileType color, Boolean filled) {
     int i, j;
     int positionCount = 0;
-    HighlightTile *positions = (HighlightTile *)MemPtrNew(sizeof(HighlightTile) * maxTileRange * 2 * maxTileRange * 2);
+    HighlightTile *positions = (HighlightTile *)MemPtrNew(sizeof(HighlightTile) * HEXGRID_COLS * HEXGRID_ROWS);
     for (i = -maxTileRange - 2; i < maxTileRange + 2; i++) {
         for (j = -maxTileRange - 2; j < maxTileRange + 2; j++) {
             Coordinate newPosition = (Coordinate){currentPosition.x + i, currentPosition.y + j};

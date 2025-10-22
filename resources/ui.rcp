@@ -1,7 +1,7 @@
 #include "sauce/constants.h"
 
 APPLICATION         ID 1 "CSTG"
-VERSION             ID 1 "1.0"
+VERSION             ID 1 "1.1"
 
 ICON
 BEGIN
@@ -186,7 +186,7 @@ STRING STRING_PLAYERCPU "Player/CPU"
 STRING STRING_CONFIG "Configuration"
 STRING STRING_PLAYERS "# Players:"
 STRING STRING_LEVELSCORE "Level Score"
-STRING STRING_HOWTOPLAY "Objectives to win: Either capture all enemy flags or destroy all enemy ships.\nYour bases can build additional ships and power-ups for your fleet or repel attackers with a shockwave.\nTorpedoes are the most powerful, but are limited in supply. Phasers can be fired every turn.\n\nGood luck, Captain!"
+STRING STRING_HOWTOPLAY "This message is auto shown until you are no longer a Space Cadet, so go fight some battles!\n\nObjectives to win: Either capture all enemy flags or destroy all enemy ships.\n\nYour bases can build additional ships and power-ups for your fleet or repel attackers with a shockwave.\n\nTorpedoes are the most powerful, but are limited in supply. Phasers can be fired every turn.\n\nGood luck, Captain!"
 
 STRING STRING_DESTROYED "Destroyed:"
 STRING STRING_CAPTURED "Captured:"

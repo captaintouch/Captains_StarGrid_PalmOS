@@ -517,7 +517,8 @@ static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
     int i;
     for (i = 0; i < gameSession.level.actionTileCount; i++) {
         if (isEqualCoordinate(gameSession.level.actionTiles[i].position, selectedTile)) {
-            NewGameConfig config = level_getNewGameConfig(&gameSession.level, level_defaultNewGameConfig(scoring_rankValue(scoring_loadSavedScore())));
+            int rank = scoring_rankValue(scoring_loadSavedScore());
+            NewGameConfig config = level_getNewGameConfig(&gameSession.level, level_defaultNewGameConfig(rank));
             gameSession.level.actionTiles[i].selected = true;
             switch (gameSession.level.actionTiles[i].identifier) {
                 case ACTIONTILEIDENTIFIER_HUMANPLAYER:
@@ -527,6 +528,9 @@ static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
                     config.playerConfig[gameSession.level.actionTiles[i].tag].isHuman = false;
                     break;
                 case ACTIONTILEIDENTIFIER_LAUNCHGAME:
+                    if (rank == 0) {
+                        FrmHelp(STRING_HOWTOPLAY);
+                    }
                     gameSession_launchGame(config);
                     return true;
                     break;
