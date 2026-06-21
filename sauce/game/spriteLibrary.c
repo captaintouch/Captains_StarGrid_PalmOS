@@ -2,21 +2,19 @@
 
 #include "../constants.h"
 #include "../graphicResources.h"
+#include "../platform/i_resource.h"
+#include "../platform/i_memory.h"
 #include "drawhelper.h"
 
 static ImageData *drawhelper_loadImage(UInt16 bitmapId) {
-    MemHandle bitmapH;
-
-    bitmapH = DmGetResource(bitmapRsc, bitmapId);
-    if (bitmapH) {
-        BitmapPtr bitmap = (BitmapPtr)MemHandleLock(bitmapH);
-        ImageData *imageData = (ImageData *)MemPtrNew(sizeof(ImageData));
-        MemSet(imageData, sizeof(ImageData), 0);
-        imageData->bitmapPtr = bitmap;
-        imageData->resource = bitmapH;
-        return imageData;
+    ImageData *imageData = (ImageData *)imem_alloc(sizeof(ImageData));
+    imem_zero(imageData, sizeof(ImageData));
+    imageData->resourceHandle = iresource_loadBitmap(bitmapId, &imageData->bitmapPtr);
+    if (imageData->resourceHandle == NULL) {
+        imem_free(imageData);
+        return NULL;
     }
-    return NULL;
+    return imageData;
 }
 
 void spriteLibrary_initialize() {

@@ -1,13 +1,12 @@
 #include "movement.h"
 
-#include <PalmOS.h>
-
 #include "../constants.h"
 #include "PalmTypes.h"
 #include "hexgrid.h"
 #include "level.h"
 #include "mathIsFun.h"
 #include "models.h"
+#include "../platform/i_memory.h"
 
 typedef struct Cube {
     int q;
@@ -204,7 +203,7 @@ Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate end
     int i, j;
     int distance = movement_distance(startCoordinate, endCoordinate);
 
-    trajectory.tileCoordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * 40);
+    trajectory.tileCoordinates = (Coordinate *)imem_alloc(sizeof(Coordinate) * 40);
     trajectory.tileCoordinates[0] = (Coordinate){startCoordinate.x, startCoordinate.y};
     trajectory.tileCount = 1;
 
@@ -264,7 +263,7 @@ Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate end
         }
     }
 
-    MemPtrResize(trajectory.tileCoordinates, trajectory.tileCount * sizeof(Coordinate));
+    imem_resize(trajectory.tileCoordinates, trajectory.tileCount * sizeof(Coordinate));
     return trajectory;
 }
 
@@ -286,7 +285,7 @@ MOVEMENT_SECTION
 void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coordinate *invalidCoordinates, int invalidCoordinatesCount, HighlightTile **results, int *numberOfPositions, FilledTileType color, Boolean filled) {
     int i, j;
     int positionCount = 0;
-    HighlightTile *positions = (HighlightTile *)MemPtrNew(sizeof(HighlightTile) * HEXGRID_COLS * HEXGRID_ROWS);
+    HighlightTile *positions = (HighlightTile *)imem_alloc(sizeof(HighlightTile) * HEXGRID_COLS * HEXGRID_ROWS);
     for (i = -maxTileRange - 2; i < maxTileRange + 2; i++) {
         for (j = -maxTileRange - 2; j < maxTileRange + 2; j++) {
             Coordinate newPosition = (Coordinate){currentPosition.x + i, currentPosition.y + j};
@@ -304,7 +303,7 @@ void movement_findTilesInRange(Coordinate currentPosition, int maxTileRange, Coo
             }
         }
     }
-    MemPtrResize(positions, positionCount * sizeof(HighlightTile));
+    imem_resize(positions, positionCount * sizeof(HighlightTile));
     *results = positions;
     *numberOfPositions = positionCount;
 }

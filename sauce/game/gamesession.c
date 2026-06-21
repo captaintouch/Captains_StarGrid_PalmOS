@@ -4,7 +4,11 @@
 #include "../constants.h"
 #include "../deviceinfo.h"
 #include "../storage.h"
-#include "Form.h"
+#include "../platform/i_system.h"
+#include "../platform/i_memory.h"
+#include "../platform/i_ui.h"
+#include "../platform/i_resource.h"
+#include "../platform/i_input.h"
 #include "cpuLogic.h"
 #include "drawhelper.h"
 #include "game.h"
@@ -54,14 +58,14 @@ static void gameSession_loadStartMenu() {
 static void gameSession_scheduleSceneAnimationIfNeeded() {
     Coordinate screenSize;
     int randomImage;
-    if (gameSession.nextSceneAnimationLaunchTimestamp == 0 || gameSession.state != GAMESTATE_DEFAULT || gameSession.menuScreenType != MENUSCREEN_GAME || gameSession.sceneAnimation != NULL || gameSession.nextSceneAnimationLaunchTimestamp > TimGetTicks()) {
+    if (gameSession.nextSceneAnimationLaunchTimestamp == 0 || gameSession.state != GAMESTATE_DEFAULT || gameSession.menuScreenType != MENUSCREEN_GAME || gameSession.sceneAnimation != NULL || gameSession.nextSceneAnimationLaunchTimestamp > isys_getTicks()) {
         return;
     }
     randomImage = random(0, 1);
     gameSession.nextSceneAnimationLaunchTimestamp = 0;
     screenSize = deviceinfo_screenSize();
-    gameSession.sceneAnimation = (SceneAnimation *)MemPtrNew(sizeof(SceneAnimation));
-    gameSession.sceneAnimation->launchTimestamp = TimGetTicks();
+    gameSession.sceneAnimation = (SceneAnimation *)imem_alloc(sizeof(SceneAnimation));
+    gameSession.sceneAnimation->launchTimestamp = isys_getTicks();
     gameSession.sceneAnimation->trajectory = (Line){(Coordinate){screenSize.x + 20, random(20, screenSize.y - 20)}, (Coordinate){-20, random(20, screenSize.y - 20)}};
     switch (randomImage) {
         case 0:
@@ -80,12 +84,7 @@ static void gameSession_resetActivePawn() {
 }
 
 static void gameSession_openMenu() {
-    EventType event;
-    MemSet(&event, sizeof(EventType), 0);
-    event.eType = keyDownEvent;
-    event.data.keyDown.chr = vchrMenu;
-    event.data.keyDown.modifiers = commandKeyMask;
-    EvtAddEventToQueue(&event);
+    isys_postOpenMenuEvent();
 }
 
 static void gameSession_launchGame(NewGameConfig config) {
@@ -110,7 +109,7 @@ static void gameSession_launchGame(NewGameConfig config) {
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
     gameSession.drawingState.shouldRedrawBackground = true;
     gameSession.continueCPUPlay = !gameActionLogic_humanShipsLeft(&gameSession);
-    gameSession.nextSceneAnimationLaunchTimestamp = TimGetTicks() + SysTicksPerSecond() * 3;
+    gameSession.nextSceneAnimationLaunchTimestamp = isys_getTicks() + isys_ticksPerSecond() * 3;
     gameSession_scheduleSceneAnimationIfNeeded();
     gameSession_resetActivePawn();
 
@@ -126,7 +125,7 @@ void gameSession_reset(Boolean newGame) {
     gameSession.colorSupport = deviceinfo_colorSupported();
 
     gameSession.state = GAMESTATE_DEFAULT;
-    MemSet(&gameSession.lastPenInput, sizeof(InputPen), 0);
+    imem_zero(&gameSession.lastPenInput, sizeof(InputPen));
 
     gameSession.level.pawns = NULL;
     gameSession.activePawn = NULL;
@@ -181,11 +180,11 @@ void gameSession_cleanup() {
     spriteLibrary_clean();
 }
 
-void gameSession_registerPenInput(EventPtr eventptr) {
+void gameSession_registerPenInput(InputEvent *event) {
     if (gameSession.paused) {
         return;
     }
-    inputPen_updateEventDetails(&gameSession.lastPenInput, eventptr);
+    inputPen_updateEventDetails(&gameSession.lastPenInput, event);
 }
 
 static Coordinate gameSession_validViewportOffset(Coordinate position) {
@@ -200,7 +199,7 @@ static Coordinate gameSession_validViewportOffset(Coordinate position) {
 
 static void gameSession_updateAnimatedStarPositions() {
     int i;
-    MemSet(gameSession.animatedStarCoordinates, sizeof(Coordinate) * BACKDROP_ANIMATEDSTARCOUNT, 0);
+    imem_zero(gameSession.animatedStarCoordinates, sizeof(Coordinate) * BACKDROP_ANIMATEDSTARCOUNT);
     for (i = 0; i < BACKDROP_ANIMATEDSTARCOUNT - 1; i++) {
         Coordinate gridSize = hexgrid_size();
         gameSession.animatedStarCoordinates[i] = (Coordinate){random(0, gridSize.x), random(0, gridSize.y)};
@@ -228,7 +227,7 @@ static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn) {
 
 static void gameSession_resetSceneAnimation() {
     gameActionLogic_clearSceneAnimation(&gameSession);
-    gameSession.nextSceneAnimationLaunchTimestamp = TimGetTicks() + SysTicksPerSecond() * 60;
+    gameSession.nextSceneAnimationLaunchTimestamp = isys_getTicks() + isys_ticksPerSecond() * 60;
 }
 
 static FilledTileType gameSession_hightlightTilesColor() {
@@ -252,14 +251,14 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
     gameSession_resetHighlightTiles();
     switch (targetSelectionType) {
         case TARGETSELECTIONTYPE_MOVE:
-            coordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * gameSession.level.pawnCount);
+            coordinates = (Coordinate *)imem_alloc(sizeof(Coordinate) * gameSession.level.pawnCount);
             for (i = 0; i < gameSession.level.pawnCount; i++) {
                 if (gameSession.level.pawns[i].type != PAWNTYPE_BASE && !isInvalidCoordinate(gameSession.level.pawns[i].position)) {
                     coordinates[coordinatesCount] = gameSession.level.pawns[i].position;
                     coordinatesCount++;
                 }
             }
-            MemPtrResize(coordinates, sizeof(Coordinate) * coordinatesCount);
+            imem_resize(coordinates, sizeof(Coordinate) * coordinatesCount);
             movement_findTilesInRange(currentPosition, maxTileRange, coordinates, coordinatesCount, &gameSession.highlightTiles, &gameSession.highlightTileCount, color, true);
             for (i = 0; i < gameSession.highlightTileCount; i++) {
                 HighlightTile *tile = &gameSession.highlightTiles[i];
@@ -298,7 +297,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
     }
 
     if (coordinates != NULL) {
-        MemPtrFree(coordinates);
+        imem_free(coordinates);
     }
 }
 
@@ -309,14 +308,14 @@ static void gameSession_showPawnActions() {
         return;
     }
     if (gameSession.activePawn->turnComplete) {
-        FrmCustomAlert(GAME_ALERT_NOMOREACTIONS, NULL, NULL, NULL);
+        iui_customAlert(GAME_ALERT_NOMOREACTIONS, NULL, NULL);
         return;
     }
     baseTurnsLeft = pawn_baseTurnsLeft(gameSession.currentTurn, gameSession.activePawn->inventory.baseActionLastActionTurn, gameSession.activePawn->inventory.lastBaseAction);
     if (gameSession.activePawn->type == PAWNTYPE_BASE && gameSession.activePawn->inventory.lastBaseAction == BASEACTION_BUILD_SHIP && baseTurnsLeft > 0) {
         char baseTurnsLeftText[4];
         StrIToA(baseTurnsLeftText, baseTurnsLeft);
-        FrmCustomAlert(GAME_ALERT_SHIPBUILDINPROGRESS, baseTurnsLeftText, NULL, NULL);
+        iui_customAlert(GAME_ALERT_SHIPBUILDINPROGRESS, baseTurnsLeftText, NULL);
         return;
     }
     gameSession_resetSceneAnimation();
@@ -369,7 +368,7 @@ static void gameSession_startTurn() {
         nextPawn = movement_homeBase(gameSession.factionTurn, gameSession.level.pawns, gameSession.level.pawnCount);
         homeBase = nextPawn;
         if (gameSession.factions[homeBase->faction].human) {
-            FrmCustomAlert(GAME_ALERT_SHIPBUILDFINISHED, NULL, NULL, NULL);
+            iui_customAlert(GAME_ALERT_SHIPBUILDFINISHED, NULL, NULL);
         }
     }
     gameSession_updateAnimatedStarPositions();
@@ -457,7 +456,7 @@ static Boolean gameSession_handleScoreMenuTap(Coordinate selectedTile) {
                 case ACTIONTILEIDENTIFIER_FOURPLAYERS:
                     break;
                 case ACTIONTILEIDENTIFIER_ENDGAME:
-                    if (gameSession.menuScreenType == MENUSCREEN_RANK_AFTERGAME && FrmCustomAlert(GAME_ALERT_ENDOFGAME, NULL, NULL, NULL) == 0) {  // new game
+                    if (gameSession.menuScreenType == MENUSCREEN_RANK_AFTERGAME && iui_customAlert(GAME_ALERT_ENDOFGAME, NULL, NULL) == 0) {  // new game
                         gameSession_reset(true);
                     } else {
                         gameSession_reset(false);
@@ -530,7 +529,7 @@ static Boolean gameSession_handlePlayerConfigTap(Coordinate selectedTile) {
                 case ACTIONTILEIDENTIFIER_LAUNCHGAME:
                     gameSession_launchGame(config);
                     if (rank == 0) {
-                        FrmHelp(STRING_HOWTOPLAY);
+                        iui_showHelp(STRING_HOWTOPLAY);
                     }
                     return true;
                     break;
@@ -620,7 +619,7 @@ static Boolean gameSession_highlightTilesContains(Coordinate coordinate) {
 
 static void gameSession_resetHighlightTiles() {
     if (gameSession.highlightTiles != NULL) {
-        MemPtrFree(gameSession.highlightTiles);
+        imem_free(gameSession.highlightTiles);
         gameSession.highlightTiles = NULL;
         gameSession.highlightTileCount = 0;
     }
@@ -723,9 +722,9 @@ static void gameSession_handlePawnActionButtonSelection() {
     }
 
     for (i = 0; i < gameSession.displayButtonCount; i++) {
-        MemPtrFree(gameSession.displayButtons[i].text);
+        imem_free(gameSession.displayButtons[i].text);
     }
-    MemPtrFree(gameSession.displayButtons);
+    imem_free(gameSession.displayButtons);
     gameSession.displayButtons = NULL;
     gameSession.displayButtonCount = 0;
 
@@ -737,8 +736,8 @@ static void gameSession_handlePawnActionButtonSelection() {
 static void gameSession_progressUpdateExplosion() {
     Int32 timeSinceLaunch;
     float timePassedScale;
-    timeSinceLaunch = TimGetTicks() - gameSession.attackAnimation->explosionTimestamp;
-    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * gameSession.attackAnimation->explosionDurationSeconds);
+    timeSinceLaunch = isys_getTicks() - gameSession.attackAnimation->explosionTimestamp;
+    timePassedScale = (float)timeSinceLaunch / ((float)isys_ticksPerSecond() * gameSession.attackAnimation->explosionDurationSeconds);
     if (timePassedScale >= 1) {
         gameActionLogic_clearAttack(&gameSession);
         gameActionLogic_afterExplosion(&gameSession);
@@ -752,8 +751,8 @@ static void gameSession_progressUpdateSceneAnimation() {
     if (gameSession.sceneAnimation == NULL) {
         return;
     }
-    timeSinceLaunch = TimGetTicks() - gameSession.sceneAnimation->launchTimestamp;
-    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * 2.5);
+    timeSinceLaunch = isys_getTicks() - gameSession.sceneAnimation->launchTimestamp;
+    timePassedScale = (float)timeSinceLaunch / ((float)isys_ticksPerSecond() * 2.5);
     gameSession.sceneAnimation->currentPosition = movement_coordinateAtPercentageOfLine(gameSession.sceneAnimation->trajectory, timePassedScale);
 
     if (timePassedScale > 1.0) {
@@ -773,11 +772,11 @@ static void gameSession_progressUpdateAttack() {
         gameSession_progressUpdateExplosion();
         return;
     }
-    timeSinceLaunch = TimGetTicks() - gameSession.attackAnimation->launchTimestamp;
-    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * gameSession.attackAnimation->durationSeconds);
+    timeSinceLaunch = isys_getTicks() - gameSession.attackAnimation->launchTimestamp;
+    timePassedScale = (float)timeSinceLaunch / ((float)isys_ticksPerSecond() * gameSession.attackAnimation->durationSeconds);
 
     if (gameSession.attackAnimation->lines != NULL) {
-        MemPtrFree(gameSession.attackAnimation->lines);
+        imem_free(gameSession.attackAnimation->lines);
     }
 
     targetCenter = hexgrid_tileCenterPosition(gameSession.attackAnimation->target);
@@ -786,7 +785,7 @@ static void gameSession_progressUpdateAttack() {
             break;
         case TARGETSELECTIONTYPE_PHASER:
             attackLine = (Line){hexgrid_tileCenterPosition(gameSession.activePawn->position), movement_getBoxCoordinate(targetCenter, timePassedScale, HEXTILE_PAWNSIZE / 3)};
-            gameSession.attackAnimation->lines = (Line *)MemPtrNew(sizeof(Line) * 3);
+            gameSession.attackAnimation->lines = (Line *)imem_alloc(sizeof(Line) * 3);
             gameSession.attackAnimation->lines[0] = (Line){attackLine.startpoint, movement_coordinateAtPercentageOfLine(attackLine, remapToMax(timePassedScale * 2.4, 1))};
             attackLine.startpoint = gameSession.attackAnimation->lines[0].endpoint;
             gameSession.attackAnimation->lines[1] = (Line){gameSession.attackAnimation->lines[0].endpoint, movement_coordinateAtPercentageOfLine(attackLine, 0.7)};
@@ -804,7 +803,7 @@ static void gameSession_progressUpdateAttack() {
         gameActionLogic_afterAttack(&gameSession);
         if (gameSession.targetSelectionType == TARGETSELECTIONTYPE_TORPEDO || gameSession.attackAnimation->targetPawn == NULL) {  // show explosion when destroyed or always when torpedo is used
             gameSession.attackAnimation->explosionPosition = targetCenter;
-            gameSession.attackAnimation->explosionTimestamp = TimGetTicks();
+            gameSession.attackAnimation->explosionTimestamp = isys_getTicks();
             gameSession.attackAnimation->explosionDurationSeconds = 0.5;
         } else {
             gameActionLogic_clearAttack(&gameSession);
@@ -820,8 +819,8 @@ static void gameSession_progressUpdateShockWave() {
     if (gameSession.shockWaveAnimation == NULL) {
         return;
     }
-    timeSinceLaunch = TimGetTicks() - gameSession.shockWaveAnimation->launchTimestamp;
-    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * 1.7);
+    timeSinceLaunch = isys_getTicks() - gameSession.shockWaveAnimation->launchTimestamp;
+    timePassedScale = (float)timeSinceLaunch / ((float)isys_ticksPerSecond() * 1.7);
     if (timePassedScale > 0.2) {
         for (i = 0; i < gameSession.shockWaveAnimation->affectedPawnCount; i++) {
             int nextOrientation = ((i + (int)(timePassedScale * 2 * GFX_FRAMECOUNT_SHIPA)) % GFX_FRAMECOUNT_SHIPA);
@@ -854,8 +853,8 @@ static void gameSession_progressUpdateWarp() {
     float timePassedScale;
     int i;
     if (gameSession.warpAnimation.isWarping) {
-        timeSinceLaunch = TimGetTicks() - gameSession.warpAnimation.launchTimestamp;
-        timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * 1.2);
+        timeSinceLaunch = isys_getTicks() - gameSession.warpAnimation.launchTimestamp;
+        timePassedScale = (float)timeSinceLaunch / ((float)isys_ticksPerSecond() * 1.2);
         gameSession.warpAnimation.pawn->orientation = (int)(timePassedScale * 1.5 * GFX_FRAMECOUNT_SHIPA) % GFX_FRAMECOUNT_SHIPA;
         gameSession.warpAnimation.shipVisible = timePassedScale < WARPINITIALTIME || timePassedScale > WARPINITIALTIME + 0.4;
         for (i = 0; i < WARPCIRCLECOUNT; i++) {
@@ -887,8 +886,8 @@ static void gameSession_progressUpdateMovement() {
         totalAnimationTime = 2.8;
     }
 
-    timeSinceLaunch = TimGetTicks() - gameSession.movement->launchTimestamp;
-    timePassedScale = (float)timeSinceLaunch / ((float)SysTicksPerSecond() * ((float)gameSession.movement->trajectory.tileCount - 1) / totalAnimationTime);
+    timeSinceLaunch = isys_getTicks() - gameSession.movement->launchTimestamp;
+    timePassedScale = (float)timeSinceLaunch / ((float)isys_ticksPerSecond() * ((float)gameSession.movement->trajectory.tileCount - 1) / totalAnimationTime);
     gameSession.movement->pawnPosition = movement_coordinateAtPercentageOfTrajectory(gameSession.movement->trajectory, timePassedScale, &gameSession.movement->pawn->orientation);
     gameSession_updateViewPortOffset(false);
 
@@ -906,7 +905,7 @@ Boolean gameSession_animating() {
 static void gameSession_cpuTurn() {
     UInt16 textId;
     char *text;
-    MemHandle resourceHandle;
+    void *resourceHandle;
     Coordinate closestTile;
     Pawn *targetPawn;
     CPUStrategyResult strategy;
@@ -964,11 +963,9 @@ static void gameSession_cpuTurn() {
             gameSession.drawingState.requiresPauseAfterLayout = pawn->type == PAWNTYPE_SHIP;
             break;
     }
-    resourceHandle = DmGetResource(strRsc, textId);
-    text = (char *)MemHandleLock(resourceHandle);
+    text = iresource_loadString(textId, &resourceHandle);
     StrCopy(gameSession.cpuActionText, text);
-    MemHandleUnlock(resourceHandle);
-    DmReleaseResource(resourceHandle);
+    iresource_releaseString(resourceHandle);
 }
 
 Boolean gameSession_handleMenu(UInt16 menuItemID) {
@@ -977,7 +974,7 @@ Boolean gameSession_handleMenu(UInt16 menuItemID) {
             gameSession_reset(false);
             return true;
         case GAME_MENUITEM_RESETRANK:
-            if (FrmCustomAlert(GAME_ALERT_RESETRANKCONFIRMATION, NULL, NULL, NULL) == 0) {
+            if (iui_customAlert(GAME_ALERT_RESETRANKCONFIRMATION, NULL, NULL) == 0) {
                 scoring_reset();
                 gameSession_reset(false);
             }
@@ -986,7 +983,7 @@ Boolean gameSession_handleMenu(UInt16 menuItemID) {
             about_show();
             return true;
         case GAME_MENUITEM_HOWTOPLAY:
-            FrmHelp(STRING_HOWTOPLAY);
+            iui_showHelp(STRING_HOWTOPLAY);
             return true;
     }
     return false;

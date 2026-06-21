@@ -2,7 +2,8 @@
 
 #include "../constants.h"
 #include "../deviceinfo.h"
-#include "MemoryMgr.h"
+#include "../platform/i_memory.h"
+#include "../platform/i_resource.h"
 #include "drawhelper.h"
 #include "gamesession.h"
 #include "hexgrid.h"
@@ -67,10 +68,10 @@ static void gameActionLogic_showScore(GameSession *session) {
 
     newRank = scoring_rankForScore(scoring_loadSavedScore());
     if (newRank != oldRank) {
-        MemHandle resourceHandle = DmGetResource(strRsc, newRank);
-        Char *rankText = (char *)MemHandleLock(resourceHandle);
+        void *resourceHandle;
+        char *rankText = iresource_loadString(newRank, &resourceHandle);
         FrmCustomAlert(GAME_ALERT_PROMOTED, rankText, "", "");
-        DmReleaseResource(resourceHandle);
+        iresource_releaseString(resourceHandle);
     }
     level_addScorePawns(&session->level, session->activePawn->faction);
 
@@ -112,7 +113,7 @@ void gameActionLogic_clearSceneAnimation(GameSession *session) {
     if (session->sceneAnimation == NULL) {
         return;
     }
-    MemPtrFree(session->sceneAnimation);
+    imem_free(session->sceneAnimation);
     session->sceneAnimation = NULL;
 }
 
@@ -120,10 +121,10 @@ GAMEACTIONLOGIC_SECTION
 void gameActionLogic_clearMovement(GameSession *session) {
     if (session->movement != NULL) {
         if (session->movement->trajectory.tileCoordinates != NULL) {
-            MemPtrFree(session->movement->trajectory.tileCoordinates);
+            imem_free(session->movement->trajectory.tileCoordinates);
             session->movement->trajectory.tileCoordinates = NULL;
         }
-        MemPtrFree(session->movement);
+        imem_free(session->movement);
         session->movement = NULL;
     }
 }
@@ -142,13 +143,13 @@ GAMEACTIONLOGIC_SECTION
 void gameActionLogic_scheduleShockwave(Pawn *basePawn, GameSession *session) {
     int i, affectedPawnCount = 0;
     gameActionLogic_clearShockwave(session);
-    session->shockWaveAnimation = (ShockWaveAnimation *)MemPtrNew(sizeof(ShockWaveAnimation));
-    MemSet(session->shockWaveAnimation, sizeof(ShockWaveAnimation), 0);
+    session->shockWaveAnimation = (ShockWaveAnimation *)imem_alloc(sizeof(ShockWaveAnimation));
+    imem_zero(session->shockWaveAnimation, sizeof(ShockWaveAnimation));
     session->shockWaveAnimation->launchTimestamp = TimGetTicks();
     session->shockWaveAnimation->basePawn = basePawn;
-    session->shockWaveAnimation->affectedPawnIndices = (int *)MemPtrNew(sizeof(int) * session->level.pawnCount);
-    session->shockWaveAnimation->pawnOriginalPositions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * session->level.pawnCount);
-    session->shockWaveAnimation->pawnIntermediatePositions = (Coordinate *)MemPtrNew(sizeof(Coordinate) * session->level.pawnCount);
+    session->shockWaveAnimation->affectedPawnIndices = (int *)imem_alloc(sizeof(int) * session->level.pawnCount);
+    session->shockWaveAnimation->pawnOriginalPositions = (Coordinate *)imem_alloc(sizeof(Coordinate) * session->level.pawnCount);
+    session->shockWaveAnimation->pawnIntermediatePositions = (Coordinate *)imem_alloc(sizeof(Coordinate) * session->level.pawnCount);
 
     for (i = 0; i < session->level.pawnCount; i++) {
         if (!isInvalidCoordinate(session->level.pawns[i].position) && session->level.pawns[i].type == PAWNTYPE_SHIP && movement_distance(basePawn->position, session->level.pawns[i].position) < GAMEMECHANICS_SHOCKWAVERANGE - 1) {
@@ -159,20 +160,20 @@ void gameActionLogic_scheduleShockwave(Pawn *basePawn, GameSession *session) {
         }
     }
     session->shockWaveAnimation->affectedPawnCount = affectedPawnCount;
-    MemPtrResize(session->shockWaveAnimation->affectedPawnIndices, sizeof(int) * affectedPawnCount);
+    imem_resize(session->shockWaveAnimation->affectedPawnIndices, sizeof(int) * affectedPawnCount);
 }
 
 GAMEACTIONLOGIC_SECTION
 void gameActionLogic_scheduleMovement(Pawn *sourcePawn, Pawn *targetPawn, Coordinate selectedTile, GameSession *session) {
     gameActionLogic_clearMovement(session);
 
-    session->movement = (Movement *)MemPtrNew(sizeof(Movement));
-    MemSet(session->movement, sizeof(Movement), 0);
+    session->movement = (Movement *)imem_alloc(sizeof(Movement));
+    imem_zero(session->movement, sizeof(Movement));
     session->movement->launchTimestamp = TimGetTicks();
     session->movement->targetPawn = targetPawn;
 
     if (sourcePawn == &session->cameraPawn) {
-        session->movement->trajectory.tileCoordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * 2);
+        session->movement->trajectory.tileCoordinates = (Coordinate *)imem_alloc(sizeof(Coordinate) * 2);
         session->movement->trajectory.tileCount = 2;
         session->movement->trajectory.tileCoordinates[0] = (Coordinate){session->cameraPawn.position.x, session->cameraPawn.position.y};
         session->movement->trajectory.tileCoordinates[1] = selectedTile;
@@ -410,18 +411,18 @@ GAMEACTIONLOGIC_SECTION
 void gameActionLogic_clearShockwave(GameSession *session) {
     if (session->shockWaveAnimation != NULL) {
         if (session->shockWaveAnimation->affectedPawnIndices != NULL) {
-            MemPtrFree(session->shockWaveAnimation->affectedPawnIndices);
+            imem_free(session->shockWaveAnimation->affectedPawnIndices);
             session->shockWaveAnimation->affectedPawnIndices = NULL;
         }
         if (session->shockWaveAnimation->pawnIntermediatePositions != NULL) {
-            MemPtrFree(session->shockWaveAnimation->pawnIntermediatePositions);
+            imem_free(session->shockWaveAnimation->pawnIntermediatePositions);
             session->shockWaveAnimation->pawnIntermediatePositions = NULL;
         }
         if (session->shockWaveAnimation->pawnOriginalPositions != NULL) {
-            MemPtrFree(session->shockWaveAnimation->pawnOriginalPositions);
+            imem_free(session->shockWaveAnimation->pawnOriginalPositions);
             session->shockWaveAnimation->pawnOriginalPositions = NULL;
         }
-        MemPtrFree(session->shockWaveAnimation);
+        imem_free(session->shockWaveAnimation);
         session->shockWaveAnimation = NULL;
     }
 }
@@ -430,10 +431,10 @@ GAMEACTIONLOGIC_SECTION
 void gameActionLogic_clearAttack(GameSession *session) {
     if (session->attackAnimation != NULL) {
         if (session->attackAnimation->lines != NULL) {
-            MemPtrFree(session->attackAnimation->lines);
+            imem_free(session->attackAnimation->lines);
             session->attackAnimation->lines = NULL;
         }
-        MemPtrFree(session->attackAnimation);
+        imem_free(session->attackAnimation);
         session->attackAnimation = NULL;
     }
 }
@@ -443,8 +444,8 @@ void gameActionLogic_scheduleAttack(Pawn *targetPawn, Coordinate selectedTile, T
     gameActionLogic_clearAttack(session);
     if (targetPawn != NULL) {
         session->targetSelectionType = attackType;
-        session->attackAnimation = (AttackAnimation *)MemPtrNew(sizeof(AttackAnimation));
-        MemSet(session->attackAnimation, sizeof(AttackAnimation), 0);
+        session->attackAnimation = (AttackAnimation *)imem_alloc(sizeof(AttackAnimation));
+        imem_zero(session->attackAnimation, sizeof(AttackAnimation));
         session->attackAnimation->torpedoPosition = (Coordinate){-1, -1};
         session->attackAnimation->explosionPosition = (Coordinate){-1, -1};
         session->attackAnimation->launchTimestamp = TimGetTicks();

@@ -1,12 +1,11 @@
 #ifndef SPRITELIBRARY_H_
 #define SPRITELIBRARY_H_
-#include <PalmOS.h>
 #include "models.h"
 #include "../graphicResources.h"
 
 typedef struct ImageData {
-    MemHandle resource;
-    BitmapPtr bitmapPtr;
+    void *resourceHandle;
+    void *bitmapPtr;
 } ImageData;
 
 typedef struct ImageSprite {

@@ -1,7 +1,7 @@
 #ifndef INPUTPEN_H_
 #define INPUTPEN_H_
 
-#include <PalmOS.h>
+#include "../platform/i_input.h"
 #include "models.h"
 
 typedef struct InputPen {
@@ -12,6 +12,6 @@ typedef struct InputPen {
     Boolean wasUpdatedFlag;
 } InputPen;
 
-void inputPen_updateEventDetails(InputPen *pen, EventPtr eventPtr);
+void inputPen_updateEventDetails(InputPen *pen, InputEvent *event);
 void inputPen_temporarylyBlockPenInput(InputPen *pen);
 #endif

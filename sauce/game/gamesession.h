@@ -1,6 +1,5 @@
 #ifndef GAMESESSION_H_
 #define GAMESESSION_H_
-#include <PalmOS.h>
 
 #include "bottomMenu.h"
 #include "colors.h"
@@ -96,7 +95,7 @@ GameSession gameSession;
 
 void gameSession_reset(Boolean newGame);
 void gameSession_cleanup();
-void gameSession_registerPenInput(EventPtr eventptr);
+void gameSession_registerPenInput(InputEvent *event);
 void gameSession_progressLogic();
 Boolean gameSession_handleMenu(UInt16 menuItemID);
 Boolean gameSession_handleFormButtonTap(UInt16 buttonID);

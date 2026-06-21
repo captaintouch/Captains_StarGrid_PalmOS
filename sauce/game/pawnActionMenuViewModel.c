@@ -1,6 +1,8 @@
 #include "pawnActionMenuViewModel.h"
 #include "pawn.h"
 #include "../constants.h"
+#include "../platform/i_memory.h"
+#include "../platform/i_resource.h"
 
 MenuActionType shipActions[] = {MenuActionTypeCancel, MenuActionTypeWarp, MenuActionTypeTorpedo, MenuActionTypePhaser, MenuActionTypeMove};
 MenuActionType baseActions[] = {MenuActionTypeCancel, MenuActionTypeShockwave, MenuActionTypeBuildShip, MenuActionTypeHealthPack, MenuActionTypeTorpedoPack};
@@ -78,17 +80,16 @@ void pawnActionMenuViewModel_setupMenuForPawn(Pawn *pawn, Button **displayButton
             actionCount = sizeof(baseActions) / sizeof(baseActions[0]);
             break;
     }
-    buttons = (Button *)MemPtrNew(sizeof(Button) * actionCount);
+    buttons = (Button *)imem_alloc(sizeof(Button) * actionCount);
 
     for (i = 0; i < actionCount; i++) {
-        MemHandle resourceHandle = DmGetResource(strRsc, pawnActionMenuViewModel_textForActionType(actions[i]));
-        char *text = (char *)MemHandleLock(resourceHandle);
-        buttons[i].text = (char *)MemPtrNew(StrLen(text) + 15);
-        MemHandleUnlock(resourceHandle);
-        DmReleaseResource(resourceHandle);
+        void *resourceHandle;
+        char *text = iresource_loadString(pawnActionMenuViewModel_textForActionType(actions[i]), &resourceHandle);
+        buttons[i].text = (char *)imem_alloc(StrLen(text) + 15);
+        iresource_releaseString(resourceHandle);
         StrCopy(buttons[i].text, text);
         appendTurnsRequiredForAction(actions[i], buttons[i].text, currentTurn, pawn);
-        MemPtrResize(buttons[i].text, StrLen(buttons[i].text) + 1);
+        imem_resize(buttons[i].text, StrLen(buttons[i].text) + 1);
         buttons[i].length = StrLen(buttons[i].text);
         buttons[i].disabled = pawnActionMenuViewModel_isDisabled(actions[i], pawn, currentTurn);
     }

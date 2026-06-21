@@ -1,24 +1,23 @@
 #include "about.h"
-#include <PalmOS.h>
+#include "PalmTypes.h"
 #include "constants.h"
+#include "platform/i_ui.h"
 
 Boolean about_buttonHandler(UInt16 buttonID) {
-    if (FrmGetActiveFormID() != ABOUT_FORM) {
+    if (iui_activeFormId() != ABOUT_FORM) {
         return false;
     }
 
     switch (buttonID) {
         case ABOUT_FORM_BUTTON_ACKNOWLEDGEMENTS:
-            FrmCustomAlert(GAME_ALERT_ACKNOWLEDGMENTS, NULL, NULL, NULL);
+            iui_customAlert(GAME_ALERT_ACKNOWLEDGMENTS, NULL, NULL);
             return true;
         default:
-            FrmReturnToForm(GAME_FORM);
+            iui_returnToForm(GAME_FORM);
             return true;
     }
 }
 
 void about_show() {
-    FormType *frmP = FrmInitForm(ABOUT_FORM);
-    FrmSetActiveForm(frmP);
-    FrmDrawForm(frmP);
+    iui_initAndShowForm(ABOUT_FORM);
 }

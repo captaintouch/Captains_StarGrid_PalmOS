@@ -1,11 +1,14 @@
 #include "game.h"
 
-#include <PalmOS.h>
+#include "../platform/i_video.h"
+#include "../platform/i_ui.h"
+#include "../platform/i_resource.h"
+#include "../platform/i_system.h"
+#include "../platform/i_input.h"
 
 #include "../constants.h"
 #include "../deviceinfo.h"
 #include "../graphicResources.h"
-#include "SystemMgr.h"
 #include "colors.h"
 #include "drawhelper.h"
 #include "gamesession.h"
@@ -17,44 +20,37 @@
 #include "spriteLibrary.h"
 #include "viewport.h"
 
-WinHandle backgroundBuffer = NULL;
-WinHandle overlayBuffer = NULL;
-WinHandle screenBuffer = NULL;
+IVideoBuffer *backgroundBuffer = NULL;
+IVideoBuffer *overlayBuffer = NULL;
+IVideoBuffer *screenBuffer = NULL;
 Coordinate lastScreenSize;
 
 static void game_windowCleanup() {
     if (backgroundBuffer != NULL) {
-        WinDeleteWindow(backgroundBuffer, false);
+        ivideo_deleteBuffer(backgroundBuffer);
         backgroundBuffer = NULL;
     }
     if (overlayBuffer != NULL) {
-        WinDeleteWindow(overlayBuffer, false);
+        ivideo_deleteBuffer(overlayBuffer);
         overlayBuffer = NULL;
     }
     if (screenBuffer != NULL) {
-        WinDeleteWindow(screenBuffer, false);
+        ivideo_deleteBuffer(screenBuffer);
         screenBuffer = NULL;
     }
 }
 
 static void game_resetForm() {
-    FormType *frmP = FrmGetActiveForm();
+    IForm *frmP = iui_activeForm();
     Coordinate screenSize = deviceinfo_screenSize();
-    FormType *updatedForm = FrmNewForm(GAME_FORM, NULL, 0, 0, screenSize.x, screenSize.y, true, 0, 0, 0);
+    IForm *updatedForm = iui_newForm(GAME_FORM, GAME_MENU, screenSize.x, screenSize.y);
     lastScreenSize = screenSize;
-    FrmSetMenu(updatedForm, GAME_MENU);
-    FrmSetActiveForm(updatedForm);
+    iui_setActiveForm(updatedForm);
     if (frmP != NULL) {
-        FrmDeleteForm(frmP);
+        iui_deleteForm(frmP);
     }
     if (gameSession.diaSupport) {
-        FrmSetDIAPolicyAttr(updatedForm, frmDIAPolicyCustom);
-        if (PINGetInputAreaState() != pinInputAreaClosed) {
-            PINSetInputAreaState(pinInputAreaClosed);
-        }
-        if (PINGetInputTriggerState() != pinInputTriggerDisabled) {
-            PINSetInputTriggerState(pinInputTriggerDisabled);
-        }
+        iui_applyCustomDIAPolicy(updatedForm);
         game_windowCleanup();
         gameSession.drawingState.shouldRedrawBackground = true;
         gameSession.drawingState.shouldRedrawHeader = true;
@@ -232,7 +228,7 @@ static void game_drawGridItems() {
     }
 
     for (i = 0; i < gameSession.level.gridItemCount; i++) {
-        UInt32 timing = TimGetTicks() / SysTicksPerSecond() * 2; 
+        UInt32 timing = isys_getTicks() / isys_ticksPerSecond() * 2;
         GridItem *gridItem = &gameSession.level.gridItems[i];
         Coordinate center = viewport_convertedCoordinate(hexgrid_tileCenterPosition(gridItem->position));
         ImageSprite *sprite = NULL;
@@ -548,13 +544,13 @@ static void game_drawStars() {
             drawhelper_applyForeColor(CLOUDS);
         }
 
-        drawhelper_drawPoint((Coordinate){SysRandom(0) % gridSize.x, SysRandom(0) % gridSize.y});
+        drawhelper_drawPoint((Coordinate){random(0, gridSize.x - 1), random(0, gridSize.y - 1)});
     }
 }
 
 static void game_drawGameStartHeader() {
     FontID oldFont;
-    MemHandle resourceHandle;
+    void *resourceHandle;
     RectangleType rect;
     char *text;
     Coordinate screenSize;
@@ -582,7 +578,7 @@ static void game_drawGameStartHeader() {
     }
 
     gameSession.drawingState.shouldRedrawHeader = false;
-    WinSetDrawWindow(screenBuffer);
+    ivideo_setDrawTarget(screenBuffer);
     screenSize = deviceinfo_screenSize();
 
     RctSetRectangle(&rect, 0, 0, screenSize.x, BOTTOMMENU_HEIGHT / 2);
@@ -620,9 +616,13 @@ static void game_drawGameStartHeader() {
 
     if (gameSession.menuScreenType == MENUSCREEN_START) {
         // draw version number
-        MemHandle resourceHandle = DmGetResource('tver', 1);
-        char *text = (char *)MemHandleLock(resourceHandle);
-        drawhelper_drawTextCentered(text, hexgrid_tileCenterPosition((Coordinate){7, 1}), 1, -1);
+        // NOTE: no platform wrapper exists for arbitrary typed resources ('tver') -
+        // i_resource.h only covers bitmapRsc and strRsc. Left as a direct Palm OS call.
+        MemHandle versionResourceHandle = DmGetResource('tver', 1);
+        char *versionText = (char *)MemHandleLock(versionResourceHandle);
+        drawhelper_drawTextCentered(versionText, hexgrid_tileCenterPosition((Coordinate){7, 1}), 1, -1);
+        MemHandleUnlock(versionResourceHandle);
+        DmReleaseResource(versionResourceHandle);
     }
 
     drawhelper_drawLineBetweenCoordinates((Coordinate){0, BOTTOMMENU_HEIGHT - 1}, (Coordinate){screenSize.x, BOTTOMMENU_HEIGHT - 1});
@@ -636,13 +636,11 @@ static void game_drawGameStartHeader() {
 
     RctSetRectangle(&rect, 36, 2, screenSize.x - 72, BOTTOMMENU_HEIGHT - 5);
     drawhelper_fillRectangleWithShadow(&rect, 8, centerTileBackgroundColor, tintColor, false);
-    resourceHandle = DmGetResource(strRsc, gameSession_menuTopTitleResource());
-    text = (char *)MemHandleLock(resourceHandle);
+    text = iresource_loadString(gameSession_menuTopTitleResource(), &resourceHandle);
     oldFont = FntSetFont(stdFont);
     centerX = screenSize.x / 2 - FntCharsWidth(text, StrLen(text)) / 2;
     drawhelper_drawText(text, (Coordinate){centerX, 2});
-    MemHandleUnlock(resourceHandle);
-    DmReleaseResource(resourceHandle);
+    iresource_releaseString(resourceHandle);
 
     if (gameSession.menuScreenType == MENUSCREEN_RANK || gameSession.menuScreenType == MENUSCREEN_RANK_AFTERGAME) {
         int barWidth = 55;
@@ -654,8 +652,7 @@ static void game_drawGameStartHeader() {
         StrIToA(fixedText, gameSession_valueForBottomTitle());
         text = fixedText;
     } else {
-        resourceHandle = DmGetResource(strRsc, gameSession_menuBottomTitleResource());
-        text = (char *)MemHandleLock(resourceHandle);
+        text = iresource_loadString(gameSession_menuBottomTitleResource(), &resourceHandle);
     }
     if (text != NULL && StrLen(text) > 0) {
         FntSetFont(largeBoldFont);
@@ -665,13 +662,11 @@ static void game_drawGameStartHeader() {
     }
 
     if (!gameSession_useValueForBottomTitle() && gameSession.menuScreenType != MENUSCREEN_RANK && gameSession.menuScreenType != MENUSCREEN_RANK_AFTERGAME) {
-        MemHandleUnlock(resourceHandle);
-        DmReleaseResource(resourceHandle);
+        iresource_releaseString(resourceHandle);
     }
 }
 
 static void game_drawBackground() {
-    Err err = errNone;
     Coordinate gridSize;
     if (!gameSession.drawingState.shouldRedrawBackground && backgroundBuffer != NULL) {
         return;
@@ -679,14 +674,13 @@ static void game_drawBackground() {
     gameSession.drawingState.shouldRedrawBackground = false;
     gridSize = hexgrid_size();
     if (backgroundBuffer == NULL) {
-        backgroundBuffer = WinCreateOffscreenWindow(gridSize.x, gridSize.y, nativeFormat, &err);
-        if (err != errNone) {
-            backgroundBuffer = NULL;
+        backgroundBuffer = ivideo_createBuffer(gridSize.x, gridSize.y);
+        if (backgroundBuffer == NULL) {
             return;
         }
     }
 
-    WinSetDrawWindow(backgroundBuffer);
+    ivideo_setDrawTarget(backgroundBuffer);
     game_drawBackdrop();
     if (gameSession.menuScreenType == MENUSCREEN_GAME) {
         hexgrid_drawEntireGrid(false);
@@ -706,19 +700,16 @@ static void game_drawLowMemBackground(Coordinate screenSize) {
 
 static void game_drawDynamicViews() {  // ships, special tiles, etc.
     // everything drawn in this function must have it's coordinates offset to the current viewport
-    RectangleType lamerect;
-    Err err = errNone;
     Coordinate overlaySize = deviceinfo_screenSize();
     overlaySize.y -= BOTTOMMENU_HEIGHT;
 
     if (overlayBuffer == NULL) {
-        overlayBuffer = WinCreateOffscreenWindow(overlaySize.x, overlaySize.y, nativeFormat, &err);
+        overlayBuffer = ivideo_createBuffer(overlaySize.x, overlaySize.y);
     }
 
-    WinSetDrawWindow(overlayBuffer);
-    RctSetRectangle(&lamerect, gameSession.viewportOffset.x, gameSession.viewportOffset.y, overlaySize.x, overlaySize.y);
+    ivideo_setDrawTarget(overlayBuffer);
     if (backgroundBuffer != NULL) {
-        WinCopyRectangle(backgroundBuffer, overlayBuffer, &lamerect, 0, 0, winPaint);
+        ivideo_copyRect(backgroundBuffer, overlayBuffer, gameSession.viewportOffset, overlaySize, (Coordinate){0, 0});
     } else {
         // we don't have enough memory for a background buffer, so draw into the overlayBuffer
         game_drawLowMemBackground(overlaySize);
@@ -788,8 +779,7 @@ static void game_drawBottomActivePawn() {
     drawhelper_fillRectangle(&rect, 4);
 
     pawnCenterPosition = viewport_convertedCoordinate(pawnCenterPosition);
-    RctSetRectangle(&rect, pawnCenterPosition.x - HEXTILE_PAWNSIZE / 2, pawnCenterPosition.y - HEXTILE_PAWNSIZE / 2, HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE);
-    WinCopyRectangle(overlayBuffer, screenBuffer, &rect, targetCenterPosition.x, targetCenterPosition.y, winPaint);
+    ivideo_copyRect(overlayBuffer, screenBuffer, (Coordinate){pawnCenterPosition.x - HEXTILE_PAWNSIZE / 2, pawnCenterPosition.y - HEXTILE_PAWNSIZE / 2}, (Coordinate){HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE}, targetCenterPosition);
 
     if (!gameSession.factions[gameSession.factionTurn].human) {  // draw cpu action text
         int textWidth = FntCharsWidth(gameSession.cpuActionText, StrLen(gameSession.cpuActionText));
@@ -820,10 +810,10 @@ static void game_drawBottomActivePawnStats() {
 static void game_drawBottomButtons() {
     Coordinate screenSize = deviceinfo_screenSize();
     RectangleType rect;
-    MemHandle nextResourceHandle = DmGetResource(strRsc, STRING_NEXT);
-    MemHandle endResourceHandle = DmGetResource(strRsc, STRING_ENDTURN);
-    char *nextText = (char *)MemHandleLock(nextResourceHandle);
-    char *endText = (char *)MemHandleLock(endResourceHandle);
+    void *nextResourceHandle;
+    void *endResourceHandle;
+    char *nextText = iresource_loadString(STRING_NEXT, &nextResourceHandle);
+    char *endText = iresource_loadString(STRING_ENDTURN, &endResourceHandle);
     int startOffsetX = gameSession.drawingState.miniMapDrawPosition.x + gameSession.drawingState.miniMapSize.x + 4;
     int startOffsetY = screenSize.y - BOTTOMMENU_HEIGHT + 2;
     int buttonWidth = screenSize.x - startOffsetX - 4;
@@ -844,10 +834,8 @@ static void game_drawBottomButtons() {
     drawhelper_drawText(endText, (Coordinate){startOffsetX + (buttonWidth / 2) - (FntCharsWidth(endText, StrLen(endText)) / 2), startOffsetY + buttonHeight + 2});
     gameSession.drawingState.barButtonPositions[1] = (Coordinate){rect.topLeft.x, rect.topLeft.y};
 
-    MemHandleUnlock(nextResourceHandle);
-    DmReleaseResource(nextResourceHandle);
-    MemHandleUnlock(endResourceHandle);
-    DmReleaseResource(endResourceHandle);
+    iresource_releaseString(nextResourceHandle);
+    iresource_releaseString(endResourceHandle);
 }
 
 static void game_drawUserInterfaceElements() {
@@ -864,32 +852,25 @@ static void game_drawUserInterfaceElements() {
 }
 
 static void game_drawLayout() {
-    RectangleType lamerect;
-    WinHandle mainWindow = WinGetDisplayWindow();
-    Err err = errNone;
+    IVideoBuffer *mainWindow = ivideo_mainScreenBuffer();
     Coordinate screenSize = deviceinfo_screenSize();
     if (screenBuffer == NULL) {
-        screenBuffer = WinCreateOffscreenWindow(screenSize.x, screenSize.y, nativeFormat, &err);
+        screenBuffer = ivideo_createBuffer(screenSize.x, screenSize.y);
     }
     game_drawBackground();
     game_drawGameStartHeader();
     game_drawDynamicViews();
 
-    WinSetDrawWindow(screenBuffer);
+    ivideo_setDrawTarget(screenBuffer);
     if (gameSession.menuScreenType == MENUSCREEN_GAME) {
-        RctSetRectangle(&lamerect, 0, 0, screenSize.x, screenSize.y - BOTTOMMENU_HEIGHT);
-        WinCopyRectangle(overlayBuffer, screenBuffer, &lamerect, 0, 0, winPaint);
+        ivideo_copyRect(overlayBuffer, screenBuffer, (Coordinate){0, 0}, (Coordinate){screenSize.x, screenSize.y - BOTTOMMENU_HEIGHT}, (Coordinate){0, 0});
         game_drawUserInterfaceElements();
     } else {
-        RctSetRectangle(&lamerect, 0, 0, screenSize.x, screenSize.y);
-        WinCopyRectangle(overlayBuffer, screenBuffer, &lamerect, 0, BOTTOMMENU_HEIGHT, winPaint);
+        ivideo_copyRect(overlayBuffer, screenBuffer, (Coordinate){0, 0}, screenSize, (Coordinate){0, BOTTOMMENU_HEIGHT});
     }
 
-    RctSetRectangle(&lamerect, 0, 0, screenSize.x, screenSize.y);
-    WinCopyRectangle(screenBuffer, mainWindow, &lamerect, GAMEWINDOW_X,
-                     GAMEWINDOW_Y,
-                     winPaint);
-    WinSetDrawWindow(mainWindow);
+    ivideo_copyRect(screenBuffer, mainWindow, (Coordinate){0, 0}, screenSize, (Coordinate){GAMEWINDOW_X, GAMEWINDOW_Y});
+    ivideo_setDrawTarget(mainWindow);
 
     if (gameSession.drawingState.requiresPauseAfterLayout) {
         gameSession.drawingState.requiresPauseAfterLayout = false;
@@ -897,27 +878,22 @@ static void game_drawLayout() {
     }
 }
 
-static Boolean game_checkIfGameIsPaused(EventType *eventptr) {
-    if (eventptr->eType == winExitEvent) {
-        if (eventptr->data.winExit.exitWindow ==
-            (WinHandle)FrmGetFormPtr(GAME_FORM)) {
-            gameSession.paused = true;
-        }
-    } else if (eventptr->eType == winEnterEvent) {
-        if (eventptr->data.winEnter.enterWindow ==
-                (WinHandle)FrmGetFormPtr(GAME_FORM) &&
-            eventptr->data.winEnter.enterWindow == (WinHandle)FrmGetFirstForm()) {
-            gameSession.paused = false;
-        }
+static Boolean game_checkIfGameIsPaused(IRawEvent *rawEvent) {
+    if (iinput_isWindowExitingForm(rawEvent, GAME_FORM)) {
+        gameSession.paused = true;
+    } else if (iinput_isWindowEnteringForm(rawEvent, GAME_FORM)) {
+        gameSession.paused = false;
     }
 
     return gameSession.paused;
 }
 
-Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu) {
-    gameSession_registerPenInput(eventptr);
-    if (eventptr->eType == winDisplayChangedEvent) {
-        if (FrmGetActiveFormID() == GAME_FORM) {
+Boolean game_mainLoop(IRawEvent *rawEvent, openMainMenuCallback_t requestMainMenu) {
+    InputEvent event;
+    iinput_translateEvent(rawEvent, &event);
+    gameSession_registerPenInput(&event);
+    if (event.type == IEVENT_DISPLAYCHANGED) {
+        if (iui_activeFormId() == GAME_FORM) {
             game_resetForm();
         } else {
             gameSession.drawingState.shouldResetGameForm = true;
@@ -925,26 +901,26 @@ Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t requestMainMenu)
 
         return true;
     }
-    if (gameSession.drawingState.shouldResetGameForm && FrmGetActiveFormID() == GAME_FORM) {
+    if (gameSession.drawingState.shouldResetGameForm && iui_activeFormId() == GAME_FORM) {
         gameSession.drawingState.shouldResetGameForm = false;
         game_resetForm();
         return true;
     }
-    if ((eventptr->eType == menuEvent)) {
-        return gameSession_handleMenu(eventptr->data.menu.itemID);
+    if (event.type == IEVENT_MENU) {
+        return gameSession_handleMenu(event.id);
     }
-    if ((eventptr->eType == ctlSelectEvent)) {
-        return gameSession_handleFormButtonTap(eventptr->data.ctlSelect.controlID);
+    if (event.type == IEVENT_BUTTON) {
+        return gameSession_handleFormButtonTap(event.id);
     }
-    if (game_checkIfGameIsPaused(eventptr)) {
+    if (game_checkIfGameIsPaused(rawEvent)) {
         return false;
     }
-    if (eventptr->eType != nilEvent) {
+    if (event.type != IEVENT_NONE) {
         return false;
     }
 
     gameSession_progressLogic();
-    if (FrmGetActiveFormID() == GAME_FORM) {
+    if (iui_activeFormId() == GAME_FORM) {
         game_drawLayout();
     }
 

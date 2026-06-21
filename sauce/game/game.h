@@ -1,10 +1,11 @@
 #ifndef GAME_H_
 #define GAME_H_
-#include <PalmOS.h>
+
+#include "../platform/i_input.h"
 
 typedef void (*openMainMenuCallback_t)();
 
-Boolean game_mainLoop(EventPtr eventptr, openMainMenuCallback_t callback);
+Boolean game_mainLoop(IRawEvent *rawEvent, openMainMenuCallback_t callback);
 void game_setup();
 void game_cleanup();
 int game_eventDelayTime();

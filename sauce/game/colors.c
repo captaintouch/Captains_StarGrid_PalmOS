@@ -1,46 +1,27 @@
 #include "colors.h"
 
-#include <PalmOS.h>
-
-#include "Bitmap.h"
-#include "Window.h"
+#include "../platform/i_draw.h"
 
 IndexedColorType colors_reference[7];
 
-static RGBColorType colors_rgb(Int16 red, Int16 green, Int16 blue) {
-    RGBColorType color;
-    color.r = red;
-    color.g = green;
-    color.b = blue;
-    return color;
-}
-
 static IndexedColorType colors_rgbFor(AppColor colorType) {
-    RGBColorType color;
     switch (colorType) {
         case ALIZARIN:
-            color = colors_rgb(231, 76, 60);
-            break;
+            return idraw_indexForRGB(231, 76, 60);
         case BELIZEHOLE:
-            color = colors_rgb(41, 128, 185);
-            break;
+            return idraw_indexForRGB(41, 128, 185);
         case EMERALD:
-            color = colors_rgb(46, 204, 113);
-            break;
+            return idraw_indexForRGB(46, 204, 113);
         case CLOUDS:
-            color = colors_rgb(255, 255, 255);
-            break;
+            return idraw_indexForRGB(255, 255, 255);
         case DRACULAORCHID:
-            color = colors_rgb(45, 52, 54);
-            break;
+            return idraw_indexForRGB(45, 52, 54);
         case ASBESTOS:
-            color = colors_rgb(127, 140, 141);
-            break;
+            return idraw_indexForRGB(127, 140, 141);
         case SUNFLOWER:
-            color = colors_rgb(241, 196, 15);
-            break;
+            return idraw_indexForRGB(241, 196, 15);
     }
-    return WinRGBToIndex(&color);
+    return 0;
 }
 void colors_setupReferenceColors(Boolean colorSupport, UInt32 depth) {
     if (colorSupport) {

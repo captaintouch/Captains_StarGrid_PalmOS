@@ -1,6 +1,5 @@
 #include "mathIsFun.h"
-#include <PalmOS.h>
-#include "SysUtils.h"
+#include "../platform/i_system.h"
 
 float fmin(float a, float b) {
     if (a < b) {
@@ -62,7 +61,7 @@ float remapToMax(float a, float maxValue) {
 }
 
 int random(int min, int max) {
-    int value = min + (SysRandom(0) % (max - min + 1));
+    int value = isys_random(min, max);
     return fmin(fmax(value, min), max);
 }
 

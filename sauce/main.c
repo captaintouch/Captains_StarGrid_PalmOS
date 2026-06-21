@@ -1,24 +1,26 @@
 #include <PalmOS.h>
 
-#include "deviceinfo.h"
+#include "platform/i_device.h"
+#include "platform/i_system.h"
+#include "platform/i_ui.h"
 #include "game/colors.h"
 #include "game/game.h"
 
-static UInt32 applyScreenMode() {
-    Int32 oldDepth = deviceinfo_currentDepth();
-    Int32 depth = deviceinfo_maxDepth();
-    if (depth < 4 || WinScreenMode(winScreenModeSet, NULL, NULL, &depth, NULL) != errNone) {
-        ErrFatalDisplay("Unsupported device");
+static unsigned long applyScreenMode() {
+    unsigned long depth = idevice_maxDepth();
+    unsigned long oldDepth = idevice_setScreenDepth(depth);
+    if (depth < 4 || oldDepth == 0) {
+        isys_fatalError("Unsupported device");
     }
 
-    colors_setupReferenceColors(deviceinfo_colorSupported(), depth);
+    colors_setupReferenceColors(idevice_colorSupported(), depth);
     return oldDepth;
 }
 
 static void checkHiResSupport() {
 #ifdef HIRESBUILD
-    if (!deviceinfo_isRunningMinimalOSVersion(4) || !deviceinfo_supportsHiDensity()) {
-        ErrFatalDisplay("Please install lowres version");
+    if (!idevice_isRunningMinimalOSVersion(4) || !idevice_supportsHiDensity()) {
+        isys_fatalError("Please install lowres version");
     }
 #endif
 }
@@ -32,10 +34,10 @@ static void runGameEventLoop() {
     EventType event;
     UInt16 err;
 
-    FormType *formP = FrmGetActiveForm();
+    IForm *formP = iui_activeForm();
     game_setup();
     if (formP != NULL) {
-        FrmDeleteForm(formP);
+        iui_deleteForm(formP);
     }
 
     do {
@@ -51,16 +53,16 @@ static void runGameEventLoop() {
 }
 
 static void cleanupGame() {
-    FormType *formP = FrmGetActiveForm();
+    IForm *formP = iui_activeForm();
     game_cleanup();
     if (formP != NULL) {
-        FrmDeleteForm(formP);
+        iui_deleteForm(formP);
     }
 }
 
 static void endApplication(UInt32 oldDepth) {
     cleanupGame();
-    WinScreenMode(winScreenModeSet, NULL, NULL, &oldDepth, NULL);
+    idevice_setScreenDepth(oldDepth);
 }
 
 UInt32 PilotMain(UInt16 cmd, void *cmdPBP, UInt16 launchFlags) {

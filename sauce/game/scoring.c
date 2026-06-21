@@ -1,15 +1,14 @@
 #include "scoring.h"
 
-#include <PalmOS.h>
-
 #include "../constants.h"
+#include "../platform/i_memory.h"
 #include "../storage.h"
 
 SCORING_SECTION
 Score scoring_scoreFromLevelScores(LevelScore *levelScores, int faction) {
     int i;
     Score score;
-    MemSet(&score, sizeof(Score), 0);
+    imem_zero(&score, sizeof(Score));
     for (i = 0; i < GAMEMECHANICS_MAXPLAYERCOUNT; i++) {
         if (levelScores[faction].flagsCaptured[i]) {
             score.flagsCaptured++;

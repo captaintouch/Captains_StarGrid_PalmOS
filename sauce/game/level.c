@@ -1,9 +1,9 @@
 #include "level.h"
 
-#include <PalmOS.h>
-
 #include "../constants.h"
 #include "../graphicResources.h"
+#include "../platform/i_memory.h"
+#include "../platform/i_resource.h"
 #include "mathIsFun.h"
 #include "models.h"
 #include "movement.h"
@@ -12,32 +12,30 @@
 
 LEVEL_SECTION
 static void level_text(char *fixedText, DmResID textResource) {
-    MemHandle resourceHandle = DmGetResource(strRsc, textResource);
-    char *resourceText = (char *)MemHandleLock(resourceHandle);
+    void *resourceHandle;
+    char *resourceText = iresource_loadString(textResource, &resourceHandle);
     StrCopy(fixedText, resourceText);
-    MemHandleUnlock(resourceHandle);
-    DmReleaseResource(resourceHandle);
+    iresource_releaseString(resourceHandle);
 }
 
 LEVEL_SECTION
 static void level_scoreText(char *fixedText, DmResID textResource, int value) {
-    MemHandle resourceHandle = DmGetResource(strRsc, textResource);
-    char *resourceText = (char *)MemHandleLock(resourceHandle);
+    void *resourceHandle;
+    char *resourceText = iresource_loadString(textResource, &resourceHandle);
     StrIToA(fixedText, value);
     StrCat(fixedText, " ");
     StrCat(fixedText, resourceText);
-    MemHandleUnlock(resourceHandle);
-    DmReleaseResource(resourceHandle);
+    iresource_releaseString(resourceHandle);
 }
 
 LEVEL_SECTION
 static void level_addPawns(Pawn *newPawns, int additionalPawnCount, Level *level) {
     int i;
-    Pawn *updatedPawns = MemPtrNew(sizeof(Pawn) * (level->pawnCount + additionalPawnCount));
-    MemSet(updatedPawns, sizeof(Pawn) * (level->pawnCount + additionalPawnCount), 0);
+    Pawn *updatedPawns = imem_alloc(sizeof(Pawn) * (level->pawnCount + additionalPawnCount));
+    imem_zero(updatedPawns, sizeof(Pawn) * (level->pawnCount + additionalPawnCount));
     if (level->pawns != NULL) {
-        MemMove(updatedPawns, level->pawns, sizeof(Pawn) * level->pawnCount);
-        MemPtrFree(level->pawns);
+        imem_copy(updatedPawns, level->pawns, sizeof(Pawn) * level->pawnCount);
+        imem_free(level->pawns);
     }
 
     level->pawns = updatedPawns;
@@ -49,11 +47,11 @@ static void level_addPawns(Pawn *newPawns, int additionalPawnCount, Level *level
 
 LEVEL_SECTION
 void level_addGridItem(GridItemType itemType, Coordinate position, Level *level) {
-    GridItem *updatedGridItems = MemPtrNew(sizeof(GridItem) * (level->gridItemCount + 1));
-    MemSet(updatedGridItems, sizeof(GridItem) * (level->gridItemCount + 1), 0);
+    GridItem *updatedGridItems = imem_alloc(sizeof(GridItem) * (level->gridItemCount + 1));
+    imem_zero(updatedGridItems, sizeof(GridItem) * (level->gridItemCount + 1));
     if (level->gridItems != NULL) {
-        MemMove(updatedGridItems, level->gridItems, sizeof(GridItem) * level->gridItemCount);
-        MemPtrFree(level->gridItems);
+        imem_copy(updatedGridItems, level->gridItems, sizeof(GridItem) * level->gridItemCount);
+        imem_free(level->gridItems);
     }
 
     level->gridItems = updatedGridItems;
@@ -86,16 +84,16 @@ Level level_startLevel() {
     level.pawns = NULL;
     level.gridItemCount = 0;
     level.gridItems = NULL;
-    MemSet(newPawns, sizeof(Pawn) * 4, 0);
-    MemSet(level.scores, sizeof(LevelScore) * GAMEMECHANICS_MAXPLAYERCOUNT, 0);
+    imem_zero(newPawns, sizeof(Pawn) * 4);
+    imem_zero(level.scores, sizeof(LevelScore) * GAMEMECHANICS_MAXPLAYERCOUNT);
     newPawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, 0}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, BASEACTION_NONE, false}, 4, 3, false, false};
     newPawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, BASEACTION_NONE, false}, 4, 0, false, false};
     newPawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, BASEACTION_NONE, false}, 4, 1, false, false};
     newPawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){0, 6}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, BASEACTION_NONE, false}, 4, 2, false, false};
     level_addPawns(newPawns, 4, &level);
 
-    level.gridTexts = MemPtrNew(sizeof(GridText) * 3);
-    MemSet(level.gridTexts, sizeof(GridText) * 3, 0);
+    level.gridTexts = imem_alloc(sizeof(GridText) * 3);
+    imem_zero(level.gridTexts, sizeof(GridText) * 3);
     level.gridTextCount = 3;
     level.gridTexts[0] = (GridText){"", (Coordinate){1, 2}, (Coordinate){0, 0}, STRING_NEW, false, false};
     level_text(level.gridTexts[0].fixedText, STRING_NEW);
@@ -245,7 +243,7 @@ void level_removeGridItemAtIndex(int index, Level *level) {
         level->gridItems[i] = level->gridItems[i + 1];
     }
     level->gridItemCount--;
-    MemPtrResize(level->gridItems, sizeof(GridItem) * level->gridItemCount);
+    imem_resize(level->gridItems, sizeof(GridItem) * level->gridItemCount);
 }
 
 LEVEL_SECTION
@@ -255,7 +253,7 @@ void level_removePawnAtIndex(int index, Level *level) {
         level->pawns[i] = level->pawns[i + 1];
     }
     level->pawnCount--;
-    MemPtrResize(level->pawns, sizeof(Pawn) * level->pawnCount);
+    imem_resize(level->pawns, sizeof(Pawn) * level->pawnCount);
 }
 
 LEVEL_SECTION
@@ -320,21 +318,21 @@ void level_addScorePawns(Level *level, int faction) {
     int totalCaptured = scoring_totalCapturedShips(score);
     int i, factionIndex, pawnCount = 0;
     if (level->pawns != NULL) {
-        MemPtrFree(level->pawns);
+        imem_free(level->pawns);
         level->pawns = NULL;
         level->pawnCount = 0;
     }
     if (level->gridItems != NULL) {
-        MemPtrFree(level->gridItems);
+        imem_free(level->gridItems);
         level->gridItems = NULL;
         level->gridItemCount = 0;
     }
     if (level->gridTexts != NULL) {
-        MemPtrFree(level->gridTexts);
+        imem_free(level->gridTexts);
         level->gridTexts = NULL;
     }
     level->gridTextCount = 6;
-    level->gridTexts = MemPtrNew(sizeof(GridText) * (level->gridTextCount));
+    level->gridTexts = imem_alloc(sizeof(GridText) * (level->gridTextCount));
     level->gridTexts[0] = (GridText){"", (Coordinate){0, 1}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_DESTROYED, false, true, false};
     level_text(level->gridTexts[0].fixedText, STRING_DESTROYED);
     level->gridTexts[1] = (GridText){"", (Coordinate){0, 3}, (Coordinate){HEXTILE_SIZE / 4, 4}, STRING_CAPTURED, false, true, false};
@@ -349,16 +347,16 @@ void level_addScorePawns(Level *level, int faction) {
     level_scoreText(level->gridTexts[5].fixedText, STRING_SHIPSLOST, generalScore.shipsLost);
 
     if (level->actionTiles != NULL) {
-        MemPtrFree(level->actionTiles);
+        imem_free(level->actionTiles);
         level->actionTiles = NULL;
     }
-    level->actionTiles = MemPtrNew(sizeof(ActionTile));
+    level->actionTiles = imem_alloc(sizeof(ActionTile));
     level->actionTileCount = 1;
     level->actionTiles[0] = (ActionTile){(Coordinate){6, 7}, true, ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS, false, 0};
 
     // add destroyed ships
     if (totalDestroyed > 0) {
-        newPawns = MemPtrNew(sizeof(Pawn) * totalDestroyed);
+        newPawns = imem_alloc(sizeof(Pawn) * totalDestroyed);
         pawnCount = 0;
         for (factionIndex = 0; factionIndex < GAMEMECHANICS_MAXPLAYERCOUNT; factionIndex++) {
             if (score.basesDestroyed[factionIndex]) {
@@ -371,12 +369,12 @@ void level_addScorePawns(Level *level, int faction) {
             }
         }
         level_addPawns(newPawns, pawnCount, level);
-        MemPtrFree(newPawns);
+        imem_free(newPawns);
     }
 
     // add captured ships
     if (totalCaptured > 0) {
-        newPawns = MemPtrNew(sizeof(Pawn) * totalCaptured);
+        newPawns = imem_alloc(sizeof(Pawn) * totalCaptured);
         pawnCount = 0;
         for (factionIndex = 0; factionIndex < GAMEMECHANICS_MAXPLAYERCOUNT; factionIndex++) {
             for (i = 0; i < score.shipsCaptured[factionIndex]; i++) {
@@ -385,18 +383,18 @@ void level_addScorePawns(Level *level, int faction) {
             }
         }
         level_addPawns(newPawns, pawnCount, level);
-        MemPtrFree(newPawns);
+        imem_free(newPawns);
     }
 }
 
 LEVEL_SECTION
 void level_addRank(Level *level, Score score) {
     int additionalGridTexts = 6;
-    GridText *updatedGridTexts = MemPtrNew(sizeof(GridText) * (level->gridTextCount + additionalGridTexts));
+    GridText *updatedGridTexts = imem_alloc(sizeof(GridText) * (level->gridTextCount + additionalGridTexts));
     level_removePawnsBelowCoordinates((Coordinate){6, 6}, level, true);
-    MemSet(updatedGridTexts, sizeof(GridText) * (level->gridTextCount + additionalGridTexts), 0);
-    MemMove(updatedGridTexts, level->gridTexts, sizeof(GridText) * level->gridTextCount);
-    MemPtrFree(level->gridTexts);
+    imem_zero(updatedGridTexts, sizeof(GridText) * (level->gridTextCount + additionalGridTexts));
+    imem_copy(updatedGridTexts, level->gridTexts, sizeof(GridText) * level->gridTextCount);
+    imem_free(level->gridTexts);
     level->gridTexts = updatedGridTexts;
 
     level->gridTexts[level->gridTextCount++] = (GridText){"", (Coordinate){8, 2}, (Coordinate){0, 0}, 0, false, true};
@@ -413,10 +411,10 @@ void level_addRank(Level *level, Score score) {
     level_scoreText(level->gridTexts[level->gridTextCount - 1].fixedText, STRING_SHIPSLOST, score.shipsLost);
 
     if (level->actionTiles != NULL) {
-        MemPtrFree(level->actionTiles);
+        imem_free(level->actionTiles);
         level->actionTiles = NULL;
     }
-    level->actionTiles = MemPtrNew(sizeof(ActionTile));
+    level->actionTiles = imem_alloc(sizeof(ActionTile));
     level->actionTileCount = 1;
     level->actionTiles[0] = (ActionTile){(Coordinate){13, 7}, true, ACTIONTILEIDENTIFIER_ENDGAME, false, 0};
 }
@@ -428,18 +426,18 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
     int additionalPawnCount = 4;
     int additionalGridTexts = 1;
     GridText *updatedGridTexts;
-    Pawn *updatedPawns = MemPtrNew(sizeof(Pawn) * (additionalPawnCount));
-    MemSet(updatedPawns, sizeof(Pawn) * (additionalPawnCount), 0);
+    Pawn *updatedPawns = imem_alloc(sizeof(Pawn) * (additionalPawnCount));
+    imem_zero(updatedPawns, sizeof(Pawn) * (additionalPawnCount));
     updatedPawns[0] = (Pawn){PAWNTYPE_SHIP, (Coordinate){7, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, BASEACTION_NONE, false}, 4, 0, false, false};
     updatedPawns[1] = (Pawn){PAWNTYPE_SHIP, (Coordinate){7, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, BASEACTION_NONE, false}, 4, 1, false, false};
     updatedPawns[2] = (Pawn){PAWNTYPE_SHIP, (Coordinate){11, 2}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, BASEACTION_NONE, false}, 4, 2, false, false};
     updatedPawns[3] = (Pawn){PAWNTYPE_SHIP, (Coordinate){11, 4}, (Inventory){GAMEMECHANICS_MAXSHIPHEALTH, 0, GAMEMECHANICS_MAXTORPEDOCOUNT, 0, BASEACTION_NONE, false}, 4, 3, false, false};
     level_addPawns(updatedPawns, 4, level);
-    MemPtrFree(updatedPawns);
+    imem_free(updatedPawns);
 
     level->actionTileCount = additionalPawnCount * 2 + 4;
-    level->actionTiles = MemPtrNew(sizeof(ActionTile) * level->actionTileCount);
-    MemSet(level->actionTiles, sizeof(ActionTile) * level->actionTileCount, 0);
+    level->actionTiles = imem_alloc(sizeof(ActionTile) * level->actionTileCount);
+    imem_zero(level->actionTiles, sizeof(ActionTile) * level->actionTileCount);
     index = 0;
     for (i = additionalPawnCount; i < level->pawnCount; i++) {
         level->actionTiles[index] = (ActionTile){(Coordinate){level->pawns[i].position.x + 1, level->pawns[i].position.y}, i == additionalPawnCount, ACTIONTILEIDENTIFIER_HUMANPLAYER, false, i - additionalPawnCount};    // HUMAN PLAYER
@@ -454,10 +452,10 @@ void level_addPlayerConfigPawns(Level *level, NewGameConfig newGameConfig) {
 
     level->actionTiles[index + 3] = (ActionTile){(Coordinate){13, 7}, true, ACTIONTILEIDENTIFIER_LAUNCHGAME, false, 0};  // Start the game
 
-    updatedGridTexts = MemPtrNew(sizeof(GridText) * (level->gridTextCount + additionalGridTexts));
-    MemSet(updatedGridTexts, sizeof(GridText) * (level->gridTextCount + additionalGridTexts), 0);
-    MemMove(updatedGridTexts, level->gridTexts, sizeof(GridText) * level->gridTextCount);
-    MemPtrFree(level->gridTexts);
+    updatedGridTexts = imem_alloc(sizeof(GridText) * (level->gridTextCount + additionalGridTexts));
+    imem_zero(updatedGridTexts, sizeof(GridText) * (level->gridTextCount + additionalGridTexts));
+    imem_copy(updatedGridTexts, level->gridTexts, sizeof(GridText) * level->gridTextCount);
+    imem_free(level->gridTexts);
     level->gridTexts = updatedGridTexts;
 
     level->gridTexts[level->gridTextCount] = (GridText){"", (Coordinate){8, 6}, (Coordinate){0, 0}, STRING_PLAYERS, false, true};
@@ -548,9 +546,9 @@ Level level_create(NewGameConfig config) {
     level.gridItemCount = 0;
 
     level.pawnCount = factionCount + factionCount * config.shipCount;  // Bases + ships
-    level.pawns = MemPtrNew(sizeof(Pawn) * level.pawnCount);
-    MemSet(level.pawns, sizeof(Pawn) * level.pawnCount, 0);
-    MemSet(level.scores, sizeof(LevelScore) * GAMEMECHANICS_MAXPLAYERCOUNT, 0);
+    level.pawns = imem_alloc(sizeof(Pawn) * level.pawnCount);
+    imem_zero(level.pawns, sizeof(Pawn) * level.pawnCount);
+    imem_zero(level.scores, sizeof(LevelScore) * GAMEMECHANICS_MAXPLAYERCOUNT);
 
     if (factionCount < 3) {
         config.placementStrategy = PLAYERPLACEMENTSTRATEGY_CORNERS;
@@ -576,22 +574,22 @@ void level_destroy(Level *level) {
     }
     if (level->pawns != NULL) {
         level->pawnCount = 0;
-        MemPtrFree(level->pawns);
+        imem_free(level->pawns);
         level->pawns = NULL;
     }
     if (level->gridTexts != NULL) {
         level->gridTextCount = 0;
-        MemPtrFree(level->gridTexts);
+        imem_free(level->gridTexts);
         level->gridTexts = NULL;
     }
     if (level->actionTiles != NULL) {
         level->actionTileCount = 0;
-        MemPtrFree(level->actionTiles);
+        imem_free(level->actionTiles);
         level->actionTiles = NULL;
     }
     if (level->gridItems != NULL) {
         level->gridItemCount= 0;
-        MemPtrFree(level->gridItems);
+        imem_free(level->gridItems);
         level->gridItems = NULL;
     }
 }

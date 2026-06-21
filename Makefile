@@ -2,7 +2,7 @@
 
 FILENAME = StarGrid
 APPDEFINITION = $(FILENAME).def
-SRCFILES = $(wildcard sauce/*.c) $(wildcard sauce/game/*.c)
+SRCFILES = $(wildcard sauce/*.c) $(wildcard sauce/game/*.c) $(wildcard sauce/platform/*.c)
 OBJS = $(SRCFILES:.c=.o)
 SECTIONNAME = $(FILENAME)-sections
 HIRES = false
