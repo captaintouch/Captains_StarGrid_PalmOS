@@ -46,6 +46,18 @@ void idraw_drawText(char *text, int x, int y) {
     WinDrawChars(text, StrLen(text), x, y);
 }
 
+void idraw_drawTextN(char *text, int length, int x, int y) {
+    WinDrawChars(text, length, x, y);
+}
+
+IFontID idraw_setLargeBoldFont() {
+    return FntSetFont(largeBoldFont);
+}
+
+void idraw_restoreFont(IFontID font) {
+    FntSetFont(font);
+}
+
 int idraw_textWidth(char *text) {
     return FntCharsWidth(text, StrLen(text));
 }

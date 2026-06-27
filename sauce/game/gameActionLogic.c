@@ -4,6 +4,8 @@
 #include "../deviceinfo.h"
 #include "../platform/i_memory.h"
 #include "../platform/i_resource.h"
+#include "../platform/i_system.h"
+#include "../platform/i_ui.h"
 #include "drawhelper.h"
 #include "gamesession.h"
 #include "hexgrid.h"
@@ -32,7 +34,7 @@ static UInt8 gameActionLogic_nonCapturedFlagsLeft(UInt8 faction, GameSession *se
 
 GAMEACTIONLOGIC_SECTION
 static void gameActionLogic_askForAfterGameOptions() {
-    FrmCustomAlert(GAME_ALERT_ENDOFGAME, NULL, NULL, NULL) == 0 ? gameSession_reset(true) : gameSession_reset(false);
+    iui_customAlert(GAME_ALERT_ENDOFGAME, NULL, NULL) == 0 ? gameSession_reset(true) : gameSession_reset(false);
 }
 
 GAMEACTIONLOGIC_SECTION
@@ -70,7 +72,7 @@ static void gameActionLogic_showScore(GameSession *session) {
     if (newRank != oldRank) {
         void *resourceHandle;
         char *rankText = iresource_loadString(newRank, &resourceHandle);
-        FrmCustomAlert(GAME_ALERT_PROMOTED, rankText, "", "");
+        iui_customAlert3(GAME_ALERT_PROMOTED, rankText, "", "");
         iresource_releaseString(resourceHandle);
     }
     level_addScorePawns(&session->level, session->activePawn->faction);
@@ -135,7 +137,7 @@ void gameActionLogic_scheduleWarp(Pawn *sourcePawn, Coordinate target, GameSessi
     session->warpAnimation.isWarping = true;
     session->warpAnimation.currentPosition = sourcePawn->position;
     session->warpAnimation.endPosition = target;
-    session->warpAnimation.launchTimestamp = TimGetTicks();
+    session->warpAnimation.launchTimestamp = isys_getTicks();
     session->warpAnimation.shipVisible = true;
 }
 
@@ -145,7 +147,7 @@ void gameActionLogic_scheduleShockwave(Pawn *basePawn, GameSession *session) {
     gameActionLogic_clearShockwave(session);
     session->shockWaveAnimation = (ShockWaveAnimation *)imem_alloc(sizeof(ShockWaveAnimation));
     imem_zero(session->shockWaveAnimation, sizeof(ShockWaveAnimation));
-    session->shockWaveAnimation->launchTimestamp = TimGetTicks();
+    session->shockWaveAnimation->launchTimestamp = isys_getTicks();
     session->shockWaveAnimation->basePawn = basePawn;
     session->shockWaveAnimation->affectedPawnIndices = (int *)imem_alloc(sizeof(int) * session->level.pawnCount);
     session->shockWaveAnimation->pawnOriginalPositions = (Coordinate *)imem_alloc(sizeof(Coordinate) * session->level.pawnCount);
@@ -169,7 +171,7 @@ void gameActionLogic_scheduleMovement(Pawn *sourcePawn, Pawn *targetPawn, Coordi
 
     session->movement = (Movement *)imem_alloc(sizeof(Movement));
     imem_zero(session->movement, sizeof(Movement));
-    session->movement->launchTimestamp = TimGetTicks();
+    session->movement->launchTimestamp = isys_getTicks();
     session->movement->targetPawn = targetPawn;
 
     if (sourcePawn == &session->cameraPawn) {
@@ -199,7 +201,7 @@ static Boolean gameActionLogic_baseOnPosition(Coordinate position, GameSession *
 GAMEACTIONLOGIC_SECTION
 static Boolean gameActionLogic_checkForGameOver(GameSession *session) {
     if (!session->continueCPUPlay && !gameActionLogic_humanShipsLeft(session)) {
-        if (FrmCustomAlert(GAME_ALERT_CPUCONTINUEPLAYING, NULL, NULL, NULL) != 0) {  // Do not continue playing
+        if (iui_customAlert(GAME_ALERT_CPUCONTINUEPLAYING, NULL, NULL) != 0) {  // Do not continue playing
             gameActionLogic_showScore(session);
             return true;
         } else {
@@ -272,16 +274,16 @@ Boolean gameActionLogic_afterMove(GameSession *session) {
         session->level.scores[session->activePawn->faction].flagsCaptured[session->activePawn->inventory.flagOfFaction]++;
         gameActionLogic_removeBase(session->activePawn->inventory.flagOfFaction, session->activePawn->faction, session);
         if (gameActionLogic_nonCapturedFlagsLeft(session->activePawn->faction, session) > 0) {  // Still some flags left to capture
-            FrmCustomAlert(GAME_ALERT_FLAGCAPTURED, NULL, NULL, NULL);
+            iui_customAlert(GAME_ALERT_FLAGCAPTURED, NULL, NULL);
             if (gameActionLogic_checkForGameOver(session)) {
                 return false;
             }
         } else {  // Game over, all flags captured
             if (session->factions[session->activePawn->faction].human) {
-                FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_ALLFLAGSCAPTURED, NULL, NULL, NULL);
+                iui_customAlert(GAME_ALERT_GAMECOMPLETE_ALLFLAGSCAPTURED, NULL, NULL);
                 gameActionLogic_showScore(session);
             } else {
-                FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_CPUALLFLAGSCAPTURED, NULL, NULL, NULL);
+                iui_customAlert(GAME_ALERT_GAMECOMPLETE_CPUALLFLAGSCAPTURED, NULL, NULL);
                 gameActionLogic_askForAfterGameOptions();
             }
             return false;
@@ -305,10 +307,10 @@ void gameActionLogic_afterExplosion(GameSession *session) {
     // Check for game over if no enemy units left
     if (!gameActionLogic_enemyShipsLeft(session)) {
         if (session->factions[session->activePawn->faction].human) {
-            FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_TOTALDESTRUCTION, NULL, NULL, NULL);
+            iui_customAlert(GAME_ALERT_GAMECOMPLETE_TOTALDESTRUCTION, NULL, NULL);
             gameActionLogic_showScore(session);
         } else {
-            FrmCustomAlert(GAME_ALERT_GAMECOMPLETE_CPUTOTALDESTRUCTION, NULL, NULL, NULL);
+            iui_customAlert(GAME_ALERT_GAMECOMPLETE_CPUTOTALDESTRUCTION, NULL, NULL);
             gameActionLogic_askForAfterGameOptions();
         }
         return;
@@ -351,7 +353,7 @@ void gameActionLogic_afterAttack(GameSession *session) {
         if (session->attackAnimation->targetPawn->type == PAWNTYPE_BASE) {
             gameActionLogic_removeBase(oldFaction, session->activePawn->faction, session);
             session->level.scores[session->activePawn->faction].basesDestroyed[oldFaction] = true;
-            FrmCustomAlert(GAME_ALERT_BASEDESTROYED, NULL, NULL, NULL);
+            iui_customAlert(GAME_ALERT_BASEDESTROYED, NULL, NULL);
         } else {  // SHIP
             Coordinate destroyedPawnPosition = session->attackAnimation->targetPawn->position;
             level_returnFlagFromPawnToOriginalBase(session->attackAnimation->targetPawn, &session->level);
@@ -448,7 +450,7 @@ void gameActionLogic_scheduleAttack(Pawn *targetPawn, Coordinate selectedTile, T
         imem_zero(session->attackAnimation, sizeof(AttackAnimation));
         session->attackAnimation->torpedoPosition = (Coordinate){-1, -1};
         session->attackAnimation->explosionPosition = (Coordinate){-1, -1};
-        session->attackAnimation->launchTimestamp = TimGetTicks();
+        session->attackAnimation->launchTimestamp = isys_getTicks();
         session->attackAnimation->target = selectedTile;
         session->attackAnimation->targetPawn = targetPawn;
         session->attackAnimation->healthImpact = gameActionLogic_healthImpact(session->activePawn->position, selectedTile, session->targetSelectionType);

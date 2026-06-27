@@ -10,6 +10,7 @@ void iui_setActiveForm(IForm *form);
 void iui_applyCustomDIAPolicy(IForm *form);
 int iui_activeFormId();
 int iui_customAlert(int alertId, char *param1, char *param2);
+int iui_customAlert3(int alertId, char *param1, char *param2, char *param3);
 void iui_showHelp(int helpStringId);
 void iui_returnToForm(int formId);
 void iui_initAndShowForm(int formId);

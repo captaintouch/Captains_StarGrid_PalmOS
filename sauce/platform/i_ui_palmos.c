@@ -42,6 +42,10 @@ int iui_customAlert(int alertId, char *param1, char *param2) {
     return FrmCustomAlert(alertId, param1, param2, NULL);
 }
 
+int iui_customAlert3(int alertId, char *param1, char *param2, char *param3) {
+    return FrmCustomAlert(alertId, param1, param2, param3);
+}
+
 void iui_showHelp(int helpStringId) {
     FrmHelp(helpStringId);
 }

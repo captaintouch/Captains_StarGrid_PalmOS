@@ -1,5 +1,4 @@
 #include "viewport.h"
-#include <PalmOS.h>
 #include "gamesession.h"
 #include "../constants.h"
 

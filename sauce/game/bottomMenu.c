@@ -1,6 +1,7 @@
 #include "bottomMenu.h"
 #include "models.h"
 #include "../deviceinfo.h"
+#include "../platform/i_draw.h"
 #include "mathIsFun.h"
 #include "drawhelper.h"
 
@@ -15,7 +16,7 @@ void bottomMenu_display(Button *buttons, Int8 buttonCount, Boolean colorSupport)
     int i;
     RectangleType rect;
     Coordinate screenSize = deviceinfo_screenSize();
-    FontID oldFont = FntSetFont(largeBoldFont);
+    IFontID oldFont = idraw_setLargeBoldFont();
     for (i = 0; i < buttonCount; i++) {
         Coordinate position = bottomMenu_positionForButton(i);
         AppColor bgColor;
@@ -37,12 +38,12 @@ void bottomMenu_display(Button *buttons, Int8 buttonCount, Boolean colorSupport)
         drawhelper_applyForeColor(bgColor);
         drawhelper_fillRectangle(&rect, 0);
 
-        WinDrawChars(buttons[i].text, buttons[i].length, position.x + 4, position.y + 2);
+        idraw_drawTextN(buttons[i].text, buttons[i].length, position.x + 4, position.y + 2);
 
         drawhelper_applyForeColor(CLOUDS);
         drawhelper_drawLineBetweenCoordinates((Coordinate){0, position.y + buttonHeight}, (Coordinate){screenSize.x, position.y + buttonHeight});
     }
-    FntSetFont(oldFont);
+    idraw_restoreFont(oldFont);
 }
 
 Int8 bottomMenu_selectedIndex(Coordinate inputCoordinate) {
