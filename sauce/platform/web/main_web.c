@@ -52,6 +52,11 @@ static void web_frame(void) {
     web_beginFrame(screenSize.x, screenSize.y);
     web_textClearAll();
 
+    /* Palm caches the header pixels and only redraws it (and its text) once;
+       the web overlay's text queue is cleared every frame, so the header's
+       text would vanish after that single redraw. Force it every frame. */
+    gameSession.drawingState.shouldRedrawHeader = true;
+
     if (!web_input_pop(&rawEvent)) {
         rawEvent.type = WEB_RAW_NIL;
         rawEvent.x = 0;
