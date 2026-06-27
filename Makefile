@@ -3,6 +3,7 @@
 # Each platform has its own makefile; this one just delegates to them:
 #   Makefile.palm  -> Palm OS .prc build   (needs the Palm SDK toolchain)
 #   Makefile.cli   -> host command-line build (needs gcc)
+#   Makefile.web   -> WebAssembly build (needs emcc)
 #
 # Run `make` with no target to see the list of available builds.
 
@@ -11,6 +12,7 @@
 help:
 	@echo "Captain's StarGrid - build targets:"
 	@echo "  make cli           Build the host command-line binary (./stargrid_cli)"
+	@echo "  make web           Build the WebAssembly bundle (stargrid_web.js/.wasm)"
 	@echo "  make palm          Build all Palm OS .prc variants (lowres, hires, debug)"
 	@echo "  make palm-lowres   Build the low-res Palm .prc"
 	@echo "  make palm-hires    Build the hi-res Palm .prc"
@@ -20,6 +22,9 @@ help:
 
 cli:
 	$(MAKE) -f Makefile.cli
+
+web:
+	$(MAKE) -f Makefile.web
 
 palm:
 	$(MAKE) -f Makefile.palm all
@@ -33,10 +38,11 @@ palm-hires:
 palm-debug:
 	$(MAKE) -f Makefile.palm debug
 
-all: cli palm
+all: cli web palm
 
 clean:
 	$(MAKE) -f Makefile.cli clean
+	$(MAKE) -f Makefile.web clean
 	$(MAKE) -f Makefile.palm cleanup
 
-.PHONY: help cli palm palm-lowres palm-hires palm-debug all clean
+.PHONY: help cli web palm palm-lowres palm-hires palm-debug all clean

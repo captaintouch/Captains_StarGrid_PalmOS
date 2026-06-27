@@ -25,7 +25,7 @@ IBool idevice_supportsHiDensity() {
     return 0;
 }
 
-Coordinate idevice_screenSize() {
+Coordinate idevice_screenSize(void) {
     return (Coordinate){CLI_SCREEN_WIDTH, CLI_SCREEN_HEIGHT};
 }
 

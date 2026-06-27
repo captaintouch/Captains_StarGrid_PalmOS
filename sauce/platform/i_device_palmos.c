@@ -38,7 +38,7 @@ IBool idevice_supportsHiDensity() {
     return (attr == kDensityDouble);
 }
 
-Coordinate idevice_screenSize() {
+Coordinate idevice_screenSize(void) {
     RectangleType screenBounds;
     idevice_isRunningMinimalOSVersion(4) ? WinGetBounds(WinGetDisplayWindow(), &screenBounds) : WinGetDrawWindowBounds(&screenBounds);
     return (Coordinate){screenBounds.extent.x, screenBounds.extent.y};

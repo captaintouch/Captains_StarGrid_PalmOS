@@ -1,0 +1,44 @@
+# WebAssembly build of Captain's StarGrid.
+#
+# Compiles the real game code against the web backends in
+# sauce/platform/web/ via Emscripten, producing a static stargrid_web.js /
+# stargrid_web.wasm pair that runs entirely client-side (no server
+# dependency - just host the output files plus web/index.html).
+#
+#   make -f Makefile.web        # build stargrid_web.js / .wasm
+#   make -f Makefile.web clean
+
+CC = emcc
+
+# Shared game sources (everything except the Palm entry point main.c).
+SHARED_SRC = $(wildcard sauce/game/*.c) sauce/deviceInfo.c sauce/storage.c sauce/about.c
+# Web platform backends + entry point.
+WEB_SRC = $(wildcard sauce/platform/web/*.c)
+
+SRC = $(SHARED_SRC) $(WEB_SRC)
+OBJ = $(SRC:.c=.o)
+
+# -fno-builtin-random: the codebase defines its own random(min,max) helper
+# (sauce/game/mathIsFun.c) whose signature clashes with libc's random(void);
+# clang's wasm32 target treats that as a hard error rather than a warning.
+CFLAGS = -fno-builtin-random -Wall -Wno-unused -O1 -g
+LDFLAGS = -lm \
+	-s EXPORTED_RUNTIME_METHODS=ccall,cwrap \
+	-s ALLOW_MEMORY_GROWTH=1 \
+	-s NO_EXIT_RUNTIME=1 \
+	-s EXPORTED_FUNCTIONS=_main
+
+BIN = stargrid_web.js
+
+all: $(BIN)
+
+$(BIN): $(OBJ)
+	$(CC) $(OBJ) -o $(BIN) $(LDFLAGS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -f $(OBJ) $(BIN) stargrid_web.wasm
+
+.PHONY: all clean

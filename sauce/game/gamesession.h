@@ -91,7 +91,7 @@ typedef struct GameSession {
     Int32 nextSceneAnimationLaunchTimestamp;
 } GameSession;
 
-GameSession gameSession;
+extern GameSession gameSession;
 
 void gameSession_reset(Boolean newGame);
 void gameSession_cleanup();

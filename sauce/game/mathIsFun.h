@@ -1,6 +1,7 @@
 #ifndef MATHISFUN_H_
 #define MATHISFUN_H_
 
+int abs(int n);
 float fmax(float a, float b);
 float fmin(float a, float b);
 int ceil(float a);

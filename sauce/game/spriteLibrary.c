@@ -6,6 +6,8 @@
 #include "../platform/i_memory.h"
 #include "drawhelper.h"
 
+SpriteLibrary spriteLibrary;
+
 static ImageData *drawhelper_loadImage(UInt16 bitmapId) {
     ImageData *imageData = (ImageData *)imem_alloc(sizeof(ImageData));
     imem_zero(imageData, sizeof(ImageData));
@@ -206,7 +208,7 @@ void spriteLibrary_clean() {
     spriteLibrary.initialized = false;
 }
 
-ImageSprite spriteLibrary_nebulaSprite() {
+ImageSprite spriteLibrary_nebulaSprite(void) {
 
     ImageSprite nebulaSprite = (ImageSprite){
         GFX_RES_NEBULA,

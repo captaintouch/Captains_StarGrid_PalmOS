@@ -6,7 +6,7 @@
 Boolean deviceinfo_colorSupported();
 UInt32 deviceinfo_maxDepth();
 Int32 deviceinfo_currentDepth();
-Coordinate deviceinfo_screenSize();
+Coordinate deviceinfo_screenSize(void);
 Boolean deviceinfo_diaSupported();
 Boolean deviceinfo_isRunningMinimalOSVersion(UInt8 minVersion);
 Boolean deviceinfo_supportsHiDensity();

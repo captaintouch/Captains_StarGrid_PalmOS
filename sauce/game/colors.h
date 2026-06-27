@@ -13,7 +13,7 @@ typedef enum {
     SUNFLOWER,
 } AppColor;
 
-IndexedColorType colors_reference[7];
+extern IndexedColorType colors_reference[7];
 
 void colors_setupReferenceColors(Boolean colorSupport, UInt32 depth);
 

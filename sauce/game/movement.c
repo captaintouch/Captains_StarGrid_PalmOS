@@ -252,7 +252,7 @@ Trajectory movement_trajectoryBetween(Coordinate startCoordinate, Coordinate end
     // Delete unneccessary tiles
     for (i = 0; i < fmax(0, trajectory.tileCount - 2); i++) {
         if (trajectory.tileCount <= 2) {
-            return;
+            return trajectory;
         }
         if (!movement_isInvalid(trajectory.tileCoordinates[i], trajectory.tileCoordinates[i + 2])) {
             for (j = i + 1; j < trajectory.tileCount - 1; j++) {

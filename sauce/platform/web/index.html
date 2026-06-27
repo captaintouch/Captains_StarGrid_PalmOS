@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Captain's StarGrid</title>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        overflow: hidden;
+        touch-action: none;
+        height: 100%;
+    }
+    #game {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+    }
+    #game canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    #pixelCanvas {
+        image-rendering: pixelated;
+    }
+    #menuBar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 10;
+    }
+    #menuBar button {
+        flex: 1;
+        padding: 10px 4px;
+        background: #222;
+        color: #fff;
+        border: 1px solid #444;
+        font-size: 13px;
+    }
+</style>
+</head>
+<body>
+<div id="game">
+    <canvas id="pixelCanvas"></canvas>
+    <canvas id="overlayCanvas"></canvas>
+</div>
+<div id="menuBar">
+    <button id="btnHowToPlay">How to Play</button>
+    <button id="btnResetRank">Reset Rank</button>
+    <button id="btnAbout">About</button>
+    <button id="btnExit">Exit</button>
+</div>
+
+<script>
+var Module = {};
+
+function sizeCanvases() {
+    var gameDiv = document.getElementById('game');
+    var width = gameDiv.clientWidth;
+    var height = gameDiv.clientHeight;
+    var pixelCanvas = document.getElementById('pixelCanvas');
+    var overlayCanvas = document.getElementById('overlayCanvas');
+    pixelCanvas.width = width;
+    pixelCanvas.height = height;
+    overlayCanvas.width = width;
+    overlayCanvas.height = height;
+    Module.pixelCtx = pixelCanvas.getContext('2d');
+    Module.pixelCtx.imageSmoothingEnabled = false;
+    Module.overlayCtx = overlayCanvas.getContext('2d');
+    Module.pixelImageData = null;
+    return { width: width, height: height };
+}
+
+function pointFromEvent(evt) {
+    var canvas = document.getElementById('pixelCanvas');
+    var rect = canvas.getBoundingClientRect();
+    var clientX = (evt.touches && evt.touches.length) ? evt.touches[0].clientX : evt.clientX;
+    var clientY = (evt.touches && evt.touches.length) ? evt.touches[0].clientY : evt.clientY;
+    var scaleX = canvas.width / rect.width;
+    var scaleY = canvas.height / rect.height;
+    return {
+        x: Math.round((clientX - rect.left) * scaleX),
+        y: Math.round((clientY - rect.top) * scaleY)
+    };
+}
+
+function wireInput() {
+    var canvas = document.getElementById('pixelCanvas');
+
+    function onDown(evt) {
+        evt.preventDefault();
+        var p = pointFromEvent(evt);
+        Module.ccall('web_pushPenDown', null, ['number', 'number'], [p.x, p.y]);
+    }
+    function onMove(evt) {
+        evt.preventDefault();
+        var p = pointFromEvent(evt);
+        Module.ccall('web_pushPenMove', null, ['number', 'number'], [p.x, p.y]);
+    }
+    function onUp(evt) {
+        evt.preventDefault();
+        var p = pointFromEvent(evt);
+        Module.ccall('web_pushPenUp', null, ['number', 'number'], [p.x, p.y]);
+    }
+
+    canvas.addEventListener('mousedown', onDown);
+    canvas.addEventListener('mousemove', onMove);
+    canvas.addEventListener('mouseup', onUp);
+    canvas.addEventListener('touchstart', onDown, { passive: false });
+    canvas.addEventListener('touchmove', onMove, { passive: false });
+    canvas.addEventListener('touchend', onUp, { passive: false });
+
+    function wireMenuButton(id, menuItemId) {
+        document.getElementById(id).addEventListener('click', function () {
+            Module.ccall('web_pushMenu', null, ['number'], [menuItemId]);
+        });
+    }
+    /* GAME_MENUITEM_* values from sauce/constants.h. */
+    wireMenuButton('btnExit', 1000);
+    wireMenuButton('btnAbout', 1001);
+    wireMenuButton('btnResetRank', 1002);
+    wireMenuButton('btnHowToPlay', 1003);
+
+    window.addEventListener('resize', function () {
+        var size = sizeCanvases();
+        Module.ccall('web_setScreenSize', null, ['number', 'number'], [size.width, size.height]);
+        Module.ccall('web_pushDisplayChanged', null, [], []);
+    });
+}
+
+Module.onRuntimeInitialized = function () {
+    var size = sizeCanvases();
+    wireInput();
+    Module.ccall('web_setScreenSize', null, ['number', 'number'], [size.width, size.height]);
+    Module.ccall('web_start', null, [], []);
+};
+</script>
+<script src="stargrid_web.js"></script>
+</body>
+</html>

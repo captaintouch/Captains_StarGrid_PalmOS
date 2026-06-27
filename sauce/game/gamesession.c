@@ -24,6 +24,8 @@
 #include "spriteLibrary.h"
 #include "viewport.h"
 
+GameSession gameSession;
+
 #define WARPINITIALTIME 0.4
 
 static void gameSession_resetHighlightTiles();

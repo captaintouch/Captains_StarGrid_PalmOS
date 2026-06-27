@@ -44,12 +44,12 @@ typedef struct SpriteLibrary {
     ImageSprite tileMoveSprite;
 } SpriteLibrary;
 
-SpriteLibrary spriteLibrary;
+extern SpriteLibrary spriteLibrary;
 
 void spriteLibrary_initialize();
 void spriteLibrary_clean();
 ImageSprite *spriteLibrary_factionShipSprite(int faction);
 
-ImageSprite spriteLibrary_nebulaSprite();
+ImageSprite spriteLibrary_nebulaSprite(void);
 
 #endif

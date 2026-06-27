@@ -23,7 +23,7 @@ Boolean deviceinfo_supportsHiDensity() {
     return idevice_supportsHiDensity();
 }
 
-Coordinate deviceinfo_screenSize() {
+Coordinate deviceinfo_screenSize(void) {
     return idevice_screenSize();
 }
 

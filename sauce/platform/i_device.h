@@ -10,7 +10,7 @@ long idevice_currentDepth();
 unsigned long idevice_maxDepth();
 IBool idevice_isRunningMinimalOSVersion(unsigned char minVersion);
 IBool idevice_supportsHiDensity();
-Coordinate idevice_screenSize();
+Coordinate idevice_screenSize(void);
 IBool idevice_diaSupported();
 unsigned long idevice_setScreenDepth(unsigned long depth);
 
