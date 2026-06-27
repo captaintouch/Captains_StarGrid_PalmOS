@@ -9,6 +9,10 @@ typedef struct WebBitmap {
     int height;
     const unsigned short *color; /* RGB565, row-major */
     const unsigned char *alpha;  /* 0 or 255 per pixel */
+    unsigned short resourceId;   /* GFX_RES_* id this was loaded from, so
+                                    i_draw_web can special-case draw effects
+                                    (e.g. the animated hex tile shimmer) by
+                                    id range without any shared-code change. */
 } WebBitmap;
 
 #endif

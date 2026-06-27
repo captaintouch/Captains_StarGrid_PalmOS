@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../../graphicResources.h"
 #include "web_bitmap.h"
 #include "web_framebuffer.h"
 #include "web_text.h"
@@ -56,6 +57,33 @@ static void plotBlended(WebBuffer *b, int x, int y, unsigned short color, float 
     g = (sg * alpha + dg * (255 - alpha)) / 255;
     bl = (sb * alpha + db * (255 - alpha)) / 255;
     b->pixels[y * b->width + x] = (unsigned short)((r << 11) | (g << 5) | bl);
+}
+
+/* Animated gradient/shimmer for the decorative hex tiles: a diagonal
+   brightness band sweeps across the tile over time, giving the otherwise
+   static, flat-colored tile art a subtle sense of motion. Confined to this
+   web-only file (gated by GFX_RES_TILE* id) so it costs nothing on Palm,
+   which never compiles this file and keeps drawing the plain bitmap. */
+static Boolean isShimmeringTile(unsigned short resourceId) {
+    return resourceId >= GFX_RES_TILEFEATURED && resourceId <= GFX_RES_TILEWARN;
+}
+
+static unsigned short applyShimmer(unsigned short color, int x, int y) {
+    double phase = (x + y) * 0.25 - emscripten_get_now() * 0.003;
+    float brightness = 1.0f + 0.22f * (float)sin(phase);
+    int r = (color >> 11) & 0x1F;
+    int g = (color >> 5) & 0x3F;
+    int b = color & 0x1F;
+    r = (int)(r * brightness);
+    g = (int)(g * brightness);
+    b = (int)(b * brightness);
+    if (r > 0x1F) r = 0x1F;
+    if (g > 0x3F) g = 0x3F;
+    if (b > 0x1F) b = 0x1F;
+    if (r < 0) r = 0;
+    if (g < 0) g = 0;
+    if (b < 0) b = 0;
+    return (unsigned short)((r << 11) | (g << 5) | b);
 }
 
 IColorIndex idraw_indexForRGB(int red, int green, int blue) {
@@ -239,9 +267,11 @@ void idraw_drawBitmapScaled(IBitmap *bitmap, int x, int y, int width, int height
     WebBuffer *b = target();
     WebBitmap *wb = (WebBitmap *)bitmap;
     int row, col;
+    Boolean shimmer;
     if (wb == NULL || wb->width <= 0 || wb->height <= 0 || width <= 0 || height <= 0) {
         return;
     }
+    shimmer = isShimmeringTile(wb->resourceId);
     for (row = 0; row < height; row++) {
         /* Bilinearly sample the (binary) alpha mask at sub-pixel precision
            so upscaled sprite edges (notably the hex-tile fill shapes) get
@@ -283,6 +313,9 @@ void idraw_drawBitmapScaled(IBitmap *bitmap, int x, int y, int width, int height
             srcRow = row * wb->height / height;
             srcCol = col * wb->width / width;
             nearestColor = wb->color[srcRow * wb->width + srcCol];
+            if (shimmer) {
+                nearestColor = applyShimmer(nearestColor, x + col, y + row);
+            }
             plotBlended(b, x + col, y + row, nearestColor, coverage);
         }
     }

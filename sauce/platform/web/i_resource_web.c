@@ -32,6 +32,7 @@ static WebBitmap bitmapForId(unsigned short id) {
             bitmap.height = web_assetTable[i].height;
             bitmap.color = web_assetTable[i].color;
             bitmap.alpha = web_assetTable[i].alpha;
+            bitmap.resourceId = id;
             return bitmap;
         }
     }
@@ -43,6 +44,7 @@ static WebBitmap bitmapForId(unsigned short id) {
         empty.height = 0;
         empty.color = NULL;
         empty.alpha = NULL;
+        empty.resourceId = id;
         return empty;
     }
 }
