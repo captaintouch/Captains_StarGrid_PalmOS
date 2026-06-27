@@ -10,42 +10,9 @@
 #include "../../game/colors.h"
 #include "../../game/game.h"
 #include "../../game/gamesession.h"
-#include "../../game/hexgrid.h"
-#include "../../game/drawhelper.h"
-#include "../../game/spriteLibrary.h"
-#include "../i_draw.h"
-#include "../i_video.h"
 
 #include "cli_framebuffer.h"
 #include "cli_input.h"
-
-/* Static showcase rendered directly via the public draw API (no game loop):
-   a lone ship, a lone base, and a base sitting on a ship (same tile). */
-static void cli_renderSpriteScene() {
-    RectangleType rect;
-    Coordinate shipTile = hexgrid_tileCenterPosition((Coordinate){1, 3});
-    Coordinate baseTile = hexgrid_tileCenterPosition((Coordinate){4, 3});
-    Coordinate bothTile = hexgrid_tileCenterPosition((Coordinate){7, 3});
-
-    ivideo_setDrawTarget(NULL);
-    RctSetRectangle(&rect, 0, 0, CLI_SCREEN_WIDTH, CLI_SCREEN_HEIGHT);
-    drawhelper_applyForeColor(DRACULAORCHID);
-    drawhelper_fillRectangle(&rect, 0);
-
-    /* a ship */
-    drawhelper_drawSprite(&spriteLibrary_factionShipSprite(0)[0], shipTile);
-    /* a base */
-    drawhelper_drawSprite(&spriteLibrary.baseSprite, baseTile);
-    /* a base on a ship: ship first, base drawn on top, same tile */
-    drawhelper_drawSprite(&spriteLibrary_factionShipSprite(2)[0], bothTile);
-    drawhelper_drawSprite(&spriteLibrary.baseSprite, bothTile);
-
-    /* Labels must land on an even pixel row (the renderer samples every 2nd row). */
-    idraw_setTextColor(15);
-    idraw_drawText("SHIP", shipTile.x - 8, shipTile.y + 15);
-    idraw_drawText("BASE", baseTile.x - 8, baseTile.y + 15);
-    idraw_drawText("B on S", bothTile.x - 12, bothTile.y + 15);
-}
 
 /* Optional scripted taps (from --tap X,Y[@FRAME] args) for reproducible demos. */
 #define MAX_SCRIPTED_TAPS 16
@@ -176,7 +143,6 @@ int main(int argc, char **argv) {
     int cursorY = CLI_SCREEN_HEIGHT / 2;
     long frame = 0;
     int maxFrames = 0; /* 0 = run until 'q' */
-    int sceneMode = 0;
     int i;
     struct timespec frameDelay;
     frameDelay.tv_sec = 0;
@@ -187,17 +153,6 @@ int main(int argc, char **argv) {
         if (strcmp(argv[i], "--frames") == 0) {
             maxFrames = atoi(argv[i + 1]);
         }
-    }
-
-    for (i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--scene") == 0) {
-            sceneMode = 1;
-        }
-    }
-
-    if (sceneMode) {
-        cursorX = -100; /* keep the cursor out of the showcase frame */
-        cursorY = -100;
     }
 
     srand((unsigned)time(NULL));
@@ -223,11 +178,7 @@ int main(int argc, char **argv) {
             rawEvent.y = 0;
             rawEvent.id = 0;
         }
-        if (sceneMode) {
-            cli_renderSpriteScene();
-        } else {
-            game_mainLoop(&rawEvent, NULL);
-        }
+        game_mainLoop(&rawEvent, NULL);
         cli_render(cursorX, cursorY);
         nanosleep(&frameDelay, NULL);
         frame++;
