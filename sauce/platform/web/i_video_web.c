@@ -5,6 +5,7 @@
 #include "../../game/models.h"
 #include "../i_device.h"
 #include "web_framebuffer.h"
+#include "web_text.h"
 
 WebBuffer *web_currentTarget = NULL;
 WebBuffer *web_displayBuffer = NULL;
@@ -88,4 +89,5 @@ void ivideo_copyRect(IVideoBuffer *src, IVideoBuffer *dst, Coordinate srcOrigin,
             d->pixels[dy * d->width + dx] = s->pixels[sy * s->width + sx];
         }
     }
+    web_textTranslate(s, d, srcOrigin.x, srcOrigin.y, size.x, size.y, dstOrigin.x, dstOrigin.y);
 }

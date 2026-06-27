@@ -11,6 +11,7 @@
 
 #include "web_framebuffer.h"
 #include "web_input.h"
+#include "web_text.h"
 
 /* Expands the RGB565 display buffer to RGBA8888 and blits it onto the page's
    pixel <canvas> via putImageData. Runs once per frame from web_frame(). */
@@ -49,6 +50,7 @@ static void web_frame(void) {
     Coordinate screenSize = idevice_screenSize();
 
     web_beginFrame(screenSize.x, screenSize.y);
+    web_textClearAll();
 
     if (!web_input_pop(&rawEvent)) {
         rawEvent.type = WEB_RAW_NIL;
@@ -60,6 +62,7 @@ static void web_frame(void) {
 
     if (web_displayBuffer != NULL) {
         web_present(web_displayBuffer->pixels, web_displayBuffer->width, web_displayBuffer->height);
+        web_textFlush(web_displayBuffer);
     }
 }
 

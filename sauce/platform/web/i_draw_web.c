@@ -5,6 +5,7 @@
 
 #include "web_bitmap.h"
 #include "web_framebuffer.h"
+#include "web_text.h"
 
 /* Current drawing colors, packed RGB565. */
 static unsigned short web_foreColor = 0xFFFF;
@@ -123,7 +124,7 @@ void idraw_drawText(char *text, int x, int y) {
     if (text == NULL) {
         return;
     }
-    web_jsDrawText(text, x, y, web_textColor);
+    web_textQueue(target(), x, y, text, web_textColor);
 }
 
 void idraw_drawTextN(char *text, int length, int x, int y) {
@@ -137,7 +138,7 @@ void idraw_drawTextN(char *text, int length, int x, int y) {
     }
     memcpy(buffer, text, n);
     buffer[n] = '\0';
-    web_jsDrawText(buffer, x, y, web_textColor);
+    web_textQueue(target(), x, y, buffer, web_textColor);
 }
 
 int idraw_textWidth(char *text) {
