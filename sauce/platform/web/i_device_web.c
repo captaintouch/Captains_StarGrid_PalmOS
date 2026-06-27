@@ -55,11 +55,25 @@ unsigned long idevice_setScreenDepth(unsigned long depth) {
 }
 
 int idevice_gridTileSize(Coordinate screenSize) {
-    /* This is the platform the zoom feature exists for: fit the full
-       HEXGRID_COLS columns across the narrower screen dimension so the grid
-       reads comfortably on a phone, instead of relying on viewport panning
-       at the historical fixed Palm tile size. The shared hexgrid code clamps
-       this to HEXTILE_MINSIZE..HEXTILE_MAXSIZE. */
-    int narrowest = (screenSize.x < screenSize.y) ? screenSize.x : screenSize.y;
-    return narrowest / HEXGRID_COLS;
+    /* This is the platform the zoom feature exists for: pick the tile size
+       so the full HEXGRID_COLS x HEXGRID_ROWS grid covers the screen on a
+       phone-shaped (non-square) viewport, instead of relying on viewport
+       panning at the historical fixed Palm tile size. The shared hexgrid
+       code clamps this to HEXTILE_MINSIZE..HEXTILE_MAXSIZE.
+
+       hexgrid_size() (game.c) returns, for a tile size T:
+         width  = (HEXGRID_COLS + 0.5) * T + 5
+         height = ((HEXGRID_ROWS - 1) * (1 - segFrac) + 1) * T + 5
+       where segFrac = HEXTILE_SEGMENT_SIZE / HEXTILE_SIZE (hex rows overlap
+       vertically). Solving each for T against the available screen width and
+       height and taking the larger requirement ensures the grid fills both
+       axes instead of leaving a blank band on whichever axis was ignored. */
+    int availableHeight = screenSize.y - BOTTOMMENU_HEIGHT;
+    double segFrac = (double)HEXTILE_SEGMENT_SIZE / HEXTILE_SIZE;
+    double factorX = HEXGRID_COLS + 0.5;
+    double factorY = (HEXGRID_ROWS - 1) * (1.0 - segFrac) + 1.0;
+    double tileForWidth = (screenSize.x - 5) / factorX;
+    double tileForHeight = (availableHeight - 5) / factorY;
+    double tileSize = (tileForWidth > tileForHeight) ? tileForWidth : tileForHeight;
+    return (int)tileSize;
 }
