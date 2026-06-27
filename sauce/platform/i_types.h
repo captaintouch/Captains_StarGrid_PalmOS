@@ -41,7 +41,13 @@ typedef unsigned char Boolean;
 
 /* Resource / color id aliases used in shared headers */
 typedef UInt16 DmResID;
-typedef UInt8 IndexedColorType;
+/* On real Palm OS, IndexedColorType is a genuine 8-bit hardware palette
+   index. Non-Palm backends (web, cli) instead reuse it to carry a packed
+   16-bit RGB565 value straight from idraw_indexForRGB (see colors.c /
+   IColorIndex in i_draw.h) - an 8-bit field truncates that value, losing
+   the red/most of the green bits and corrupting colors. Match IColorIndex's
+   width here. */
+typedef UInt16 IndexedColorType;
 
 /* Geometry types (mirror the Palm SDK layout the shared code relies on) */
 typedef Int16 Coord;
