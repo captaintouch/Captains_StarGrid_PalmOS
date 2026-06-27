@@ -153,34 +153,26 @@ int idraw_textHeight() {
 
 void idraw_drawBitmap(IBitmap *bitmap, int x, int y) {
     WebBitmap *wb = (WebBitmap *)bitmap;
-    if (wb == NULL) {
+    if (wb == NULL || wb->width <= 0 || wb->height <= 0) {
         return;
     }
-    plot(target(), x, y, wb->color);
+    idraw_drawBitmapScaled(bitmap, x, y, wb->width, wb->height);
 }
 
 void idraw_drawBitmapScaled(IBitmap *bitmap, int x, int y, int width, int height) {
     WebBuffer *b = target();
     WebBitmap *wb = (WebBitmap *)bitmap;
     int row, col;
-    if (wb == NULL) {
+    if (wb == NULL || wb->width <= 0 || wb->height <= 0 || width <= 0 || height <= 0) {
         return;
     }
-    if (wb->isCircle) {
-        int cx = width / 2, cy = height / 2;
-        int radius = (width < height ? width : height) / 2;
-        for (row = 0; row < height; row++) {
-            for (col = 0; col < width; col++) {
-                int dx = col - cx, dy = row - cy;
-                if (dx * dx + dy * dy <= radius * radius) {
-                    plot(b, x + col, y + row, wb->color);
-                }
-            }
-        }
-    } else {
-        for (row = 0; row < height; row++) {
-            for (col = 0; col < width; col++) {
-                plot(b, x + col, y + row, wb->color);
+    for (row = 0; row < height; row++) {
+        int srcRow = row * wb->height / height;
+        for (col = 0; col < width; col++) {
+            int srcCol = col * wb->width / width;
+            int srcIndex = srcRow * wb->width + srcCol;
+            if (wb->alpha[srcIndex] != 0) {
+                plot(b, x + col, y + row, wb->color[srcIndex]);
             }
         }
     }

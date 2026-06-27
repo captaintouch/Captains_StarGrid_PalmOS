@@ -30,7 +30,22 @@ LDFLAGS = -lm \
 
 BIN = stargrid_web.js
 
+# Real game art baked into a C header (RGB565 + alpha per pixel), generated
+# from resources/ships, resources/others, resources/others_noresize - the
+# same source PNGs the Palm OS build turns into .bmp resources via
+# generateBitmaps.sh. Regenerated whenever the map or any source asset
+# changes.
+ASSETS_HEADER = sauce/platform/web/web_assets_generated.h
+ASSET_SOURCES = resources/graphicResources.map $(wildcard resources/ships/*.png resources/others/*.png resources/others_noresize/*.png)
+
 all: $(BIN)
+
+assets: $(ASSETS_HEADER)
+
+$(ASSETS_HEADER): sauce/platform/web/generate_web_assets.py $(ASSET_SOURCES)
+	python3 sauce/platform/web/generate_web_assets.py
+
+sauce/platform/web/i_resource_web.o: $(ASSETS_HEADER)
 
 $(BIN): $(OBJ)
 	$(CC) $(OBJ) -o $(BIN) $(LDFLAGS)
@@ -41,4 +56,4 @@ $(BIN): $(OBJ)
 clean:
 	rm -f $(OBJ) $(BIN) stargrid_web.wasm
 
-.PHONY: all clean
+.PHONY: all assets clean

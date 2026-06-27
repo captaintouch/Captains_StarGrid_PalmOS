@@ -1,13 +1,14 @@
 #ifndef WEB_BITMAP_H_
 #define WEB_BITMAP_H_
 
-/* Stub bitmap handle shared by i_resource_web (creates them, tagged per
-   sprite kind) and i_draw_web (draws them as simple filled shapes). This
-   mirrors the CLI backend's single-representative-glyph approach but with a
-   color + shape instead of an ASCII character. */
+/* Bitmap handle shared by i_resource_web (resolves one per GFX_RES_* id,
+   from the baked-in real art in web_assets_generated.h) and i_draw_web
+   (blits it, nearest-neighbor scaled, onto the current target buffer). */
 typedef struct WebBitmap {
-    unsigned short color; /* RGB565 */
-    int isCircle;
+    int width;
+    int height;
+    const unsigned short *color; /* RGB565, row-major */
+    const unsigned char *alpha;  /* 0 or 255 per pixel */
 } WebBitmap;
 
 #endif
