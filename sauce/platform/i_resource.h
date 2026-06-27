@@ -9,4 +9,7 @@ void iresource_releaseBitmap(IBitmapHandle *handle);
 char *iresource_loadString(unsigned short stringId, void **outHandle);
 void iresource_releaseString(void *handle);
 
+char *iresource_loadAppVersion(void **outHandle);
+void iresource_releaseAppVersion(void *handle);
+
 #endif

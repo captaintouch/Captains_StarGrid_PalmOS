@@ -616,13 +616,12 @@ static void game_drawGameStartHeader() {
 
     if (gameSession.menuScreenType == MENUSCREEN_START) {
         // draw version number
-        // NOTE: no platform wrapper exists for arbitrary typed resources ('tver') -
-        // i_resource.h only covers bitmapRsc and strRsc. Left as a direct Palm OS call.
-        MemHandle versionResourceHandle = DmGetResource('tver', 1);
-        char *versionText = (char *)MemHandleLock(versionResourceHandle);
-        drawhelper_drawTextCentered(versionText, hexgrid_tileCenterPosition((Coordinate){7, 1}), 1, -1);
-        MemHandleUnlock(versionResourceHandle);
-        DmReleaseResource(versionResourceHandle);
+        void *versionResourceHandle;
+        char *versionText = iresource_loadAppVersion(&versionResourceHandle);
+        if (versionText != NULL) {
+            drawhelper_drawTextCentered(versionText, hexgrid_tileCenterPosition((Coordinate){7, 1}), 1, -1);
+            iresource_releaseAppVersion(versionResourceHandle);
+        }
     }
 
     drawhelper_drawLineBetweenCoordinates((Coordinate){0, BOTTOMMENU_HEIGHT - 1}, (Coordinate){screenSize.x, BOTTOMMENU_HEIGHT - 1});

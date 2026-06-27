@@ -42,3 +42,27 @@ void iresource_releaseString(void *handle) {
     MemHandleUnlock((MemHandle)handle);
     DmReleaseResource((MemHandle)handle);
 }
+
+char *iresource_loadAppVersion(void **outHandle) {
+    MemHandle handle = DmGetResource('tver', 1);
+    char *text;
+    if (!handle) {
+        if (outHandle != NULL) {
+            *outHandle = NULL;
+        }
+        return NULL;
+    }
+    text = (char *)MemHandleLock(handle);
+    if (outHandle != NULL) {
+        *outHandle = (void *)handle;
+    }
+    return text;
+}
+
+void iresource_releaseAppVersion(void *handle) {
+    if (handle == NULL) {
+        return;
+    }
+    MemHandleUnlock((MemHandle)handle);
+    DmReleaseResource((MemHandle)handle);
+}
