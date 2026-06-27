@@ -1,86 +1,42 @@
-# Makefile
+# Top-level build dispatcher.
+#
+# Each platform has its own makefile; this one just delegates to them:
+#   Makefile.palm  -> Palm OS .prc build   (needs the Palm SDK toolchain)
+#   Makefile.cli   -> host command-line build (needs gcc)
+#
+# Run `make` with no target to see the list of available builds.
 
-FILENAME = StarGrid
-APPDEFINITION = $(FILENAME).def
-SRCFILES = $(wildcard sauce/*.c) $(wildcard sauce/game/*.c) $(wildcard sauce/platform/*.c)
-OBJS = $(SRCFILES:.c=.o)
-SECTIONNAME = $(FILENAME)-sections
-HIRES = false
+.DEFAULT_GOAL := help
 
-# Palm SDK config
-SDK_VERSION = 5
-PALMCC = m68k-palmos-gcc
-PALMINC = /opt/palmdev/sdk-5r3/include
-PILRC = pilrc
-MULTIGEN = m68k-palmos-multigen
-BUILDPRC = build-prc
-PALMCFLAGS = -O2 -DPALMOS -DSDK_$(SDK_VERSION) \
-	-I$(PALMINC) \
-	-I$(PALMINC)/Dynamic \
-	-I$(PALMINC)/Core \
-	-I$(PALMINC)/Core/UI \
-	-I$(PALMINC)/Core/Hardware \
-	-I$(PALMINC)/Core/System \
-	-I$(PALMINC)/Core/System/Unix \
-	-I$(PALMINC)/Libraries \
-	-I$(PALMINC)/Libraries/PalmOSGlue \
-	-I$(PALMINC)/Libraries/Lz77 \
-	-I$(PALMINC)/Libraries/ExgLocal \
-	-I$(PALMINC)/Libraries/Sms \
-	-I$(PALMINC)/Libraries/Pdi \
-	-I$(PALMINC)/Libraries/Telephony \
-	-I$(PALMINC)/Libraries/Telephony/UI \
-	-I$(PALMINC)/Libraries/INet \
-	-I$(PALMINC)/Extensions \
-	-I$(PALMINC)/Extensions/ExpansionMgr
-WARNINGFLAGS = -Wswitch -Wunused
+help:
+	@echo "Captain's StarGrid - build targets:"
+	@echo "  make cli           Build the host command-line binary (./stargrid_cli)"
+	@echo "  make palm          Build all Palm OS .prc variants (lowres, hires, debug)"
+	@echo "  make palm-lowres   Build the low-res Palm .prc"
+	@echo "  make palm-hires    Build the hi-res Palm .prc"
+	@echo "  make palm-debug    Build the debug Palm .prc"
+	@echo "  make all           Build every platform"
+	@echo "  make clean         Remove build artifacts for all platforms"
 
-all:
-	$(MAKE) lowres
-	$(MAKE) hires
-	$(MAKE) debug
+cli:
+	$(MAKE) -f Makefile.cli
 
-lowres:
-	$(MAKE) EXT="_lowres" HIRES=false build
+palm:
+	$(MAKE) -f Makefile.palm all
 
-hires:
-	$(MAKE) EXT="_hires" HIRES=true PILRCFLAGS="-D PALMHIRES" GCCFLAGS="-DHIRESBUILD" build
+palm-lowres:
+	$(MAKE) -f Makefile.palm lowres
 
-debug: 
-	$(MAKE) EXT="_debug" HIRES=false GCCFLAGS="-DDEBUG" build
+palm-hires:
+	$(MAKE) -f Makefile.palm hires
 
-build: prebin bin combine cleanup
+palm-debug:
+	$(MAKE) -f Makefile.palm debug
 
-ifeq ($(HIRES), true)
-prebin:
-	./generateBitmaps.sh
-	./generateResourceFile.sh --hires
-else
-prebin:
-	./generateBitmaps.sh
-	./generateResourceFile.sh
-endif
+all: cli palm
 
-$(SECTIONNAME).o:
-	$(MULTIGEN) --base $(SECTIONNAME) $(APPDEFINITION)
-	@$(PALMCC) -c $(SECTIONNAME).s
+clean:
+	$(MAKE) -f Makefile.cli clean
+	$(MAKE) -f Makefile.palm cleanup
 
-.c.o:
-	@$(PALMCC) -c $(GCCFLAGS) $(PALMCFLAGS) ${WARNINGFLAGS} $<
-
-$(FILENAME).out: $(SECTIONNAME).o $(OBJS)
-	@$(PALMCC) $(notdir $(OBJS)) $(SECTIONNAME).o $(SECTIONNAME).ld -o $(FILENAME).out
-
-bin:
-	$(PILRC) $(PILRCFLAGS) resources/ui.rcp 
-	$(PILRC) $(PILRCFLAGS) resources/graphicResources.rcp
-
-combine: $(FILENAME).out
-	mkdir -p artifacts
-	$(BUILDPRC) $(APPDEFINITION) -o artifacts/$(FILENAME)$(EXT).prc $(FILENAME).out *.bin
-
-cleanup:
-	rm -f *.out *.bin *.o *.ld *.s || true
-	rm -Rf resources/assets || true
-	rm -Rf resources/hiresTMP || true
-	rm -f resources/graphicResources.rcp || true
+.PHONY: help cli palm palm-lowres palm-hires palm-debug all clean
