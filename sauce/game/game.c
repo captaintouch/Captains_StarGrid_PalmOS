@@ -575,18 +575,28 @@ static void game_drawGameStartHeader() {
     AppColor headerColorBottom = BELIZEHOLE;
     AppColor textColor = CLOUDS;
     ImageSprite *shipSprite;
-    Coordinate tilePositions[] = {
-        (Coordinate){-1, 0},
-        (Coordinate){0, 0},
-        (Coordinate){0, 1},
-        (Coordinate){6, 0},
-        (Coordinate){7, 0},
-        (Coordinate){7, 1},
-    };
+    /* The right decorative group was hardcoded to columns 6/7, which only
+       reached the right screen edge because Palm's fixed HEXTILE_SIZE (20)
+       and screen width (160) happened to satisfy (7+1)*20 == 160. On web,
+       hexgrid_currentTileSize is zoomed to fit the device's actual screen,
+       so the column whose center lands at the right edge moves; derive it
+       from tileCenterPosition's (col+1)*tileSize relationship instead of
+       assuming column 7, mirroring how the left group already sits at the
+       left edge via columns -1/0 regardless of tile size. */
+    int rightOuterCol = deviceinfo_screenSize().x / hexgrid_tileSize() - 1;
+    int rightInnerCol = rightOuterCol - 1;
+    Coordinate tilePositions[6];
     int tilePositionsLength = sizeof(tilePositions) / sizeof(Coordinate);
     if (gameSession.menuScreenType == MENUSCREEN_GAME || !gameSession.drawingState.shouldRedrawHeader) {
         return;
     }
+
+    tilePositions[0] = (Coordinate){-1, 0};
+    tilePositions[1] = (Coordinate){0, 0};
+    tilePositions[2] = (Coordinate){0, 1};
+    tilePositions[3] = (Coordinate){rightInnerCol, 0};
+    tilePositions[4] = (Coordinate){rightOuterCol, 0};
+    tilePositions[5] = (Coordinate){rightOuterCol, 1};
 
     gameSession.drawingState.shouldRedrawHeader = false;
     ivideo_setDrawTarget(screenBuffer);
@@ -623,14 +633,14 @@ static void game_drawGameStartHeader() {
             break;
     }
     hexgrid_drawSpriteAtTile(&shipSprite[0], (Coordinate){0, 0}, false);
-    hexgrid_drawSpriteAtTile(&shipSprite[3], (Coordinate){6, 0}, false);
+    hexgrid_drawSpriteAtTile(&shipSprite[3], (Coordinate){rightInnerCol, 0}, false);
 
     if (gameSession.menuScreenType == MENUSCREEN_START) {
         // draw version number
         void *versionResourceHandle;
         char *versionText = iresource_loadAppVersion(&versionResourceHandle);
         if (versionText != NULL) {
-            drawhelper_drawTextCentered(versionText, hexgrid_tileCenterPosition((Coordinate){7, 1}), 1, -1);
+            drawhelper_drawTextCentered(versionText, hexgrid_tileCenterPosition((Coordinate){rightOuterCol, 1}), 1, -1);
             iresource_releaseAppVersion(versionResourceHandle);
         }
     }
@@ -646,15 +656,15 @@ static void game_drawGameStartHeader() {
 
     {
         /* Anchor the title plate to the actual decorative tile columns
-           (0 and 6) instead of fixed pixel margins, so it stays clear of
-           them when hexgrid_currentTileSize is zoomed up for a phone
-           screen instead of the historical fixed HEXTILE_SIZE. At the
-           historical fixed size this reproduces the same 36px margins as
-           before, so Palm OS's layout is unchanged. */
+           instead of fixed pixel margins, so it stays clear of them when
+           hexgrid_currentTileSize is zoomed up for a phone screen instead
+           of the historical fixed HEXTILE_SIZE. At the historical fixed
+           size this reproduces the same 36px margins as before, so Palm
+           OS's layout is unchanged. */
         int tileSize = hexgrid_tileSize();
         int margin = 6;
         Coordinate leftTileCenter = hexgrid_tileCenterPosition((Coordinate){0, 0});
-        Coordinate rightTileCenter = hexgrid_tileCenterPosition((Coordinate){6, 0});
+        Coordinate rightTileCenter = hexgrid_tileCenterPosition((Coordinate){rightInnerCol, 0});
         int plateLeft = leftTileCenter.x + tileSize / 2 + margin;
         int plateRight = rightTileCenter.x - tileSize / 2 - margin;
         RctSetRectangle(&rect, plateLeft, 2, plateRight - plateLeft, BOTTOMMENU_HEIGHT - 5);
