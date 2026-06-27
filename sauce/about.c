@@ -1,5 +1,5 @@
 #include "about.h"
-#include "PalmTypes.h"
+#include "platform/i_types.h"
 #include "constants.h"
 #include "platform/i_ui.h"
 

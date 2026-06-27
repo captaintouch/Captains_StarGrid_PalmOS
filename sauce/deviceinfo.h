@@ -1,6 +1,6 @@
 #ifndef DEVICEINFO_H_
 #define DEVICEINFO_H_
-#include <PalmOS.h>
+#include "platform/i_types.h"
 #include "game/models.h"
 
 Boolean deviceinfo_colorSupported();
@@ -10,6 +10,6 @@ Coordinate deviceinfo_screenSize();
 Boolean deviceinfo_diaSupported();
 Boolean deviceinfo_isRunningMinimalOSVersion(UInt8 minVersion);
 Boolean deviceinfo_supportsHiDensity();
-void sleep(UInt32 milliseconds);
+void deviceinfo_sleep(UInt32 milliseconds);
 
 #endif

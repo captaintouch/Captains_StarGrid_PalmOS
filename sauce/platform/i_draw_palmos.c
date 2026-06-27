@@ -54,6 +54,26 @@ IFontID idraw_setLargeBoldFont() {
     return FntSetFont(largeBoldFont);
 }
 
+IFontID idraw_setFont(IFont font) {
+    FontID palmFont;
+    switch (font) {
+        case IFONT_BOLD:
+            palmFont = boldFont;
+            break;
+        case IFONT_LARGEBOLD:
+            palmFont = largeBoldFont;
+            break;
+        case IFONT_SYMBOL:
+            palmFont = symbolFont;
+            break;
+        case IFONT_STD:
+        default:
+            palmFont = stdFont;
+            break;
+    }
+    return FntSetFont(palmFont);
+}
+
 void idraw_restoreFont(IFontID font) {
     FntSetFont(font);
 }

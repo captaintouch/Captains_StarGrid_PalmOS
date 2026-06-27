@@ -2,7 +2,7 @@
 
 #include "../constants.h"
 #include "../deviceinfo.h"
-#include "PalmTypes.h"
+#include "../platform/i_types.h"
 #include "drawhelper.h"
 #include "hexgrid.h"
 #include "mathIsFun.h"
@@ -332,7 +332,7 @@ static CPUStrategyResult cpuLogic_provideRetreatStrategy(Pawn *pawn, Pawn *allPa
         drawhelper_drawTextWithValue("EH:", enemyHealth, (Coordinate){50, 0});
         drawhelper_drawTextWithValue("FH:", factionHealth, (Coordinate){50, 20});
     }
-    sleep(500);
+    deviceinfo_sleep(500);
 #endif
     if (enemyHealth >= factionHealth && totalFactionShips <= totalEnemyShips) {
         Coordinate newPosition = cpuLogic_safePosition(pawn, allPawns, totalPawnCount, strategyResult, false);
@@ -564,7 +564,7 @@ CPUStrategyResult cpuLogic_getStrategy(Pawn *pawn, Pawn *allPawns, int totalPawn
             drawhelper_drawText("TORP", (Coordinate){0, 30});
             break;
     }
-    sleep(1000);
+    deviceinfo_sleep(1000);
 #endif
     return bestStrategy;
 }

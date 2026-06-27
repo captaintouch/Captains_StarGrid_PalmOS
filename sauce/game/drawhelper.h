@@ -1,7 +1,7 @@
 #ifndef DRAWHELPER_H_
 #define DRAWHELPER_H_
 #define DRAWING_SECTION  __attribute__ ((section ("drawing")))
-#include <PalmOS.h>
+#include "../platform/i_types.h"
 #include "models.h"
 #include "colors.h"
 #include "spriteLibrary.h"

@@ -2,7 +2,7 @@
 #define MOVEMENT_H_
 #include "hexgrid.h"
 #include "models.h"
-#include <PalmOS.h>
+#include "../platform/i_types.h"
 
 #define MOVEMENT_SECTION  __attribute__ ((section ("movement")))
 

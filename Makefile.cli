@@ -1,0 +1,39 @@
+# Host (command-line) build of Captain's StarGrid.
+#
+# This proves the platform abstraction layer: it compiles the real game code
+# against the CLI backends in sauce/platform/cli/ instead of the Palm OS
+# backends, producing a terminal-playable binary with an ASCII renderer.
+#
+#   make -f Makefile.cli        # build ./stargrid_cli
+#   make -f Makefile.cli clean
+
+CC = gcc
+
+# Shared game sources (everything except the Palm entry point main.c).
+SHARED_SRC = $(wildcard sauce/game/*.c) sauce/deviceInfo.c sauce/storage.c sauce/about.c
+# CLI platform backends + entry point.
+CLI_SRC = $(wildcard sauce/platform/cli/*.c)
+
+SRC = $(SHARED_SRC) $(CLI_SRC)
+OBJ = $(SRC:.c=.o)
+
+# -fcommon: the codebase declares some globals (colors_reference, gameSession,
+# spriteLibrary) in headers as tentative definitions, which modern gcc rejects
+# under the default -fno-common.
+CFLAGS = -fcommon -Wall -Wno-unused -O1 -g
+LDFLAGS = -lm
+
+BIN = stargrid_cli
+
+all: $(BIN)
+
+$(BIN): $(OBJ)
+	$(CC) $(OBJ) -o $(BIN) $(LDFLAGS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -f $(OBJ) $(BIN)
+
+.PHONY: all clean

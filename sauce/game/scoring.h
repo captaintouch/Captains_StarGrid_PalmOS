@@ -1,7 +1,7 @@
 #ifndef SCORING_H_
 #define SCORING_H_
 #define SCORING_SECTION  __attribute__ ((section ("scoring")))
-#include <PalmOS.h>
+#include "../platform/i_types.h"
 #include "../constants.h"
 
 typedef struct Score {

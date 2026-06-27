@@ -1,6 +1,6 @@
 #ifndef MODELS_H_
 #define MODELS_H_
-#include <PalmOS.h>
+#include "../platform/i_types.h"
 
 #include "colors.h"
 #define WARPCIRCLECOUNT 3

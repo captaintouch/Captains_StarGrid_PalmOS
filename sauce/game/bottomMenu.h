@@ -1,6 +1,6 @@
 #ifndef BOTTOMMENU_H_
 #define BOTTOMMENU_H_
-#include <PalmOS.h>
+#include "../platform/i_types.h"
 #include "models.h"
 
 typedef struct Button {

@@ -1,7 +1,7 @@
 #ifndef GAMEACTIONLOGIC_H_
 #define GAMEACTIONLOGIC_H_
 #define GAMEACTIONLOGIC_SECTION  __attribute__ ((section ("gameact")))
-#include <PalmOS.h>
+#include "../platform/i_types.h"
 #include "models.h"
 #include "gamesession.h"
 

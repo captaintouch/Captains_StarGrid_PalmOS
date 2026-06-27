@@ -78,7 +78,9 @@ static void gameSession_scheduleSceneAnimationIfNeeded() {
 }
 
 static void gameSession_resetActivePawn() {
-    Pawn dummyPawn;
+    /* Must be static: gameSession.activePawn outlives this function (startTurn
+       dereferences it immediately after), so a stack local would dangle. */
+    static Pawn dummyPawn;
     dummyPawn.position = (Coordinate){0, 0};
     gameSession.activePawn = &dummyPawn;
 }

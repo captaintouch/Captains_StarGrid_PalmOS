@@ -1,7 +1,7 @@
 #include "movement.h"
 
 #include "../constants.h"
-#include "PalmTypes.h"
+#include "../platform/i_types.h"
 #include "hexgrid.h"
 #include "level.h"
 #include "mathIsFun.h"

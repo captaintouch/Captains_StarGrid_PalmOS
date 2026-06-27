@@ -5,6 +5,7 @@
 #include "../platform/i_resource.h"
 #include "../platform/i_system.h"
 #include "../platform/i_input.h"
+#include "../platform/i_draw.h"
 
 #include "../constants.h"
 #include "../deviceinfo.h"
@@ -254,7 +255,7 @@ static void game_drawGridItems() {
 static void game_drawActionTiles() {
     int i;
     Char playChar[2];
-    FontID oldFont;
+    IFontID oldFont;
     if (gameSession.level.actionTiles == NULL) {
         return;
     }
@@ -264,7 +265,7 @@ static void game_drawActionTiles() {
         Coordinate tileCenterCoordinate = viewport_convertedCoordinate(hexgrid_tileCenterPosition(actionTile->position));
         drawhelper_applyTextColor(deviceinfo_colorSupported() ? CLOUDS : BELIZEHOLE);
         drawhelper_applyForeColor(deviceinfo_colorSupported() ? CLOUDS : BELIZEHOLE);
-        oldFont = FntSetFont(largeBoldFont);
+        oldFont = idraw_setFont(IFONT_LARGEBOLD);
         if (actionTile->hidden) {
             drawhelper_applyBackgroundColor(DRACULAORCHID);
             drawhelper_applyTextColor(ALIZARIN);
@@ -289,7 +290,7 @@ static void game_drawActionTiles() {
                 case ACTIONTILEIDENTIFIER_ENDGAME:
                 case ACTIONTILEIDENTIFIER_SHOWENDGAMEOPTIONS:
                     sprite = NULL;
-                    FntSetFont(symbolFont);
+                    idraw_setFont(IFONT_SYMBOL);
                     playChar[0] = 0x04;
                     playChar[1] = '\0';
                     drawhelper_drawTextCentered(playChar, tileCenterCoordinate, 1, 0);
@@ -312,18 +313,18 @@ static void game_drawActionTiles() {
                 hexgrid_drawSpriteAtTile(sprite, actionTile->position, true);
             }
         }
-        FntSetFont(oldFont);
+        idraw_restoreFont(oldFont);
     }
 }
 
 static void game_drawGridTexts() {
     int i, j;
-    FontID oldFont;
+    IFontID oldFont;
     if (gameSession.level.gridTexts == NULL) {
         return;
     }
     drawhelper_applyTextColor(CLOUDS);
-    oldFont = FntSetFont(boldFont);
+    oldFont = idraw_setFont(IFONT_BOLD);
     for (i = 0; i < gameSession.level.gridTextCount; i++) {
         GridText *gridText = &gameSession.level.gridTexts[i];
         FilledTileType color = gridText->alternateColor ? FILLEDTILETYPE_ATTACK : FILLEDTILETYPE_FEATURED;
@@ -351,7 +352,7 @@ static void game_drawGridTexts() {
             }
         }
     }
-    FntSetFont(oldFont);
+    idraw_restoreFont(oldFont);
 }
 
 static void game_drawSceneAnimation() {
@@ -549,7 +550,7 @@ static void game_drawStars() {
 }
 
 static void game_drawGameStartHeader() {
-    FontID oldFont;
+    IFontID oldFont;
     void *resourceHandle;
     RectangleType rect;
     char *text;
@@ -636,8 +637,8 @@ static void game_drawGameStartHeader() {
     RctSetRectangle(&rect, 36, 2, screenSize.x - 72, BOTTOMMENU_HEIGHT - 5);
     drawhelper_fillRectangleWithShadow(&rect, 8, centerTileBackgroundColor, tintColor, false);
     text = iresource_loadString(gameSession_menuTopTitleResource(), &resourceHandle);
-    oldFont = FntSetFont(stdFont);
-    centerX = screenSize.x / 2 - FntCharsWidth(text, StrLen(text)) / 2;
+    oldFont = idraw_setFont(IFONT_STD);
+    centerX = screenSize.x / 2 - idraw_textWidth(text) / 2;
     drawhelper_drawText(text, (Coordinate){centerX, 2});
     iresource_releaseString(resourceHandle);
 
@@ -654,10 +655,10 @@ static void game_drawGameStartHeader() {
         text = iresource_loadString(gameSession_menuBottomTitleResource(), &resourceHandle);
     }
     if (text != NULL && StrLen(text) > 0) {
-        FntSetFont(largeBoldFont);
-        centerX = screenSize.x / 2 - FntCharsWidth(text, StrLen(text)) / 2;
+        idraw_setFont(IFONT_LARGEBOLD);
+        centerX = screenSize.x / 2 - idraw_textWidth(text) / 2;
         drawhelper_drawText(text, (Coordinate){centerX, 12});
-        FntSetFont(oldFont);
+        idraw_restoreFont(oldFont);
     }
 
     if (!gameSession_useValueForBottomTitle() && gameSession.menuScreenType != MENUSCREEN_RANK && gameSession.menuScreenType != MENUSCREEN_RANK_AFTERGAME) {
@@ -781,7 +782,7 @@ static void game_drawBottomActivePawn() {
     ivideo_copyRect(overlayBuffer, screenBuffer, (Coordinate){pawnCenterPosition.x - HEXTILE_PAWNSIZE / 2, pawnCenterPosition.y - HEXTILE_PAWNSIZE / 2}, (Coordinate){HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE}, targetCenterPosition);
 
     if (!gameSession.factions[gameSession.factionTurn].human) {  // draw cpu action text
-        int textWidth = FntCharsWidth(gameSession.cpuActionText, StrLen(gameSession.cpuActionText));
+        int textWidth = idraw_textWidth(gameSession.cpuActionText);
         drawhelper_applyTextColor(gameSession.colorSupport ? CLOUDS : ASBESTOS);
         drawhelper_applyBackgroundColor(DRACULAORCHID);
         drawhelper_drawText(gameSession.cpuActionText, (Coordinate){screenSize.x / 2 - textWidth / 2, screenSize.y - 12});
@@ -821,16 +822,16 @@ static void game_drawBottomButtons() {
 
     RctSetRectangle(&rect, startOffsetX, startOffsetY, buttonWidth, buttonHeight);
     drawhelper_fillRectangleWithShadow(&rect, 4, buttonColor, ASBESTOS, true);
-    FntSetFont(stdFont);
+    idraw_setFont(IFONT_STD);
     drawhelper_applyTextColor(CLOUDS);
     drawhelper_applyBackgroundColor(buttonColor);
-    drawhelper_drawText(nextText, (Coordinate){startOffsetX + (buttonWidth / 2) - (FntCharsWidth(nextText, StrLen(nextText)) / 2), startOffsetY});
+    drawhelper_drawText(nextText, (Coordinate){startOffsetX + (buttonWidth / 2) - (idraw_textWidth(nextText) / 2), startOffsetY});
     gameSession.drawingState.barButtonPositions[0] = (Coordinate){startOffsetX, startOffsetY};
     gameSession.drawingState.barButtonHeight = buttonHeight;
 
     RctSetRectangle(&rect, startOffsetX, startOffsetY + buttonHeight + 2, buttonWidth, buttonHeight);
     drawhelper_fillRectangleWithShadow(&rect, 4, buttonColor, ASBESTOS, true);
-    drawhelper_drawText(endText, (Coordinate){startOffsetX + (buttonWidth / 2) - (FntCharsWidth(endText, StrLen(endText)) / 2), startOffsetY + buttonHeight + 2});
+    drawhelper_drawText(endText, (Coordinate){startOffsetX + (buttonWidth / 2) - (idraw_textWidth(endText) / 2), startOffsetY + buttonHeight + 2});
     gameSession.drawingState.barButtonPositions[1] = (Coordinate){rect.topLeft.x, rect.topLeft.y};
 
     iresource_releaseString(nextResourceHandle);
@@ -873,7 +874,7 @@ static void game_drawLayout() {
 
     if (gameSession.drawingState.requiresPauseAfterLayout) {
         gameSession.drawingState.requiresPauseAfterLayout = false;
-        sleep(1000);
+        deviceinfo_sleep(1000);
     }
 }
 

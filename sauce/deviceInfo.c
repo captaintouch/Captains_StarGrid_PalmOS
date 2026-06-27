@@ -31,6 +31,6 @@ Boolean deviceinfo_diaSupported() {
     return idevice_diaSupported();
 }
 
-void sleep(UInt32 milliseconds) {
+void deviceinfo_sleep(UInt32 milliseconds) {
     isys_sleepMs(milliseconds);
 }

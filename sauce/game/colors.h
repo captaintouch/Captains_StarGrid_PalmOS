@@ -1,7 +1,7 @@
 #ifndef COLORS_H_
 #define COLORS_H_
 
-#include <PalmOS.h>
+#include "../platform/i_types.h"
 
 typedef enum {
     ALIZARIN,

@@ -7,6 +7,13 @@ typedef unsigned short IColorIndex;
 typedef void IBitmap;
 typedef int IFontID;
 
+typedef enum IFont {
+    IFONT_STD,
+    IFONT_BOLD,
+    IFONT_LARGEBOLD,
+    IFONT_SYMBOL
+} IFont;
+
 IColorIndex idraw_indexForRGB(int red, int green, int blue);
 void idraw_setForeColor(IColorIndex color);
 void idraw_setTextColor(IColorIndex color);
@@ -21,6 +28,7 @@ int idraw_textWidth(char *text);
 int idraw_textHeight();
 void idraw_drawBitmap(IBitmap *bitmap, int x, int y);
 IFontID idraw_setLargeBoldFont();
+IFontID idraw_setFont(IFont font);
 void idraw_restoreFont(IFontID font);
 
 #endif

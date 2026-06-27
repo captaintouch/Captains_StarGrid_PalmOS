@@ -3,3 +3,7 @@ artifacts/StarGrid*prc
 emu/*.image
 emu/*.session
 .cache/
+
+# Host CLI build artifacts
+*.o
+stargrid_cli
