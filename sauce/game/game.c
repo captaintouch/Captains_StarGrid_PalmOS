@@ -644,7 +644,21 @@ static void game_drawGameStartHeader() {
     RctSetRectangle(&rect, screenSize.x - 52, 0, 2, 2);
     drawhelper_fillRectangle(&rect, 0);
 
-    RctSetRectangle(&rect, 36, 2, screenSize.x - 72, BOTTOMMENU_HEIGHT - 5);
+    {
+        /* Anchor the title plate to the actual decorative tile columns
+           (0 and 6) instead of fixed pixel margins, so it stays clear of
+           them when hexgrid_currentTileSize is zoomed up for a phone
+           screen instead of the historical fixed HEXTILE_SIZE. At the
+           historical fixed size this reproduces the same 36px margins as
+           before, so Palm OS's layout is unchanged. */
+        int tileSize = hexgrid_tileSize();
+        int margin = 6;
+        Coordinate leftTileCenter = hexgrid_tileCenterPosition((Coordinate){0, 0});
+        Coordinate rightTileCenter = hexgrid_tileCenterPosition((Coordinate){6, 0});
+        int plateLeft = leftTileCenter.x + tileSize / 2 + margin;
+        int plateRight = rightTileCenter.x - tileSize / 2 - margin;
+        RctSetRectangle(&rect, plateLeft, 2, plateRight - plateLeft, BOTTOMMENU_HEIGHT - 5);
+    }
     drawhelper_fillRectangleWithShadow(&rect, 8, centerTileBackgroundColor, tintColor, false);
     text = iresource_loadString(gameSession_menuTopTitleResource(), &resourceHandle);
     oldFont = idraw_setFont(IFONT_STD);
