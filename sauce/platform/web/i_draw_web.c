@@ -1,6 +1,8 @@
 #include "../i_draw.h"
 
 #include <emscripten.h>
+#include <math.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "web_bitmap.h"
@@ -21,6 +23,39 @@ static void plot(WebBuffer *b, int x, int y, unsigned short color) {
         return;
     }
     b->pixels[y * b->width + x] = color;
+}
+
+/* Blends src into the pixel at (x, y) by coverage (0..1), so diagonal hex
+   edges get smooth anti-aliased steps instead of the harsh on/off stair-step
+   a binary plot() produces. Web-only: the framebuffer is shared with Palm's
+   line/bitmap interfaces only through i_draw.h, this implementation file is
+   never compiled into the Palm build. */
+static void plotBlended(WebBuffer *b, int x, int y, unsigned short color, float coverage) {
+    unsigned short dst;
+    int dr, dg, db, sr, sg, sb, r, g, bl;
+    int alpha;
+    if (b == NULL || x < 0 || y < 0 || x >= b->width || y >= b->height) {
+        return;
+    }
+    if (coverage >= 0.999f) {
+        b->pixels[y * b->width + x] = color;
+        return;
+    }
+    if (coverage <= 0.001f) {
+        return;
+    }
+    alpha = (int)(coverage * 255.0f);
+    dst = b->pixels[y * b->width + x];
+    dr = (dst >> 11) & 0x1F;
+    dg = (dst >> 5) & 0x3F;
+    db = dst & 0x1F;
+    sr = (color >> 11) & 0x1F;
+    sg = (color >> 5) & 0x3F;
+    sb = color & 0x1F;
+    r = (sr * alpha + dr * (255 - alpha)) / 255;
+    g = (sg * alpha + dg * (255 - alpha)) / 255;
+    bl = (sb * alpha + db * (255 - alpha)) / 255;
+    b->pixels[y * b->width + x] = (unsigned short)((r << 11) | (g << 5) | bl);
 }
 
 IColorIndex idraw_indexForRGB(int red, int green, int blue) {
@@ -66,29 +101,69 @@ void idraw_frameRectangle(int x, int y, int width, int height) {
     }
 }
 
+/* Xiaolin Wu's anti-aliased line algorithm: each step blends the two pixels
+   straddling the ideal line by how close the line passes to each, instead of
+   Bresenham's all-or-nothing stair-step. Horizontal/vertical lines (the
+   common case for hex-tile borders' near-axis-aligned edges) skip straight
+   to solid plots since there's nothing to anti-alias. */
+static float fpart(float v) {
+    return v - floorf(v);
+}
+
 void idraw_drawLine(int x1, int y1, int x2, int y2) {
     WebBuffer *b = target();
-    int dx = (x2 > x1) ? (x2 - x1) : (x1 - x2);
-    int dy = (y2 > y1) ? (y2 - y1) : (y1 - y2);
-    int sx = (x1 < x2) ? 1 : -1;
-    int sy = (y1 < y2) ? 1 : -1;
-    int err = dx - dy;
-    while (1) {
-        plot(b, x1, y1, web_foreColor);
+    Boolean steep = abs(y2 - y1) > abs(x2 - x1);
+    int tmp;
+    float dx, dy, gradient, intersectY;
+    int x;
+
+    if (x1 == x2 || y1 == y2) {
+        int dxs = (x2 > x1) ? 1 : -1;
+        int dys = (y2 > y1) ? 1 : -1;
         if (x1 == x2 && y1 == y2) {
-            break;
+            plot(b, x1, y1, web_foreColor);
+            return;
         }
-        {
-            int e2 = 2 * err;
-            if (e2 > -dy) {
-                err -= dy;
-                x1 += sx;
+        while (1) {
+            plot(b, x1, y1, web_foreColor);
+            if (x1 == x2 && y1 == y2) {
+                break;
             }
-            if (e2 < dx) {
-                err += dx;
-                y1 += sy;
+            if (x1 != x2) {
+                x1 += dxs;
+            }
+            if (y1 != y2) {
+                y1 += dys;
             }
         }
+        return;
+    }
+
+    if (steep) {
+        tmp = x1; x1 = y1; y1 = tmp;
+        tmp = x2; x2 = y2; y2 = tmp;
+    }
+    if (x1 > x2) {
+        tmp = x1; x1 = x2; x2 = tmp;
+        tmp = y1; y1 = y2; y2 = tmp;
+    }
+
+    dx = (float)(x2 - x1);
+    dy = (float)(y2 - y1);
+    gradient = dy / dx;
+    intersectY = y1;
+
+    for (x = x1; x <= x2; x++) {
+        int yi = (int)floorf(intersectY);
+        float frac = fpart(intersectY);
+        if (steep) {
+            plotBlended(b, yi, x, web_foreColor, 1.0f - frac);
+            plotBlended(b, yi + 1, x, web_foreColor, frac);
+        } else {
+            plotBlended(b, x, yi, web_foreColor, 1.0f - frac);
+            plotBlended(b, x, yi + 1, web_foreColor, frac);
+        }
+        intersectY += gradient;
     }
 }
 
@@ -168,13 +243,47 @@ void idraw_drawBitmapScaled(IBitmap *bitmap, int x, int y, int width, int height
         return;
     }
     for (row = 0; row < height; row++) {
-        int srcRow = row * wb->height / height;
+        /* Bilinearly sample the (binary) alpha mask at sub-pixel precision
+           so upscaled sprite edges (notably the hex-tile fill shapes) get
+           fractional coverage at the boundary instead of nearest-neighbor's
+           blocky stair-step. Color is sampled nearest so tile colors stay
+           crisp; only the edge coverage is smoothed. */
+        float srcYf = (row + 0.5f) * wb->height / (float)height - 0.5f;
+        int y0 = (int)floorf(srcYf);
+        float fy = srcYf - y0;
+        int y1 = y0 + 1;
+        if (y0 < 0) y0 = 0;
+        if (y1 < 0) y1 = 0;
+        if (y0 > wb->height - 1) y0 = wb->height - 1;
+        if (y1 > wb->height - 1) y1 = wb->height - 1;
         for (col = 0; col < width; col++) {
-            int srcCol = col * wb->width / width;
-            int srcIndex = srcRow * wb->width + srcCol;
-            if (wb->alpha[srcIndex] != 0) {
-                plot(b, x + col, y + row, wb->color[srcIndex]);
+            float srcXf = (col + 0.5f) * wb->width / (float)width - 0.5f;
+            int x0 = (int)floorf(srcXf);
+            float fx = srcXf - x0;
+            int x1 = x0 + 1;
+            int a00, a10, a01, a11;
+            float coverage;
+            unsigned short nearestColor;
+            int srcRow, srcCol;
+            if (x0 < 0) x0 = 0;
+            if (x1 < 0) x1 = 0;
+            if (x0 > wb->width - 1) x0 = wb->width - 1;
+            if (x1 > wb->width - 1) x1 = wb->width - 1;
+
+            a00 = wb->alpha[y0 * wb->width + x0];
+            a10 = wb->alpha[y0 * wb->width + x1];
+            a01 = wb->alpha[y1 * wb->width + x0];
+            a11 = wb->alpha[y1 * wb->width + x1];
+            if (a00 == 0 && a10 == 0 && a01 == 0 && a11 == 0) {
+                continue;
             }
+
+            coverage = (a00 * (1 - fx) * (1 - fy) + a10 * fx * (1 - fy) + a01 * (1 - fx) * fy + a11 * fx * fy) / 255.0f;
+
+            srcRow = row * wb->height / height;
+            srcCol = col * wb->width / width;
+            nearestColor = wb->color[srcRow * wb->width + srcCol];
+            plotBlended(b, x + col, y + row, nearestColor, coverage);
         }
     }
 }
