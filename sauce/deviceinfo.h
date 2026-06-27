@@ -10,6 +10,7 @@ Coordinate deviceinfo_screenSize();
 Boolean deviceinfo_diaSupported();
 Boolean deviceinfo_isRunningMinimalOSVersion(UInt8 minVersion);
 Boolean deviceinfo_supportsHiDensity();
+int deviceinfo_gridTileSize(Coordinate screenSize);
 void deviceinfo_sleep(UInt32 milliseconds);
 
 #endif

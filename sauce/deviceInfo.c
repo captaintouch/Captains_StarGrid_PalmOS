@@ -31,6 +31,10 @@ Boolean deviceinfo_diaSupported() {
     return idevice_diaSupported();
 }
 
+int deviceinfo_gridTileSize(Coordinate screenSize) {
+    return idevice_gridTileSize(screenSize);
+}
+
 void deviceinfo_sleep(UInt32 milliseconds) {
     isys_sleepMs(milliseconds);
 }

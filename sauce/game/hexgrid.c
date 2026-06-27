@@ -12,16 +12,33 @@
 #include "viewport.h"
 
 #define HEXTILE_POINTS 6
-int hexgrid_tilePattern[HEXTILE_SIZE];
+
+/* The tile geometry is a runtime value so the grid can scale (zoom) to the
+   screen. It defaults to the historical fixed size, and platforms that don't
+   opt into zooming keep exactly that size, so their rendering is unchanged. */
+static int hexgrid_currentTileSize = HEXTILE_SIZE;
+static int hexgrid_currentSegmentSize = HEXTILE_SEGMENT_SIZE;
+
+int hexgrid_tilePattern[HEXTILE_MAXSIZE];
 
 HEXGRID_SECTION
 void hexgrid_cleanup() {
 }
 
 HEXGRID_SECTION
-static void hexgrid_tileCoords(int startX, int startY, Coordinate coordinates[], Boolean doubleSize) {
-    int hexTileSize = doubleSize ? HEXTILE_SIZE * 2 : HEXTILE_SIZE;
-    int hexTileSegmentSize = doubleSize ? HEXTILE_SEGMENT_SIZE * 2 : HEXTILE_SEGMENT_SIZE;
+int hexgrid_tileSize() {
+    return hexgrid_currentTileSize;
+}
+
+HEXGRID_SECTION
+int hexgrid_pawnSize() {
+    return hexgrid_currentTileSize * HEXTILE_PAWNSIZE / HEXTILE_SIZE;
+}
+
+HEXGRID_SECTION
+static void hexgrid_tileCoords(int startX, int startY, Coordinate coordinates[]) {
+    int hexTileSize = hexgrid_currentTileSize;
+    int hexTileSegmentSize = hexgrid_currentSegmentSize;
     coordinates[0] = (Coordinate){startX + hexTileSize / 2, startY};
     coordinates[1] = (Coordinate){startX, startY + hexTileSegmentSize};
     coordinates[2] = (Coordinate){startX, startY + hexTileSize - hexTileSegmentSize};
@@ -34,7 +51,7 @@ HEXGRID_SECTION
 static void hexgrid_drawTile(int startX, int startY) {
     int i;
     Coordinate coordinates[HEXTILE_POINTS];
-    hexgrid_tileCoords(startX, startY, coordinates, false);
+    hexgrid_tileCoords(startX, startY, coordinates);
 
     for (i = 0; i < HEXTILE_POINTS; i++) {
         int otherIndex = i == 0 ? HEXTILE_POINTS - 1 : i - 1;
@@ -58,15 +75,13 @@ static Boolean hexgrid_isInsideTile(Coordinate coordinates[], Coordinate p) {
 }
 
 HEXGRID_SECTION
-void hexgrid_initialize() {
-    int y;
+static void hexgrid_rebuildPattern() {
+    int x, y;
     Coordinate coordinates[HEXTILE_POINTS];
-
-    hexgrid_tileCoords(0, 0, coordinates, false);
-    for (y = 0; y < HEXTILE_SIZE; y++) {
-        int x;
-        hexgrid_tilePattern[y] = HEXTILE_SIZE / 2;
-        for (x = 0; x < HEXTILE_SIZE; x++) {
+    hexgrid_tileCoords(0, 0, coordinates);
+    for (y = 0; y < hexgrid_currentTileSize; y++) {
+        hexgrid_tilePattern[y] = hexgrid_currentTileSize / 2;
+        for (x = 0; x < hexgrid_currentTileSize; x++) {
             if (hexgrid_isInsideTile(coordinates, (Coordinate){x, y})) {
                 hexgrid_tilePattern[y] = x;
                 break;
@@ -76,18 +91,63 @@ void hexgrid_initialize() {
 }
 
 HEXGRID_SECTION
+void hexgrid_setTileSize(int tileSize) {
+    if (tileSize < HEXTILE_MINSIZE) {
+        tileSize = HEXTILE_MINSIZE;
+    }
+    if (tileSize > HEXTILE_MAXSIZE) {
+        tileSize = HEXTILE_MAXSIZE;
+    }
+    hexgrid_currentTileSize = tileSize;
+    hexgrid_currentSegmentSize = tileSize * HEXTILE_SEGMENT_SIZE / HEXTILE_SIZE;
+    /* Keep sprite scaling in lock-step with the tile size (100% at the default
+       size, so the unscaled draw path is used and nothing changes for the
+       historical platforms). */
+    drawhelper_setSpriteScale(tileSize * 100 / HEXTILE_SIZE);
+    hexgrid_rebuildPattern();
+}
+
+HEXGRID_SECTION
+static int hexgrid_desiredTileSize() {
+    int desired = deviceinfo_gridTileSize(deviceinfo_screenSize());
+    if (desired <= 0) {
+        desired = HEXTILE_SIZE;
+    }
+    if (desired < HEXTILE_MINSIZE) {
+        desired = HEXTILE_MINSIZE;
+    }
+    if (desired > HEXTILE_MAXSIZE) {
+        desired = HEXTILE_MAXSIZE;
+    }
+    return desired;
+}
+
+HEXGRID_SECTION
+void hexgrid_initialize() {
+    hexgrid_setTileSize(hexgrid_desiredTileSize());
+}
+
+HEXGRID_SECTION
+void hexgrid_rescaleIfNeeded() {
+    int desired = hexgrid_desiredTileSize();
+    if (desired != hexgrid_currentTileSize) {
+        hexgrid_setTileSize(desired);
+    }
+}
+
+HEXGRID_SECTION
 static Coordinate hexgrid_tileStartPosition(int column, int row) {
     if (row % 2 != 0) {
-        return (Coordinate){column * HEXTILE_SIZE, row * HEXTILE_SIZE - (row * HEXTILE_SEGMENT_SIZE)};
+        return (Coordinate){column * hexgrid_currentTileSize, row * hexgrid_currentTileSize - (row * hexgrid_currentSegmentSize)};
     } else {
-        return (Coordinate){column * HEXTILE_SIZE + HEXTILE_SIZE / 2, row * HEXTILE_SIZE - HEXTILE_SEGMENT_SIZE - ((row - 1) * HEXTILE_SEGMENT_SIZE)};
+        return (Coordinate){column * hexgrid_currentTileSize + hexgrid_currentTileSize / 2, row * hexgrid_currentTileSize - hexgrid_currentSegmentSize - ((row - 1) * hexgrid_currentSegmentSize)};
     }
 }
 
 HEXGRID_SECTION
 Coordinate hexgrid_tileCenterPosition(Coordinate tilePosition) {
     Coordinate position = hexgrid_tileStartPosition(tilePosition.x, tilePosition.y);
-    return (Coordinate){position.x + HEXTILE_SIZE / 2, position.y + HEXTILE_SIZE / 2};
+    return (Coordinate){position.x + hexgrid_currentTileSize / 2, position.y + hexgrid_currentTileSize / 2};
 }
 
 HEXGRID_SECTION
@@ -134,7 +194,7 @@ void hexgrid_drawEntireGrid(Boolean adjustForViewport) {
             Coordinate targetPosition = hexgrid_tileStartPosition(i, j);
             if (adjustForViewport) {
                 targetPosition = viewport_convertedCoordinate(targetPosition);
-                if (targetPosition.x + HEXTILE_SIZE < 0 || targetPosition.y + HEXTILE_SIZE < 0 || targetPosition.x - HEXTILE_SIZE > screenSize.x || targetPosition.y - HEXTILE_SIZE > screenSize.y - BOTTOMMENU_HEIGHT) {
+                if (targetPosition.x + hexgrid_currentTileSize < 0 || targetPosition.y + hexgrid_currentTileSize < 0 || targetPosition.x - hexgrid_currentTileSize > screenSize.x || targetPosition.y - hexgrid_currentTileSize > screenSize.y - BOTTOMMENU_HEIGHT) {
                     continue;
                 }
             }
@@ -149,7 +209,7 @@ static int hexgrid_estimatedRow(float y) {
     double offset = 0;
 
     while (y > offset) {
-        offset += HEXTILE_SIZE - HEXTILE_SEGMENT_SIZE;
+        offset += hexgrid_currentTileSize - hexgrid_currentSegmentSize;
         row++;
     }
     row--;
@@ -165,10 +225,10 @@ Coordinate hexgrid_tileAtPixel(int x, int y) {
         for (c = 0; c < HEXGRID_COLS; c++) {
             Coordinate tileCoordinate = hexgrid_tileStartPosition(c, r);
             int yIndex = y - tileCoordinate.y;
-            if (yIndex < 0 || yIndex >= HEXTILE_SIZE) {
+            if (yIndex < 0 || yIndex >= hexgrid_currentTileSize) {
                 continue;
             }
-            if (x >= tileCoordinate.x + hexgrid_tilePattern[yIndex] && x <= tileCoordinate.x + HEXTILE_SIZE - hexgrid_tilePattern[yIndex]) {
+            if (x >= tileCoordinate.x + hexgrid_tilePattern[yIndex] && x <= tileCoordinate.x + hexgrid_currentTileSize - hexgrid_tilePattern[yIndex]) {
                 return (Coordinate){c, r};
             }
         }
@@ -179,12 +239,12 @@ Coordinate hexgrid_tileAtPixel(int x, int y) {
 HEXGRID_SECTION
 Coordinate hexgrid_size() {
     Coordinate lastPosition = hexgrid_tileCenterPosition((Coordinate){HEXGRID_COLS - 1, HEXGRID_ROWS - 1});
-    return (Coordinate){lastPosition.x + HEXTILE_SIZE + 5, lastPosition.y + HEXTILE_SIZE + 5};
+    return (Coordinate){lastPosition.x + hexgrid_currentTileSize + 5, lastPosition.y + hexgrid_currentTileSize + 5};
 }
 
 HEXGRID_SECTION
 void hexgrid_drawSpriteAtTile(ImageSprite* imageSprite, Coordinate hexPosition, Boolean adjustForViewport) {
     Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
-    Coordinate centerPosition = (Coordinate){startPosition.x + HEXTILE_SIZE / 2, startPosition.y + HEXTILE_SIZE / 2};
+    Coordinate centerPosition = (Coordinate){startPosition.x + hexgrid_currentTileSize / 2, startPosition.y + hexgrid_currentTileSize / 2};
     drawhelper_drawSprite(imageSprite, adjustForViewport ? viewport_convertedCoordinate(centerPosition) : centerPosition);
 }

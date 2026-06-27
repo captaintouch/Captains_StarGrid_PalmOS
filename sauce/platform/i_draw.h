@@ -27,6 +27,7 @@ void idraw_drawTextN(char *text, int length, int x, int y);
 int idraw_textWidth(char *text);
 int idraw_textHeight();
 void idraw_drawBitmap(IBitmap *bitmap, int x, int y);
+void idraw_drawBitmapScaled(IBitmap *bitmap, int x, int y, int width, int height);
 IFontID idraw_setLargeBoldFont();
 IFontID idraw_setFont(IFont font);
 void idraw_restoreFont(IFontID font);

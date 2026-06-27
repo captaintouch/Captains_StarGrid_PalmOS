@@ -10,6 +10,14 @@
 #include "models.h"
 #include "spriteLibrary.h"
 
+/* Sprite zoom, as a percentage of native size. 100 = no scaling, which uses the
+   exact historical draw path so unscaled platforms render identically. */
+static int drawhelper_spriteScalePercent = 100;
+
+void drawhelper_setSpriteScale(int percent) {
+    drawhelper_spriteScalePercent = percent > 0 ? percent : 100;
+}
+
 DRAWING_SECTION
 void drawhelper_fillRectangle(RectangleType *rect, UInt16 cornerDiam) {
     idraw_fillRectangle(rect->topLeft.x, rect->topLeft.y, rect->extent.x, rect->extent.y, cornerDiam);
@@ -104,9 +112,22 @@ static void drawhelper_drawImage(ImageData *imageData, Coordinate coordinate) {
 DRAWING_SECTION
 void drawhelper_drawSprite(ImageSprite *imageSprite, Coordinate coordinate) {
     Coordinate updatedPosition;
-    updatedPosition.x = coordinate.x - imageSprite->size.x / 2;
-    updatedPosition.y = coordinate.y - imageSprite->size.y / 2;
-    drawhelper_drawImage(imageSprite->imageData, updatedPosition);
+    if (drawhelper_spriteScalePercent == 100) {
+        /* Unscaled: identical to the historical path. */
+        updatedPosition.x = coordinate.x - imageSprite->size.x / 2;
+        updatedPosition.y = coordinate.y - imageSprite->size.y / 2;
+        drawhelper_drawImage(imageSprite->imageData, updatedPosition);
+    } else {
+        Coordinate screenSize = deviceinfo_screenSize();
+        int width = imageSprite->size.x * drawhelper_spriteScalePercent / 100;
+        int height = imageSprite->size.y * drawhelper_spriteScalePercent / 100;
+        updatedPosition.x = coordinate.x - width / 2;
+        updatedPosition.y = coordinate.y - height / 2;
+        if (updatedPosition.x > screenSize.x + 20 || updatedPosition.y > screenSize.y + 20 || updatedPosition.x < -width - 20 || updatedPosition.y < -height - 20) {
+            return;
+        }
+        idraw_drawBitmapScaled(imageSprite->imageData->bitmapPtr, updatedPosition.x, updatedPosition.y, width, height);
+    }
 }
 
 DRAWING_SECTION

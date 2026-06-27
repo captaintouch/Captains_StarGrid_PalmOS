@@ -22,6 +22,12 @@
 #define HEXGRID_COLS 15
 #define HEXTILE_PAWNSIZE 18
 
+// Grid zoom limits (used by platforms that scale the grid to the screen). The
+// minimum equals the historical fixed size, so platforms that don't opt in
+// (return 0 from idevice_gridTileSize) render exactly as before.
+#define HEXTILE_MINSIZE HEXTILE_SIZE
+#define HEXTILE_MAXSIZE 48
+
 #define STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT 3
 #define STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT HEXGRID_COLS - HEXGRID_COLS / 3
 

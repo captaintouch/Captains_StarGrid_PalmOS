@@ -50,6 +50,13 @@ IBool idevice_diaSupported() {
     return (!err && version);
 }
 
+int idevice_gridTileSize(Coordinate screenSize) {
+    /* Palm OS keeps the historical fixed tile size; larger Palm screens are
+       handled by viewport scrolling, not by zooming the grid. */
+    (void)screenSize;
+    return 0;
+}
+
 unsigned long idevice_setScreenDepth(unsigned long depth) {
     UInt32 oldDepth = idevice_currentDepth();
     UInt32 requestedDepth = depth;

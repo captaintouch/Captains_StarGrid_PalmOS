@@ -147,6 +147,14 @@ void idraw_drawBitmap(IBitmap *bitmap, int x, int y) {
     plot(target(), x, y, glyph, 15, 0, 0);
 }
 
+void idraw_drawBitmapScaled(IBitmap *bitmap, int x, int y, int width, int height) {
+    /* A terminal cell can't be scaled, so the sprite stays a single glyph; draw
+       it at the (scaled) top-left so it still lands on the right tile. */
+    (void)width;
+    (void)height;
+    idraw_drawBitmap(bitmap, x, y);
+}
+
 IFontID idraw_setLargeBoldFont() {
     return 0;
 }

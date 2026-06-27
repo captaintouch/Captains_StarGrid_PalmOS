@@ -9,6 +9,10 @@
  
 void hexgrid_initialize() HEXGRID_SECTION;
 void hexgrid_cleanup() HEXGRID_SECTION;
+void hexgrid_setTileSize(int tileSize) HEXGRID_SECTION;
+void hexgrid_rescaleIfNeeded() HEXGRID_SECTION;
+int hexgrid_tileSize() HEXGRID_SECTION;
+int hexgrid_pawnSize() HEXGRID_SECTION;
 Coordinate hexgrid_tileAtPixel(int x, int y) HEXGRID_SECTION;
 Coordinate hexgrid_tileCenterPosition(Coordinate tilePosition) HEXGRID_SECTION;
 void hexgrid_drawEntireGrid(Boolean adjustForViewport) HEXGRID_SECTION;

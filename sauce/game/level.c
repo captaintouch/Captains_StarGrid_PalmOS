@@ -195,7 +195,7 @@ Pawn *level_nextPawn(Pawn *currentPawn, Boolean allPawns, Boolean onlyWithAvaila
     Pawn *firstPawn = NULL;
     int i;
     int startMatching = false;
-    currentPawn = currentPawn->faction == factionTurn ? currentPawn : NULL;
+    currentPawn = (currentPawn != NULL && currentPawn->faction == factionTurn) ? currentPawn : NULL;
     for (i = 0; i < level->pawnCount; i++) {
         if (level->pawns[i].faction == factionTurn && !isInvalidCoordinate(level->pawns[i].position)) {
             if (onlyWithAvailableActions && level->pawns[i].turnComplete) {

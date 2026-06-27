@@ -363,6 +363,12 @@ static void gameSession_startTurn() {
     gameSession.activePawn = level_pawnAtTile(oldActivePawnPosition, &gameSession.level);
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
     nextPawn = gameSession_nextPawn(false, true);
+    /* On the very first turn there is no real previous pawn (the lookup above
+       can miss), so fall back to this faction's first actionable pawn before
+       anything dereferences activePawn. */
+    if (gameSession.activePawn == NULL) {
+        gameSession.activePawn = nextPawn;
+    }
     homeBase = movement_homeBase(gameSession.factionTurn, gameSession.level.pawns, gameSession.level.pawnCount);
     if (homeBase != NULL && homeBase->inventory.lastBaseAction == BASEACTION_BUILD_SHIP && pawn_baseTurnsLeft(gameSession.currentTurn, homeBase->inventory.baseActionLastActionTurn, homeBase->inventory.lastBaseAction) == 0) {
         homeBase->inventory.lastBaseAction = BASEACTION_NONE;
@@ -786,7 +792,7 @@ static void gameSession_progressUpdateAttack() {
         case TARGETSELECTIONTYPE_MOVE:
             break;
         case TARGETSELECTIONTYPE_PHASER:
-            attackLine = (Line){hexgrid_tileCenterPosition(gameSession.activePawn->position), movement_getBoxCoordinate(targetCenter, timePassedScale, HEXTILE_PAWNSIZE / 3)};
+            attackLine = (Line){hexgrid_tileCenterPosition(gameSession.activePawn->position), movement_getBoxCoordinate(targetCenter, timePassedScale, hexgrid_pawnSize() / 3)};
             gameSession.attackAnimation->lines = (Line *)imem_alloc(sizeof(Line) * 3);
             gameSession.attackAnimation->lines[0] = (Line){attackLine.startpoint, movement_coordinateAtPercentageOfLine(attackLine, remapToMax(timePassedScale * 2.4, 1))};
             attackLine.startpoint = gameSession.attackAnimation->lines[0].endpoint;

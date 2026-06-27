@@ -89,3 +89,13 @@ int idraw_textHeight() {
 void idraw_drawBitmap(IBitmap *bitmap, int x, int y) {
     WinDrawBitmap((BitmapPtr)bitmap, x, y);
 }
+
+void idraw_drawBitmapScaled(IBitmap *bitmap, int x, int y, int width, int height) {
+    /* The Palm backend does not rescale bitmaps at runtime (it relies on fixed
+       sprite sizes plus OS density). Grid zoom is disabled on Palm
+       (idevice_gridTileSize returns 0), so this is only ever reached at the
+       native size; draw normally. */
+    (void)width;
+    (void)height;
+    WinDrawBitmap((BitmapPtr)bitmap, x, y);
+}

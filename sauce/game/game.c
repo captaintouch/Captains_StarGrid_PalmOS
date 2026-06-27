@@ -45,10 +45,20 @@ static void game_resetForm() {
     IForm *frmP = iui_activeForm();
     Coordinate screenSize = deviceinfo_screenSize();
     IForm *updatedForm = iui_newForm(GAME_FORM, GAME_MENU, screenSize.x, screenSize.y);
+    int oldTileSize = hexgrid_tileSize();
     lastScreenSize = screenSize;
     iui_setActiveForm(updatedForm);
     if (frmP != NULL) {
         iui_deleteForm(frmP);
+    }
+    /* Re-evaluate grid zoom for the (possibly new) screen size. On platforms
+       that don't scale the grid this never changes the tile size, so the
+       buffers below are left untouched and rendering is unchanged. */
+    hexgrid_rescaleIfNeeded();
+    if (hexgrid_tileSize() != oldTileSize) {
+        game_windowCleanup();
+        gameSession.drawingState.shouldRedrawBackground = true;
+        gameSession.drawingState.shouldRedrawHeader = true;
     }
     if (gameSession.diaSupport) {
         iui_applyCustomDIAPolicy(updatedForm);
@@ -332,10 +342,10 @@ static void game_drawGridTexts() {
         Char *text = gridText->fixedText;
         if (gridText->simpleText) {
             Coordinate drawPosition = viewport_convertedCoordinate(hexgrid_tileCenterPosition(gridText->position));
-            int offset = gridText->position.y % 2 == 0 ? -(HEXTILE_SIZE / 2) : 0;
+            int offset = gridText->position.y % 2 == 0 ? -(hexgrid_tileSize() / 2) : 0;
             drawhelper_applyTextColor(deviceinfo_colorSupported() ? CLOUDS : BELIZEHOLE);
             drawhelper_applyBackgroundColor(DRACULAORCHID);
-            drawhelper_drawText(text, (Coordinate){drawPosition.x - HEXTILE_SIZE / 2 + offset + gridText->textOffset.x, drawPosition.y - HEXTILE_SIZE / 2 + gridText->textOffset.y});
+            drawhelper_drawText(text, (Coordinate){drawPosition.x - hexgrid_tileSize() / 2 + offset + gridText->textOffset.x, drawPosition.y - hexgrid_tileSize() / 2 + gridText->textOffset.y});
         } else {
             drawhelper_applyBackgroundColor(bgColor);
             for (j = 0; text[j] != '\0'; j++) {
@@ -468,8 +478,8 @@ static void game_drawPawns() {
         }
 
         if (gameSession_shouldShowHealthBar() && gameSession.factionTurn != gameSession.level.pawns[i].faction) {
-            int maxHealthWidth = HEXTILE_PAWNSIZE;
-            game_drawHealthBar(&gameSession.level.pawns[i], maxHealthWidth, 2, viewport_convertedCoordinate((Coordinate){pawnPosition.x - maxHealthWidth / 2, pawnPosition.y + HEXTILE_PAWNSIZE / 2}));
+            int maxHealthWidth = hexgrid_pawnSize();
+            game_drawHealthBar(&gameSession.level.pawns[i], maxHealthWidth, 2, viewport_convertedCoordinate((Coordinate){pawnPosition.x - maxHealthWidth / 2, pawnPosition.y + hexgrid_pawnSize() / 2}));
         }
     }
 }
@@ -763,6 +773,7 @@ static void game_drawBottomActivePawn() {
     int offsetX = gameSession.drawingState.miniMapDrawPosition.x + gameSession.drawingState.miniMapSize.x;
     int offsetY = screenSize.y - BOTTOMMENU_HEIGHT;
     Coordinate targetCenterPosition = (Coordinate){(offsetX + (screenSize.x - offsetX) / 2) - (HEXTILE_PAWNSIZE / 2), offsetY + (BOTTOMMENU_HEIGHT / 2) - (HEXTILE_PAWNSIZE / 2)};
+    int pawnSize = hexgrid_pawnSize();
     RectangleType rect;
     Coordinate pawnCenterPosition;
     if (gameSession.activePawn == NULL) {
@@ -779,7 +790,7 @@ static void game_drawBottomActivePawn() {
     drawhelper_fillRectangle(&rect, 4);
 
     pawnCenterPosition = viewport_convertedCoordinate(pawnCenterPosition);
-    ivideo_copyRect(overlayBuffer, screenBuffer, (Coordinate){pawnCenterPosition.x - HEXTILE_PAWNSIZE / 2, pawnCenterPosition.y - HEXTILE_PAWNSIZE / 2}, (Coordinate){HEXTILE_PAWNSIZE, HEXTILE_PAWNSIZE}, targetCenterPosition);
+    ivideo_copyRect(overlayBuffer, screenBuffer, (Coordinate){pawnCenterPosition.x - pawnSize / 2, pawnCenterPosition.y - pawnSize / 2}, (Coordinate){pawnSize, pawnSize}, targetCenterPosition);
 
     if (!gameSession.factions[gameSession.factionTurn].human) {  // draw cpu action text
         int textWidth = idraw_textWidth(gameSession.cpuActionText);

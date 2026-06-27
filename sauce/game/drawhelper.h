@@ -24,5 +24,6 @@ void drawhelper_drawPoint(Coordinate point) DRAWING_SECTION;
 void drawhelper_drawBoxAround(Coordinate coordinate, int dimension) DRAWING_SECTION;
 void drawhelper_borderRectangle(RectangleType *rect) DRAWING_SECTION;
 void drawhelper_releaseImage(ImageData *imageData) DRAWING_SECTION;
+void drawhelper_setSpriteScale(int percent) DRAWING_SECTION;
 
 #endif
