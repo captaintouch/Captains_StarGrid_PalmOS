@@ -357,6 +357,10 @@ static void game_drawGridTexts() {
                 hexgrid_fillTileAtPosition(position, true, color);
                 drawhelper_applyForeColor(CLOUDS);
                 hexgrid_drawTileAtPosition(position, true);
+                /* Badge these letter-tiles as raised buttons (rather than plain
+                   outlined hexes) so the NEW/RANK/ABOUT menu reads as deliberate
+                   chrome, matching the bevel treatment elsewhere in the UI. */
+                hexgrid_drawTileBevelAtPosition(position, true, CLOUDS, DRACULAORCHID);
 
                 drawhelper_drawTextCentered(currChar, (Coordinate){drawPosition.x, drawPosition.y}, 0, 0);
             }

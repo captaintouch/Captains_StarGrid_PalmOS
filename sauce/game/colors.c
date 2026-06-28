@@ -4,22 +4,26 @@
 
 IndexedColorType colors_reference[7];
 
+/* Punched up from the original muted "Flat UI" palette toward the bolder,
+   higher-saturation primaries of early-90s VGA shareware titles (Apogee
+   et al.) - same hues, pushed brighter/more saturated so UI chrome and
+   tiles read as bold arcade color rather than a modern flat-design app. */
 static IndexedColorType colors_rgbFor(AppColor colorType) {
     switch (colorType) {
         case ALIZARIN:
-            return idraw_indexForRGB(231, 76, 60);
+            return idraw_indexForRGB(255, 35, 35);
         case BELIZEHOLE:
-            return idraw_indexForRGB(41, 128, 185);
+            return idraw_indexForRGB(0, 140, 255);
         case EMERALD:
-            return idraw_indexForRGB(46, 204, 113);
+            return idraw_indexForRGB(0, 230, 110);
         case CLOUDS:
             return idraw_indexForRGB(255, 255, 255);
         case DRACULAORCHID:
-            return idraw_indexForRGB(45, 52, 54);
+            return idraw_indexForRGB(20, 16, 40);
         case ASBESTOS:
-            return idraw_indexForRGB(127, 140, 141);
+            return idraw_indexForRGB(150, 160, 170);
         case SUNFLOWER:
-            return idraw_indexForRGB(241, 196, 15);
+            return idraw_indexForRGB(255, 205, 0);
     }
     return 0;
 }

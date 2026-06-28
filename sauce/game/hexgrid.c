@@ -159,6 +159,28 @@ void hexgrid_drawTileAtPosition(Coordinate hexPosition, Boolean adjustForViewpor
     hexgrid_drawTile(startPosition.x, startPosition.y);
 }
 
+/* Badges the letter-hex buttons (NEW/RANK/ABOUT) as raised chrome rather than
+   plain outlined tiles: a light highlight along the two upper edges, a dark
+   shadow along the two lower edges, mirroring the bevel treatment already
+   used for the title bar and bottom menu. */
+HEXGRID_SECTION
+void hexgrid_drawTileBevelAtPosition(Coordinate hexPosition, Boolean adjustForViewport, AppColor highlightColor, AppColor shadowColor) {
+    Coordinate startPosition = hexgrid_tileStartPosition(hexPosition.x, hexPosition.y);
+    Coordinate coordinates[HEXTILE_POINTS];
+    if (adjustForViewport) {
+        startPosition = viewport_convertedCoordinate(startPosition);
+    }
+    hexgrid_tileCoords(startPosition.x, startPosition.y, coordinates);
+
+    drawhelper_applyForeColor(highlightColor);
+    drawhelper_drawLineBetweenCoordinates(coordinates[5], coordinates[0]);
+    drawhelper_drawLineBetweenCoordinates(coordinates[0], coordinates[1]);
+
+    drawhelper_applyForeColor(shadowColor);
+    drawhelper_drawLineBetweenCoordinates(coordinates[2], coordinates[3]);
+    drawhelper_drawLineBetweenCoordinates(coordinates[3], coordinates[4]);
+}
+
 HEXGRID_SECTION
 void hexgrid_fillTileAtPosition(Coordinate hexPosition, Boolean adjustForViewport, FilledTileType tileType) {
     Coordinate startPosition = hexgrid_tileCenterPosition(hexPosition);

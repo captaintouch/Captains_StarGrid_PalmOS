@@ -60,12 +60,38 @@
     #menuBar button:active {
         border-color: #1a1f20 #7f8c8d #7f8c8d #1a1f20;
     }
+    /* CRT effect: faint scanlines + a darkened vignette toward the screen
+       edges, layered above the canvases but below the menu bar and
+       click-through (pointer-events: none) so it doesn't intercept input. */
+    #crtOverlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 5;
+        background:
+            repeating-linear-gradient(
+                to bottom,
+                rgba(0, 0, 0, 0.18) 0px,
+                rgba(0, 0, 0, 0.18) 1px,
+                rgba(0, 0, 0, 0) 2px,
+                rgba(0, 0, 0, 0) 3px
+            ),
+            radial-gradient(
+                ellipse at center,
+                rgba(0, 0, 0, 0) 60%,
+                rgba(0, 0, 0, 0.45) 100%
+            );
+    }
 </style>
 </head>
 <body>
 <div id="game">
     <canvas id="pixelCanvas"></canvas>
     <canvas id="overlayCanvas"></canvas>
+    <div id="crtOverlay"></div>
 </div>
 <div id="menuBar">
     <button id="btnHowToPlay">How to Play</button>
