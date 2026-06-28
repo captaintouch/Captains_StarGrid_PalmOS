@@ -196,8 +196,16 @@ static Coordinate gameSession_validViewportOffset(Coordinate position) {
     Coordinate screenSize = deviceinfo_screenSize();
     int gameWindowHeight = screenSize.y - BOTTOMMENU_HEIGHT;
     Coordinate gridSize = hexgrid_size();
-    newOffset.x = fmin(gridSize.x - screenSize.x + 1, fmax(0, position.x - screenSize.x / 2));
-    newOffset.y = fmin(gridSize.y - gameWindowHeight + 1, fmax(0, position.y - gameWindowHeight / 2));
+    /* maxOffset can go negative when the grid's total pixel size is smaller
+       than the viewport (only possible on web, where tile size is zoomed to
+       fit the device screen instead of Palm's fixed HEXTILE_SIZE always
+       being smaller than the screen) - clamp it to 0 so fmin below can't
+       force a negative offset, which would shift the visible grid content
+       toward the bottom-right of the screen and throw off tap hit-testing. */
+    int maxOffsetX = fmax(0, gridSize.x - screenSize.x + 1);
+    int maxOffsetY = fmax(0, gridSize.y - gameWindowHeight + 1);
+    newOffset.x = fmin(maxOffsetX, fmax(0, position.x - screenSize.x / 2));
+    newOffset.y = fmin(maxOffsetY, fmax(0, position.y - gameWindowHeight / 2));
     return newOffset;
 }
 
