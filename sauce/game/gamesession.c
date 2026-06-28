@@ -211,10 +211,16 @@ static Coordinate gameSession_validViewportOffset(Coordinate position) {
 
 static void gameSession_updateAnimatedStarPositions() {
     int i;
+    /* Off the GAME screen there's no camera panning (viewportOffset stays
+       {0,0}), so scattering across hexgrid_size() instead of the actual
+       screen leaves the backdrop empty wherever the grid is smaller than the
+       viewport (e.g. web's zoomed tile sizing on a wide browser window). On
+       the GAME screen the grid keeps scrolling under the camera, so stars
+       still need to live in grid space there. */
+    Coordinate scatterSize = gameSession.menuScreenType == MENUSCREEN_GAME ? hexgrid_size() : deviceinfo_screenSize();
     imem_zero(gameSession.animatedStarCoordinates, sizeof(Coordinate) * BACKDROP_ANIMATEDSTARCOUNT);
     for (i = 0; i < BACKDROP_ANIMATEDSTARCOUNT - 1; i++) {
-        Coordinate gridSize = hexgrid_size();
-        gameSession.animatedStarCoordinates[i] = (Coordinate){random(0, gridSize.x), random(0, gridSize.y)};
+        gameSession.animatedStarCoordinates[i] = (Coordinate){random(0, scatterSize.x), random(0, scatterSize.y)};
     }
 }
 

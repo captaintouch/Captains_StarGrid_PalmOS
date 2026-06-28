@@ -202,7 +202,13 @@ void idraw_drawPixel(int x, int y) {
 /* Text is rendered by the browser's own font engine onto a transparent
    overlay <canvas> layered on top of the pixel canvas (see web/index.html
    and main_web.c's web_beginFrame/web_present), so it stays crisp at any
-   pixel density instead of needing a baked-in bitmap font. */
+   pixel density instead of needing a baked-in bitmap font.
+
+   "Press Start 2P" (loaded via <link> in index.html) gives the classic
+   blocky bitmap-font look instead of the browser default monospace; a 1px
+   dark drop-shadow behind the glyphs keeps labels legible over busy
+   backgrounds, mimicking the outlined pixel-font text Apogee-era DOS
+   titles used. */
 EM_JS(void, web_jsDrawText, (const char *text, int x, int y, int color), {
     var ctx = Module.overlayCtx;
     if (!ctx) return;
@@ -210,16 +216,18 @@ EM_JS(void, web_jsDrawText, (const char *text, int x, int y, int color), {
     var r = ((color >> 11) & 0x1F) * 255 / 31;
     var g = ((color >> 5) & 0x3F) * 255 / 63;
     var b = (color & 0x1F) * 255 / 31;
-    ctx.fillStyle = "rgb(" + (r | 0) + "," + (g | 0) + "," + (b | 0) + ")";
     ctx.textBaseline = "top";
-    ctx.font = "10px monospace";
+    ctx.font = "8px 'Press Start 2P', monospace";
+    ctx.fillStyle = "rgba(0,0,0,0.8)";
+    ctx.fillText(str, x + 1, y + 1);
+    ctx.fillStyle = "rgb(" + (r | 0) + "," + (g | 0) + "," + (b | 0) + ")";
     ctx.fillText(str, x, y);
 });
 
 EM_JS(int, web_jsTextWidth, (const char *text), {
     var ctx = Module.overlayCtx;
     if (!ctx) return UTF8ToString(text).length * 6;
-    ctx.font = "10px monospace";
+    ctx.font = "8px 'Press Start 2P', monospace";
     return Math.ceil(ctx.measureText(UTF8ToString(text)).width);
 });
 

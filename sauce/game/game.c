@@ -520,11 +520,33 @@ static void game_drawBottomMenu() {
     bottomMenu_display(gameSession.displayButtons, gameSession.displayButtonCount, gameSession.colorSupport);
 }
 
+/* The backdrop buffer (game_drawBackground) must cover at least the visible
+   viewport, not just the hex grid: on web's zoomed tile sizing a wide
+   browser window can be larger than the grid itself, and
+   game_drawDynamicViews later copyRect's a viewport-sized region out of that
+   buffer - any of that region beyond the buffer's bounds is silently
+   skipped, leaving a black void. Shared by game_drawBackdrop/game_drawBackground
+   (to size the buffer and its fill) and game_drawStars (to scatter across
+   all of it). */
+static Coordinate game_backdropSize() {
+    Coordinate gridSize = hexgrid_size();
+    Coordinate overlaySize = deviceinfo_screenSize();
+    overlaySize.y -= BOTTOMMENU_HEIGHT;
+    return (Coordinate){
+        gridSize.x > overlaySize.x ? gridSize.x : overlaySize.x,
+        gridSize.y > overlaySize.y ? gridSize.y : overlaySize.y,
+    };
+}
+
 static void game_drawBackdrop() {
     int i;
     Coordinate gridSize = hexgrid_size();
+    Coordinate backdropSize = game_backdropSize();
     RectangleType rect;
-    RctSetRectangle(&rect, 0, 0, gridSize.x, gridSize.y);
+    /* Fill the whole backdrop buffer, not just the hex grid's extent, so a
+       viewport wider than the grid doesn't show a black void where the
+       buffer was never drawn into. */
+    RctSetRectangle(&rect, 0, 0, backdropSize.x, backdropSize.y);
     drawhelper_applyForeColor(DRACULAORCHID);
     drawhelper_fillRectangle(&rect, 0);
     if (deviceinfo_colorSupported()) {
@@ -542,8 +564,12 @@ static void game_drawBackdrop() {
 
 static void game_drawStars() {
     int i;
-    int starCount = gameSession.menuScreenType == MENUSCREEN_GAME ? BACKDROP_STARCOUNT : BACKDROP_STARCOUNT * 2;
-    Coordinate gridSize = hexgrid_size();
+    Boolean isGameScreen = gameSession.menuScreenType == MENUSCREEN_GAME;
+    int starCount = isGameScreen ? BACKDROP_STARCOUNT : BACKDROP_STARCOUNT * 2;
+    /* Off the GAME screen the camera never pans, so scatter across the whole
+       backdrop buffer rather than just the hex grid's extent - see
+       game_backdropSize(). */
+    Coordinate scatterSize = isGameScreen ? hexgrid_size() : game_backdropSize();
 
     // Draw stars at random locations
     for (i = 0; i < starCount; i++) {
@@ -555,7 +581,7 @@ static void game_drawStars() {
             drawhelper_applyForeColor(CLOUDS);
         }
 
-        drawhelper_drawPoint((Coordinate){random(0, gridSize.x - 1), random(0, gridSize.y - 1)});
+        drawhelper_drawPoint((Coordinate){random(0, scatterSize.x - 1), random(0, scatterSize.y - 1)});
     }
 }
 
@@ -608,6 +634,14 @@ static void game_drawGameStartHeader() {
     RctSetRectangle(&rect, 0, BOTTOMMENU_HEIGHT / 2, screenSize.x, BOTTOMMENU_HEIGHT / 2);
     drawhelper_applyForeColor(headerColorBottom);
     drawhelper_fillRectangle(&rect, 0);
+
+    /* Bevel the title bar: a light highlight along the very top edge and a
+       dark shadow line just above the existing bottom border, so the bar
+       reads as a raised panel instead of a flat two-tone stripe. */
+    drawhelper_applyForeColor(CLOUDS);
+    drawhelper_drawLineBetweenCoordinates((Coordinate){0, 0}, (Coordinate){screenSize.x, 0});
+    drawhelper_applyForeColor(headerColorTop);
+    drawhelper_drawLineBetweenCoordinates((Coordinate){0, BOTTOMMENU_HEIGHT - 2}, (Coordinate){screenSize.x, BOTTOMMENU_HEIGHT - 2});
 
     drawhelper_applyTextColor(textColor);
     drawhelper_applyBackgroundColor(centerTileBackgroundColor);
@@ -701,14 +735,14 @@ static void game_drawGameStartHeader() {
 }
 
 static void game_drawBackground() {
-    Coordinate gridSize;
+    Coordinate backdropSize;
     if (!gameSession.drawingState.shouldRedrawBackground && backgroundBuffer != NULL) {
         return;
     }
     gameSession.drawingState.shouldRedrawBackground = false;
-    gridSize = hexgrid_size();
+    backdropSize = game_backdropSize();
     if (backgroundBuffer == NULL) {
-        backgroundBuffer = ivideo_createBuffer(gridSize.x, gridSize.y);
+        backgroundBuffer = ivideo_createBuffer(backdropSize.x, backdropSize.y);
         if (backgroundBuffer == NULL) {
             return;
         }
