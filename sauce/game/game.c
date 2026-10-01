@@ -375,7 +375,7 @@ static void game_drawAnimatedStars() {
 
 static void game_drawPawns() {
     int i, j;
-    if (gameSession.activePawn != NULL && gameSession.menuScreenType == MENUSCREEN_GAME) {
+    if (isPawnSet(gameSession.activePawn) && gameSession.menuScreenType == MENUSCREEN_GAME) {
         drawhelper_applyForeColor(EMERALD);
         if (gameSession.colorSupport) {
             hexgrid_drawTileAtPosition(gameSession.activePawn->position, true);
@@ -774,7 +774,7 @@ static void game_drawBottomActivePawn() {
     Coordinate targetCenterPosition = (Coordinate){(offsetX + (screenSize.x - offsetX) / 2) - (HEXTILE_PAWNSIZE / 2), offsetY + (BOTTOMMENU_HEIGHT / 2) - (HEXTILE_PAWNSIZE / 2)};
     RectangleType rect;
     Coordinate pawnCenterPosition;
-    if (gameSession.activePawn == NULL) {
+    if (!isPawnSet(gameSession.activePawn)) {
         return;
     }
     if (gameSession.movement == NULL) {
@@ -802,7 +802,7 @@ static void game_drawBottomActivePawn() {
 static void game_drawBottomActivePawnStats() {
     Coordinate screenSize = deviceinfo_screenSize();
     int i;
-    if (gameSession.activePawn == NULL) {
+    if (!isPawnSet(gameSession.activePawn)) {
         return;
     }
 

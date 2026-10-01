@@ -350,7 +350,7 @@ Pawn *movement_homeBase(int factionIndex, Pawn *allPawns, int totalPawnCount) {
             return &allPawns[i];
         }
     }
-    return NULL;
+    return validPawn(NULL);
 }
 
 MOVEMENT_SECTION

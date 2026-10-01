@@ -1,6 +1,16 @@
 #include "models.h"
 #include "../constants.h"
 
+static Pawn nullPawn = {PAWNTYPE_SHIP, {-1, -1}, {-1, 0, 0, 0, BASEACTION_NONE, false}, 0, 0, false, false};
+
+Pawn *validPawn(Pawn *pawn) {
+    return pawn != NULL ? pawn : &nullPawn;
+}
+
+Boolean isPawnSet(Pawn *pawn) {
+    return pawn != NULL && pawn != &nullPawn;
+}
+
 Boolean isEqualCoordinate(Coordinate coordA, Coordinate coordB) {
     return coordA.x == coordB.x && coordA.y == coordB.y;
 }
