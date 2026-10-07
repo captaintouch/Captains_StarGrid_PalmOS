@@ -1,7 +1,7 @@
 #include "sauce/constants.h"
 
 APPLICATION         ID 1 "CSTG"
-VERSION             ID 1 "1.1"
+VERSION             ID 1 "1.2"
 
 ICON
 BEGIN
