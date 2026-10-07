@@ -43,7 +43,7 @@ static void gameSession_loadStartMenu() {
     gameSession.factions[0] = (Faction){(CPUFactionProfile){0, 0, 0}, true};
     gameSession.factionCount = 1;
     gameSession.factionTurn = 0;
-    gameSession.activePawn = &gameSession.level.pawns[0];
+    gameSession.activePawn = validPawn(gameSession.level.pawns);
     gameSession_updateViewPortOffset(true);
     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETLEFT, gameSession.activePawn->position.y}, &gameSession);
     gameSession_updateAnimatedStarPositions();
@@ -74,9 +74,7 @@ static void gameSession_scheduleSceneAnimationIfNeeded() {
 }
 
 static void gameSession_resetActivePawn() {
-    Pawn dummyPawn;
-    dummyPawn.position = (Coordinate){0, 0};
-    gameSession.activePawn = &dummyPawn;
+    gameSession.activePawn = validPawn(NULL);
 }
 
 static void gameSession_openMenu() {
@@ -129,7 +127,7 @@ void gameSession_reset(Boolean newGame) {
     MemSet(&gameSession.lastPenInput, sizeof(InputPen), 0);
 
     gameSession.level.pawns = NULL;
-    gameSession.activePawn = NULL;
+    gameSession.activePawn = validPawn(NULL);
     gameSession.continueCPUPlay = false;
     gameSession.paused = false;
     gameSession.currentTurn = 0;
@@ -208,7 +206,7 @@ static void gameSession_updateAnimatedStarPositions() {
 }
 
 static Boolean gameSession_isViewPortOffsetToPawn(Pawn *pawn) {
-    if (pawn != NULL) {
+    if (isPawnSet(pawn)) {
         return (isEqualCoordinate(gameSession.viewportOffset, gameSession_validViewportOffset(hexgrid_tileCenterPosition(pawn->position))));
     }
     return false;
@@ -216,7 +214,7 @@ static Boolean gameSession_isViewPortOffsetToPawn(Pawn *pawn) {
 
 static void gameSession_updateViewPortOffset(Boolean forceUpdateActivePawn) {
     Coordinate position;
-    if (gameSession.activePawn != NULL && forceUpdateActivePawn) {
+    if (isPawnSet(gameSession.activePawn) && forceUpdateActivePawn) {
         position = hexgrid_tileCenterPosition(gameSession.activePawn->position);
     } else if (gameSession.movement != NULL) {
         position = gameSession.movement->pawnPosition;
@@ -241,7 +239,7 @@ static FilledTileType gameSession_hightlightTilesColor() {
     }
 }
 
-static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPosition, TargetSelectionType targetSelectionType) {
+static void gameSession_updatevalidPawnPositionsForMovement(Coordinate currentPosition, TargetSelectionType targetSelectionType) {
     int i, j;
     int maxTileRange = gameActionLogic_maxRange(targetSelectionType);
     Coordinate *coordinates = NULL;
@@ -277,7 +275,7 @@ static void gameSession_updateValidPawnPositionsForMovement(Coordinate currentPo
             for (i = 0; i < gameSession.highlightTileCount; i++) {
                 Pawn *pawnAtPosition = level_pawnAtTile(gameSession.highlightTiles[i].position, &gameSession.level);
                 gameSession.highlightTiles[i].filled = true;
-                if (pawnAtPosition == NULL || pawnAtPosition->faction == gameSession.activePawn->faction) {
+                if (!isPawnSet(pawnAtPosition) || pawnAtPosition->faction == gameSession.activePawn->faction) {
                     continue;
                 }
                 gameSession.highlightTiles[i].color = FILLEDTILETYPE_ATTACK;
@@ -363,7 +361,7 @@ static void gameSession_startTurn() {
     gameSession.drawingState.shouldDrawButtons = gameSession.factions[gameSession.factionTurn].human;
     nextPawn = gameSession_nextPawn(false, true);
     homeBase = movement_homeBase(gameSession.factionTurn, gameSession.level.pawns, gameSession.level.pawnCount);
-    if (homeBase != NULL && homeBase->inventory.lastBaseAction == BASEACTION_BUILD_SHIP && pawn_baseTurnsLeft(gameSession.currentTurn, homeBase->inventory.baseActionLastActionTurn, homeBase->inventory.lastBaseAction) == 0) {
+    if (isPawnSet(homeBase) && homeBase->inventory.lastBaseAction == BASEACTION_BUILD_SHIP && pawn_baseTurnsLeft(gameSession.currentTurn, homeBase->inventory.baseActionLastActionTurn, homeBase->inventory.lastBaseAction) == 0) {
         homeBase->inventory.lastBaseAction = BASEACTION_NONE;
         gameSession_buildShip(homeBase);
         nextPawn = movement_homeBase(gameSession.factionTurn, gameSession.level.pawns, gameSession.level.pawnCount);
@@ -470,7 +468,7 @@ static Boolean gameSession_handleScoreMenuTap(Coordinate selectedTile) {
                     oldPawn = *gameSession.activePawn;
                     level_addRank(&gameSession.level, scoring_loadSavedScore());
                     gameSession.activePawn = level_pawnAtTile(oldPawn.position, &gameSession.level);
-                    if (gameSession.activePawn == NULL) {
+                    if (!isPawnSet(gameSession.activePawn)) {
                         level_addPawn(oldPawn, &gameSession.level);
                         gameSession.activePawn = level_pawnAtTile(oldPawn.position, &gameSession.level);
                     }
@@ -492,7 +490,7 @@ static Boolean gameSession_handleStartMenuTap(Coordinate selectedTile) {
                     gameSession.drawingState.shouldRedrawHeader = true;
                     gameSession.menuScreenType = MENUSCREEN_PLAYERCONFIG;
                     level_addPlayerConfigPawns(&gameSession.level, level_defaultNewGameConfig(scoring_rankValue(scoring_loadSavedScore())));
-                    gameSession.activePawn = &gameSession.level.pawns[0];
+                    gameSession.activePawn = validPawn(gameSession.level.pawns);
                     gameActionLogic_scheduleMovement(gameSession.activePawn, NULL, (Coordinate){STARTSCREEN_NAVIGATIONSHIPOFFSETRIGHT, gameSession.activePawn->position.y}, &gameSession);
                     break;
                 case STRING_ABOUT:
@@ -581,7 +579,7 @@ static Boolean gameSession_handleTileTap() {
     if (gameSession.menuScreenType != MENUSCREEN_GAME) {
         return gameSession_handleNonGameMenuTap(selectedTile);
     }
-    if (selectedPawn != NULL) {
+    if (isPawnSet(selectedPawn)) {
         gameSession.activePawn = selectedPawn;
         gameSession_updateViewPortOffset(true);
         gameSession_showPawnActions();
@@ -631,7 +629,7 @@ static void gameSession_handleTargetSelection() {
     Coordinate selectedTile = hexgrid_tileAtPixel(convertedPoint.x, convertedPoint.y);
     Pawn *selectedPawn = level_pawnAtTile(selectedTile, &gameSession.level);
     Boolean unselectableTile = !gameSession_highlightTilesContains(selectedTile);
-    Boolean invalidAttackTarget = gameSession.targetSelectionType != TARGETSELECTIONTYPE_MOVE && (selectedPawn == NULL || selectedPawn->faction == gameSession.activePawn->faction);
+    Boolean invalidAttackTarget = gameSession.targetSelectionType != TARGETSELECTIONTYPE_MOVE && (!isPawnSet(selectedPawn) || selectedPawn->faction == gameSession.activePawn->faction);
     if (unselectableTile || invalidAttackTarget) {
         gameSession_resetHighlightTiles();
         gameSession.state = GAMESTATE_DEFAULT;
@@ -730,7 +728,7 @@ static void gameSession_handlePawnActionButtonSelection() {
     gameSession.displayButtonCount = 0;
 
     if (gameSession.state == GAMESTATE_SELECTTARGET) {
-        gameSession_updateValidPawnPositionsForMovement(gameSession.activePawn->position, gameSession.targetSelectionType);
+        gameSession_updatevalidPawnPositionsForMovement(gameSession.activePawn->position, gameSession.targetSelectionType);
     }
 }
 
@@ -802,7 +800,7 @@ static void gameSession_progressUpdateAttack() {
 
     if (timePassedScale >= 1) {
         gameActionLogic_afterAttack(&gameSession);
-        if (gameSession.targetSelectionType == TARGETSELECTIONTYPE_TORPEDO || gameSession.attackAnimation->targetPawn == NULL) {  // show explosion when destroyed or always when torpedo is used
+        if (gameSession.targetSelectionType == TARGETSELECTIONTYPE_TORPEDO || !isPawnSet(gameSession.attackAnimation->targetPawn)) {  // show explosion when destroyed or always when torpedo is used
             gameSession.attackAnimation->explosionPosition = targetCenter;
             gameSession.attackAnimation->explosionTimestamp = TimGetTicks();
             gameSession.attackAnimation->explosionDurationSeconds = 0.5;
@@ -917,6 +915,7 @@ static void gameSession_cpuTurn() {
     }
 
     strategy = cpuLogic_getStrategy(pawn, gameSession.level.pawns, gameSession.level.pawnCount, gameSession.level.gridItems, gameSession.level.gridItemCount, gameSession.currentTurn, gameSession.factions[pawn->faction].profile, !gameActionLogic_humanShipsLeft(&gameSession));
+    strategy.target = validPawn(strategy.target);
     pawn->turnComplete = true;
     switch (strategy.CPUAction) {
         case CPUACTION_MOVE:
@@ -924,7 +923,7 @@ static void gameSession_cpuTurn() {
             if (isEqualCoordinate(closestTile, strategy.target->position)) {
                 targetPawn = strategy.target;
             } else {
-                targetPawn = NULL;
+                targetPawn = validPawn(NULL);
             }
             gameActionLogic_scheduleMovement(gameSession.activePawn, targetPawn, closestTile, &gameSession);
             textId = STRING_MOVING;
@@ -1010,7 +1009,7 @@ static Boolean moveToNextPawnIfNeeded() {
         drawhelper_drawTextWithValue("", i++, (Coordinate){140, 0});
 #endif
         pawn = gameSession_nextPawn(false, true);
-        if (pawn == NULL || !level_movesLeftForFaction(gameSession.factionTurn, gameSession.currentTurn, &gameSession.level)) {
+        if (!isPawnSet(pawn) || !level_movesLeftForFaction(gameSession.factionTurn, gameSession.currentTurn, &gameSession.level)) {
             gameSession_startTurnForNextFaction();
             return true;
         }

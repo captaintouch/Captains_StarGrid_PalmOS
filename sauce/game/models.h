@@ -133,4 +133,7 @@ Boolean isEqualCoordinate(Coordinate coordA, Coordinate coordB);
 Boolean isInvalidCoordinate(Coordinate coord);
 Boolean isPositionInBounds(Coordinate coord);
 
+Pawn *validPawn(Pawn *pawn);
+Boolean isPawnSet(Pawn *pawn);
+
 #endif

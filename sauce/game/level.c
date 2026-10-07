@@ -216,7 +216,7 @@ Pawn *level_nextPawn(Pawn *currentPawn, Boolean allPawns, Boolean onlyWithAvaila
             }
         }
     }
-    return firstPawn;
+    return validPawn(firstPawn);
 }
 
 LEVEL_SECTION
@@ -637,7 +637,7 @@ Pawn *level_pawnTypeAtTile(Coordinate tileCoordinate, Level *level, PawnType paw
             return &level->pawns[i];
         }
     }
-    return NULL;
+    return validPawn(NULL);
 }
 
 LEVEL_SECTION
@@ -652,7 +652,7 @@ void level_returnFlagFromPawnToOriginalBase(Pawn *pawn, Level *level) {
         return;
     }
     flagHomeBase = movement_homeBase(pawn->inventory.flagOfFaction, level->pawns, level->pawnCount);
-    if (flagHomeBase != NULL) {
+    if (isPawnSet(flagHomeBase)) {
         flagHomeBase->inventory.carryingFlag = true;
     }
     pawn->inventory.carryingFlag = false;

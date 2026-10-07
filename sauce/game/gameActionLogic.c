@@ -36,6 +36,7 @@ static void gameActionLogic_askForAfterGameOptions() {
 
 GAMEACTIONLOGIC_SECTION
 void gameActionLogic_moveCameraToPawn(Pawn *pawn, GameSession *session) {
+    pawn = validPawn(pawn);
     session->cameraPawn = (Pawn){PAWNTYPE_SHIP, session->activePawn->position, (Inventory){-1, 0, 0, BASEACTION_NONE, false}, 0, 0, false, false};
     gameActionLogic_scheduleMovement(&session->cameraPawn, NULL, pawn->position, session);
 }
@@ -75,7 +76,7 @@ static void gameActionLogic_showScore(GameSession *session) {
     level_addScorePawns(&session->level, session->activePawn->faction);
 
     session->activePawn = level_pawnAtTile(oldPawn.position, &session->level);
-    if (session->activePawn == NULL) {
+    if (!isPawnSet(session->activePawn)) {
         level_addPawn(oldPawn, &session->level);
 
         session->activePawn = level_pawnAtTile(oldPawn.position, &session->level);
@@ -130,6 +131,7 @@ void gameActionLogic_clearMovement(GameSession *session) {
 
 GAMEACTIONLOGIC_SECTION
 void gameActionLogic_scheduleWarp(Pawn *sourcePawn, Coordinate target, GameSession *session) {
+    sourcePawn = validPawn(sourcePawn);
     session->warpAnimation.pawn = sourcePawn;
     session->warpAnimation.isWarping = true;
     session->warpAnimation.currentPosition = sourcePawn->position;
@@ -141,6 +143,7 @@ void gameActionLogic_scheduleWarp(Pawn *sourcePawn, Coordinate target, GameSessi
 GAMEACTIONLOGIC_SECTION
 void gameActionLogic_scheduleShockwave(Pawn *basePawn, GameSession *session) {
     int i, affectedPawnCount = 0;
+    basePawn = validPawn(basePawn);
     gameActionLogic_clearShockwave(session);
     session->shockWaveAnimation = (ShockWaveAnimation *)MemPtrNew(sizeof(ShockWaveAnimation));
     MemSet(session->shockWaveAnimation, sizeof(ShockWaveAnimation), 0);
@@ -164,12 +167,13 @@ void gameActionLogic_scheduleShockwave(Pawn *basePawn, GameSession *session) {
 
 GAMEACTIONLOGIC_SECTION
 void gameActionLogic_scheduleMovement(Pawn *sourcePawn, Pawn *targetPawn, Coordinate selectedTile, GameSession *session) {
+    sourcePawn = validPawn(sourcePawn);
     gameActionLogic_clearMovement(session);
 
     session->movement = (Movement *)MemPtrNew(sizeof(Movement));
     MemSet(session->movement, sizeof(Movement), 0);
     session->movement->launchTimestamp = TimGetTicks();
-    session->movement->targetPawn = targetPawn;
+    session->movement->targetPawn = validPawn(targetPawn);
 
     if (sourcePawn == &session->cameraPawn) {
         session->movement->trajectory.tileCoordinates = (Coordinate *)MemPtrNew(sizeof(Coordinate) * 2);
@@ -237,7 +241,7 @@ Boolean gameActionLogic_afterMove(GameSession *session) {
     Pawn *selectedPawn = session->movement->targetPawn;
     GridItem *gridItem = level_gridItemAtTile(session->activePawn->position, &session->level);
 
-    if (session->movement->pawn != NULL && session->movement->pawn == &session->cameraPawn) {
+    if (isPawnSet(session->movement->pawn) && session->movement->pawn == &session->cameraPawn) {
         gameActionLogic_clearMovement(session);
         session->state = GAMESTATE_DEFAULT;
         return false;
@@ -258,14 +262,14 @@ Boolean gameActionLogic_afterMove(GameSession *session) {
 
     StrCopy(session->cpuActionText, "");
     // Check if flag was captured
-    if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->inventory.carryingFlag && !session->activePawn->inventory.carryingFlag && selectedPawn->inventory.flagOfFaction != session->activePawn->faction) {
+    if (isPawnSet(selectedPawn) && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->inventory.carryingFlag && !session->activePawn->inventory.carryingFlag && selectedPawn->inventory.flagOfFaction != session->activePawn->faction) {
         session->activePawn->inventory.carryingFlag = true;
         session->activePawn->inventory.flagOfFaction = selectedPawn->inventory.flagOfFaction;
         selectedPawn->inventory.carryingFlag = false;
         session->level.scores[session->activePawn->faction].flagsStolen++;
     }
     // Check if flag was returned to player's base
-    if (selectedPawn != NULL && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->faction == session->activePawn->faction && session->activePawn->inventory.carryingFlag) {
+    if (isPawnSet(selectedPawn) && selectedPawn->type == PAWNTYPE_BASE && selectedPawn->faction == session->activePawn->faction && session->activePawn->inventory.carryingFlag) {
         // Flag dissapears, enemy base dissapears, enemy ships join the players fleet
         session->activePawn->inventory.carryingFlag = false;
         session->level.scores[session->activePawn->faction].flagsCaptured[session->activePawn->inventory.flagOfFaction]++;
@@ -358,7 +362,7 @@ void gameActionLogic_afterAttack(GameSession *session) {
             activePawnPosition = session->activePawn->position;
             level_removePawn(session->attackAnimation->targetPawn, &session->level);
             session->activePawn = level_pawnAtTile(activePawnPosition, &session->level);
-            session->attackAnimation->targetPawn = NULL;
+            session->attackAnimation->targetPawn = validPawn(NULL);
             gameActionLogic_addRandomGridItem(destroyedPawnPosition, &session->level);
         }
     }
@@ -441,7 +445,7 @@ void gameActionLogic_clearAttack(GameSession *session) {
 GAMEACTIONLOGIC_SECTION
 void gameActionLogic_scheduleAttack(Pawn *targetPawn, Coordinate selectedTile, TargetSelectionType attackType, GameSession *session) {
     gameActionLogic_clearAttack(session);
-    if (targetPawn != NULL) {
+    if (isPawnSet(targetPawn)) {
         session->targetSelectionType = attackType;
         session->attackAnimation = (AttackAnimation *)MemPtrNew(sizeof(AttackAnimation));
         MemSet(session->attackAnimation, sizeof(AttackAnimation), 0);
